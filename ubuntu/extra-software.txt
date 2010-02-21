@@ -1,0 +1,4 @@
+keepnote	http://rasm.ods.org/keepnote/index.shtml
+kismet		http://www.kismetwireless.net/
+madwimax	http://code.google.com/p/madwimax/downloads/list
+truecrypt	http://www.truecrypt.org/downloads
