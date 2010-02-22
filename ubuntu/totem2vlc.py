@@ -30,7 +30,7 @@ def main():
                 targets.remove(key)
 
         if len(targets) == 0:
-            print 'Changes to your file association have already been made.'
+            print 'Changes to your file associations have already been made.'
             sys.exit(0)
 
         f = file(LOCAL_LIST, 'a')
@@ -39,7 +39,7 @@ def main():
         f.write('%s=vlc.desktop\n' % s)
     f.close()
 
-    print 'Successfully added %d file association with VLC.' % len(targets)
+    print 'Successfully added %d file associations with VLC.' % len(targets)
 
 if __name__ == '__main__':
     main()
