@@ -19,6 +19,7 @@ curl
 cvs
 ddd
 doxygen
+eclipse
 ecryptfs-utils
 elinks
 exuberant-ctags
@@ -68,6 +69,7 @@ mc
 mplayer
 mutt
 nautilus-open-terminal
+netbeans
 ntp
 octave3.2
 octave3.2-info
