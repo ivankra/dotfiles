@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Gets rid of Ubuntu's default multimedia file associations with totem in favor VLC player
+# Gets rid of Ubuntu's default multimedia file associations with totem in favor of VLC player
 import os, sys
 
 DEFAULTS_LIST = '/usr/share/applications/defaults.list'

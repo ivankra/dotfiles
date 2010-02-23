@@ -28,6 +28,7 @@ ffmpeg
 firefox-dom-inspector
 flex
 g++
+g++-multilib
 gawk
 gcc-doc
 gdb-doc
@@ -77,6 +78,7 @@ openoffice.org-thesaurus-ru
 p7zip-full
 pidgin
 pwgen
+pychecker
 python2.4
 python2.5
 python2.6
@@ -84,6 +86,7 @@ python3-all
 python-all
 python-dev
 python-doc
+python-gnome2-extras
 python-setuptools
 qbittorrent
 rar
