@@ -106,12 +106,15 @@ sun-java6-jdk
 sun-java6-plugin
 swig
 tcpdump
+texmaker
 texlive
 texlive-generic-extra
 texlive-lang-cyrillic
 texlive-latex-extra
+texlive-science
 thunderbird
 tkdiff
+tofrodos
 traceroute
 ubuntu-restricted-extras
 unrar
