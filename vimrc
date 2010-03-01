@@ -88,3 +88,5 @@ endfunction
 
 autocmd! BufNewFile *:* nested call s:gotoline()
 autocmd! BufNewFile *:*: nested call s:gotoline()
+
+runtime cscope_maps.vim
