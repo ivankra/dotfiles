@@ -32,9 +32,9 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
     fi
   fi
   if [ "$HOSTNAME" != "dagobah" ]; then
-    PS1COL=32
-  else
     PS1COL=31
+  else
+    PS1COL=32
   fi
 fi
 
