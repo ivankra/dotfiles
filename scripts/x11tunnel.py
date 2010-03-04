@@ -274,7 +274,7 @@ def main():
     CHECK_UID = (options.no_check is None) or (not options.no_check)
 
     if VERBOSE:
-        LOG_FILE = file('/tmp/x11tunel.log', 'w')
+        LOG_FILE = file('/tmp/x11tunnel.log', 'w')
 
     if options.mux is None or len(args) != 1:
         parser.print_help()
@@ -297,5 +297,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# socat 'exec:"ssh seal000 /home/yoda/local/yx-bin/x11tunnel.py -m /tmp/.X11-unix/X42"' 'EXEC:"/home/yoda/s/local/yx-bin/x11tunnel.py -d /tmp/.X11-unix/X0"' &
