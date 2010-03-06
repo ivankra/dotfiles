@@ -14,35 +14,6 @@ def Log(msg):
             LOG_FILE.flush()
         sys.stderr.write(msg)
 
-
-class Watchdog(threading.Thread):
-    def __init__(self, timeout_seconds, on_kill):
-        threading.Thread.__init__(self)
-        self.last_check = time.time()
-        self.timeout = float(timeout_seconds)
-        self.on_kill = on_kill
-        self.mutex = threading.Lock()
-
-    def keep_alive(self):
-        self.mutex.acquire()
-        self.last_check = time.time()
-        self.mutex.release()
-
-    def run(self):
-        while True:
-            time.sleep(1)
-            self.mutex.acquire()
-            good = (time.time() < self.last_check + self.timeout)
-            self.mutex.release()
-            if not good:
-                sys.stderr.write('Killed by watchdog timer\n')
-                try:
-                    self.on_kill()
-                except:
-                    pass
-                os._exit(2)
-
-
 def getUnixPeerUid(socket):
     # freebsd-specific code
     LOCAL_PEERCRED = 1
@@ -92,9 +63,6 @@ def muxer(path):
             sys.stdout.write(struct.pack('ii', cid, -2))
             sys.stdout.flush()
 
-    watchdog = Watchdog(120, on_kill=lambda: os.unlink(path))
-    #watchdog.start()
-
     while True:
         Log('muxer: poll()\n')
         for fd, event in poll.poll():
@@ -133,7 +101,6 @@ def muxer(path):
 
                 if cid == 0:  # keep alive
                     Log('muxer: received keep-alive\n')
-                    watchdog.keep_alive()
                     continue
 
                 if cid not in clients:
@@ -274,7 +241,7 @@ def main():
     CHECK_UID = (options.no_check is None) or (not options.no_check)
 
     if VERBOSE:
-        LOG_FILE = file('/tmp/x11tunel.log', 'w')
+        LOG_FILE = file('/tmp/x11tunnel.log', 'w')
 
     if options.mux is None or len(args) != 1:
         parser.print_help()
@@ -297,5 +264,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# socat 'exec:"ssh seal000 /home/yoda/local/yx-bin/x11tunnel.py -m /tmp/.X11-unix/X42"' 'EXEC:"/home/yoda/s/local/yx-bin/x11tunnel.py -d /tmp/.X11-unix/X0"' &
