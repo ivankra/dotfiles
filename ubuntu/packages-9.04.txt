@@ -22,6 +22,7 @@ doxygen
 eclipse
 ecryptfs-utils
 elinks
+expat
 exuberant-ctags
 fbreader
 ffmpeg
@@ -51,6 +52,7 @@ inkscape
 insight
 ipython
 irussian
+iotop
 ispell
 kcachegrind
 kdbg
@@ -88,6 +90,7 @@ python-all
 python-dev
 python-doc
 python-gnome2-extras
+python-pyparsing
 python-setuptools
 qbittorrent
 rar
