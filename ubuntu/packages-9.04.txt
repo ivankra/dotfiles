@@ -90,6 +90,7 @@ python-all
 python-dev
 python-doc
 python-gnome2-extras
+python-matplotlib
 python-pyparsing
 python-scipy
 python-setuptools
