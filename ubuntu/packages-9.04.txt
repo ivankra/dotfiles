@@ -91,6 +91,7 @@ python-dev
 python-doc
 python-gnome2-extras
 python-pyparsing
+python-scipy
 python-setuptools
 qbittorrent
 rar
