@@ -38,6 +38,7 @@ autocmd FileType cpp    set sts=4 sw=4 et cindent
 autocmd FileType asm    set sts=4 sw=4 et autoindent
 autocmd FileType java   set sts=4 sw=4 et cindent
 autocmd FileType python set sts=4 sw=4 et autoindent
+autocmd FileType lua    set sts=4 sw=4 et autoindent
 autocmd FileType make   set sts=0 sw=8 noet nowrap
 
 set formatprg=indent\ -kr\ --no-tabs
