@@ -52,6 +52,10 @@ autocmd FileType python set sts=4 sw=4 et autoindent
 autocmd FileType lua    set sts=4 sw=4 et autoindent
 autocmd FileType make   set sts=0 sw=8 noet nowrap
 
+autocmd BufEnter *.cpp let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
+autocmd BufEnter *.cc let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
+autocmd BufEnter *.h let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
+
 set formatprg=indent\ -kr\ --no-tabs
 
 filetype plugin indent on
