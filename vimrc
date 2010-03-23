@@ -68,19 +68,8 @@ map  <C-S-V> "+gp
 imap <C-S-V> <C-O>"+gp
 map! <C-S-V> <C-R>+
 
-" Ctrl-A switches between .cpp and .h
-func! SwitchHeader()
-    if bufname("%")=~'\.cpp'
-        fin %:r.h
-    else
-        fin %:r.cpp
-    endif
-endfunc
-nmap <C-A> :call SwitchHeader()<CR>
-
 " :CD switches to the directory where the current buffer currently is
 com! CD cd %:p:h
-
 
 " file:line.vim
 function! s:gotoline()
@@ -102,3 +91,7 @@ autocmd! BufNewFile *:* nested call s:gotoline()
 autocmd! BufNewFile *:*: nested call s:gotoline()
 
 runtime cscope_maps.vim
+
+" Ctrl-A switches between .h and .cc
+runtime fswitch.vim
+nmap <C-A> :FSHere<CR>
