@@ -10,6 +10,8 @@ set tags=./tags,./TAGS,tags,TAGS,../tags,../../tags,../../../tags,../../../../ta
 set tabstop=8 noexpandtab autoindent
 syntax on
 
+set fileencodings=ucs-bom,utf-8,cp1251,default,latin1
+
 if has("gui_running")
   if has("win32")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
