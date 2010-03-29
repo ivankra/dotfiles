@@ -123,11 +123,14 @@ PACKAGES = [
     gnu('gettext/gettext-0.17.tar.gz'),
     gnu('ncurses/ncurses-5.7.tar.gz'),
     gnu('gmp/gmp-5.0.1.tar.bz2'),
+
     gnu('gdb/gdb-7.1.tar.bz2'),
     gnu('gperf/gperf-3.0.4.tar.gz'),
     dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
         config_make_install="export PYTHON_PATH=$(which python); ./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install"),
     dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2'),
+    dict(url='http://prdownloads.sourceforge.net/ctags/ctags-5.8.tar.gz'),
+    dict(url='http://downloads.sourceforge.net/project/cscope/cscope/15.7a/cscope-15.7a.tar.bz2'),
 
     dict(url='http://xmlsoft.org/sources/libxml2-2.7.7.tar.gz'),
     dict(url='http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz'),
