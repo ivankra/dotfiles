@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-# Downloads and compiles from source some generally useful software,
-# Now includes X11 libs!
+# Downloads and compiles from source some generally useful software, Culminates in compiling a gtk+ enabled vim.
 import os, re, sys, urllib2
 
 HOME = os.environ['HOME']
@@ -28,7 +27,7 @@ def download(url, path):
     elif os.system('which curl >/dev/null') == 0:
         sh("curl '%s' > '%s'" % (url, path + '.temp'))
     else:
-        file(path + '.temp', 'w').write(urlopen2.urlopen(url).read())
+        file(path + '.temp', 'w').write(urllib2.urlopen(url).read())
     sh("mv -f '%s' '%s'" % (path + '.temp', path))
 
 def is_installed(package_id):
@@ -41,7 +40,9 @@ def is_installed(package_id):
 def mark_installed(package_id):
     file(INSTALLED_TARBALLS_FILE, 'a').write(package_id + '\n')
 
-def install_tarball(url):
+def install_tarball(entry):
+    url = entry['url']
+
     print 'Installing %s' % url
 
     if not os.path.exists(LOCAL):
@@ -50,24 +51,32 @@ def install_tarball(url):
     if not os.path.exists(BUILD_DIR):
         os.makedirs(BUILD_DIR)
 
-    m = re.match(r'.*/(([^/]*)\.tar\.(gz|bz2))$', url)
-    if not m:
-        raise Exception("Couldn't parse the URL: %s" % url)
+    if 'url_basename' in entry:
+        url_basename = entry['url_basename']
+        url_filename = entry['url_filename']
+    else:
+        m = re.match(r'.*/(([^/]*)\.tar\.(gz|bz2))$', url)
+        if not m:
+            raise Exception("Couldn't parse the URL: %s" % url)
+        url_filename, url_basename, gz_bz2 = m.groups()
+    archive_dir = entry.get('archive_dir', url_basename)
 
-    archive, basename, gz_bz2 = m.groups()
-    archive_path = os.path.join(BUILD_DIR, archive)
+    archive_path = os.path.join(BUILD_DIR, url_filename)
     if not os.path.exists(archive_path):
         download(url, archive_path)
 
     os.chdir(BUILD_DIR)
-    sh("rm -rf '%s'" % basename)
-    sh("tar xf '%s'" % archive)
-    if not os.path.exists(basename):
-        raise Exception('Tarball %s wasn\'t extracted into "%s"' % (url, basename))
+    sh("rm -rf '%s'" % archive_dir)
+    sh("tar xf '%s'" % url_filename)
 
-    sh("cd '%s' && ./configure '--prefix=%s' && make && make install" % (basename, LOCAL))
+    if not os.path.exists(archive_dir):
+        raise Exception('Tarball %s wasn\'t extracted into "%s"' % (url, archive_dir))
+
+    os.chdir(archive_dir)
+    cmd = entry.get('config_make_install', "./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install")
+    sh(cmd % dict(LOCAL=LOCAL))
     os.chdir(BUILD_DIR)
-    sh("rm -rf '%s'" % basename)
+    sh("rm -rf '%s'" % archive_dir)
 
     print 'Installed %s' % url
 
@@ -90,33 +99,48 @@ def xorg(package):
     res = dir + '/' + matches[0]
     return dict(url=res)
 
-def gnu(package):
+def gnu(package, **extra):
     #return 'http://ftp.gnu.org/gnu/' + package
-    return dict(url='http://mirrors.kernel.org/gnu/' + package)
+    return dict(url='http://mirrors.kernel.org/gnu/' + package, **extra)
 
 PACKAGES = [
     # let's install some gnu tools to replace the junk shipped with bsd.
-    gnu('make/make-3.81.tar.bz2')
-    gnu('tar/tar-latest.tar.bz2'),
-    gnu('coreutils/coreutils-8.4.tar.gz')
+    gnu('make/make-3.81.tar.bz2', config_make_install="./configure '--prefix=%(LOCAL)s' && make && make install"),
+    gnu('wget/wget-1.12.tar.bz2'),
+    gnu('tar/tar-1.23.tar.bz2'),
+    gnu('coreutils/coreutils-8.4.tar.gz'),
     gnu('diffutils/diffutils-2.9.tar.gz'),
     gnu('findutils/findutils-4.4.2.tar.gz'),
-    gnu('patch/patch-2.6.1.tar.bz2'),
+    #gnu('patch/patch-2.6.1.tar.bz2'),
     gnu('grep/grep-2.6.1.tar.gz'),
     gnu('groff/groff-1.20.1.tar.gz'),
     gnu('m4/m4-1.4.14.tar.bz2'),
     gnu('sed/sed-4.2.1.tar.bz2'),
     gnu('gawk/gawk-3.1.7.tar.bz2'),
     gnu('bison/bison-2.4.2.tar.bz2'),
-    dict(url='http://prdownloads.sourceforge.net/flex/flex-2.5.35.tar.bz2?download'),
+    dict(url='http://prdownloads.sourceforge.net/flex/flex-2.5.35.tar.bz2?download', url_filename='flex-2.5.35.tar.bz2', url_basename='flex-2.5.35'),
     gnu('libiconv/libiconv-1.13.1.tar.gz'),
     gnu('gettext/gettext-0.17.tar.gz'),
     gnu('ncurses/ncurses-5.7.tar.gz'),
     gnu('gmp/gmp-5.0.1.tar.bz2'),
-    gnu('git/gnuit-4.9.5.tar.gz'),
     gnu('gdb/gdb-7.1.tar.bz2'),
+    gnu('gperf/gperf-3.0.4.tar.gz'),
+    dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
+        config_make_install="export PYTHON_PATH=$(which python); ./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install"),
 
-    #xorg('proto/applewmproto'),
+    dict(url='http://xmlsoft.org/sources/libxml2-2.7.7.tar.gz'),
+    dict(url='http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz'),
+    dict(url='http://pkgconfig.freedesktop.org/releases/pkg-config-0.23.tar.gz'),
+    dict(url='http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.0.tar.bz2'),
+    dict(url='http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz'),
+    dict(url='http://downloads.sourceforge.net/freetype/freetype-2.3.12.tar.bz2'),
+
+    dict(url='http://www.ijg.org/files/jpegsrc.v8a.tar.gz', archive_dir='jpeg-8a'),
+    dict(url='http://prdownloads.sourceforge.net/libpng/01-libpng-master/1.4.1/libpng-1.4.1.tar.bz2?download', url_filename='libpng-1.4.1.tar.bz2', url_basename='libpng-1.4.1'),
+    dict(url='ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz'),
+
+    # X11 libs
+    xorg('proto/applewmproto'),
     xorg('proto/bigreqsproto'),
     xorg('proto/compositeproto'),
     xorg('proto/damageproto'),
@@ -133,7 +157,7 @@ PACKAGES = [
     xorg('proto/resourceproto'),
     xorg('proto/scrnsaverproto'),
     xorg('proto/videoproto'),
-    #xorg('proto/windowswmproto'),
+    xorg('proto/windowswmproto'),
     xorg('proto/xcmiscproto'),
     xorg('proto/xextproto'),
     xorg('proto/xf86bigfontproto'),
@@ -142,13 +166,13 @@ PACKAGES = [
     xorg('proto/xf86vidmodeproto'),
     xorg('proto/xineramaproto'),
     xorg('proto/xproto'),
-
     xorg('lib/xtrans'),
     xorg('lib/libXau'),
     xorg('lib/libXdmcp'),
-    #build xcb pthread-stubs
-    #build xcb libxcb
-    #build xcb util
+    dict(url='http://xcb.freedesktop.org/dist/xcb-proto-1.5.tar.bz2'),
+    dict(url='http://xcb.freedesktop.org/dist/libpthread-stubs-0.1.tar.bz2'),
+    dict(url='http://xcb.freedesktop.org/dist/libxcb-1.4.tar.bz2'),
+    dict(url='http://xcb.freedesktop.org/dist/xcb-util-0.3.6.tar.bz2'),
     xorg('lib/libX11'),
     xorg('lib/libXext'),
     xorg('lib/libdmx'),
@@ -180,20 +204,46 @@ PACKAGES = [
     xorg('lib/libXxf86vm'),
     xorg('lib/libpciaccess'),
     #build pixman ""
+    dict(url='http://xorg.freedesktop.org/releases/individual/data/xbitmaps-1.1.0.tar.bz2'),
+    #dict(url='http://xorg.freedesktop.org/releases/individual/data/xcursor-themes-1.0.2.tar.bz2'),
 
+    # X11 basic apps
     xorg('app/xauth'),
     xorg('app/xdpyinfo'),
+    dict(url='http://www.x.org/releases/individual/app/xclock-1.0.4.tar.bz2'),
+    dict(url='http://www.x.org/releases/individual/app/xeyes-1.1.0.tar.bz2'),
+    dict(url='http://www.x.org/releases/individual/app/twm-1.0.4.tar.bz2'),
+    dict(url='http://www.x.org/releases/individual/app/xlsfonts-1.0.2.tar.bz2'),
+
+    dict(url='http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.07.tar.bz2',  # uxvt
+        config_make_install="./configure '--prefix=%(LOCAL)s' --enable-everything && nice -20 make -j 10 && make install"),
+
+    # GTK
+    dict(url='http://cairographics.org/releases/pixman-0.17.14.tar.gz'),
+    dict(url='http://cairographics.org/releases/cairo-1.8.10.tar.gz'),
+    dict(url='http://ftp.gnome.org/pub/gnome/sources/atk/1.29/atk-1.29.92.tar.bz2'),
+    dict(url='http://ftp.gnome.org/pub/gnome/sources/pango/1.27/pango-1.27.1.tar.bz2'),
+    dict(url='http://ftp.gnome.org/pub/gnome/sources/gtk+/2.20/gtk+-2.20.0.tar.bz2'),
+
+    dict(url='ftp://ftp.vim.org/pub/vim/unix/vim-7.2.tar.bz2',
+        archive_dir="vim72",
+        config_make_install=("./configure '--prefix=%(LOCAL)s' " +
+            " --with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls " +
+            "&& nice -20 make -j 10 && make install")),
+
+    # TODO: copy some fonts over to .local/share/fonts and create a symlink for it:
+    # ln -s .local/share/fonts ~/.fonts
 ]
 
 del gnu
 del xorg
 
 def main():
-    for d in PACKAGES:
-        url = d['url']
-        package_id = d.get('package_id', os.path.basename(url))
+    for entry in PACKAGES:
+        url = entry['url']
+        package_id = entry.get('package_id', os.path.basename(url))
         if not is_installed(package_id):
-            install_tarball(url)
+            install_tarball(entry)
             mark_installed(package_id)
 
 main()
