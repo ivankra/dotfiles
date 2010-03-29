@@ -127,6 +127,7 @@ PACKAGES = [
     gnu('gperf/gperf-3.0.4.tar.gz'),
     dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
         config_make_install="export PYTHON_PATH=$(which python); ./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install"),
+    dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2'),
 
     dict(url='http://xmlsoft.org/sources/libxml2-2.7.7.tar.gz'),
     dict(url='http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz'),
@@ -207,16 +208,17 @@ PACKAGES = [
     dict(url='http://xorg.freedesktop.org/releases/individual/data/xbitmaps-1.1.0.tar.bz2'),
     #dict(url='http://xorg.freedesktop.org/releases/individual/data/xcursor-themes-1.0.2.tar.bz2'),
 
-    # X11 basic apps
+    # X11 apps
     xorg('app/xauth'),
     xorg('app/xdpyinfo'),
     dict(url='http://www.x.org/releases/individual/app/xclock-1.0.4.tar.bz2'),
     dict(url='http://www.x.org/releases/individual/app/xeyes-1.1.0.tar.bz2'),
     dict(url='http://www.x.org/releases/individual/app/twm-1.0.4.tar.bz2'),
     dict(url='http://www.x.org/releases/individual/app/xlsfonts-1.0.2.tar.bz2'),
-
     dict(url='http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.07.tar.bz2',  # uxvt
         config_make_install="./configure '--prefix=%(LOCAL)s' --enable-everything && nice -20 make -j 10 && make install"),
+    dict(url='http://www.vergenet.net/~conrad/software/xsel/download/xsel-1.2.0.tar.gz',
+        config_make_install="sed -i -e 's/-Werror/-Wno-error/' ./configure && ./configure '--prefix=%(LOCAL)s' && make && make install"),
 
     # GTK
     dict(url='http://cairographics.org/releases/pixman-0.17.14.tar.gz'),
