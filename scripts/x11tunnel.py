@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/env python
 """xauth-less X11 forwarding over binary bidirectional tunnels"""
 import os, select, socket, struct, sys, threading, time, optparse
 

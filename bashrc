@@ -13,12 +13,12 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export TMPDIR=/var/tmp
   export CVSROOT=tree.yandex.ru:/opt/CVSROOT
   export DEF_MR_SERVER=sdf200:8013
-  export PATH=/home/$USER/git/configs/scripts:/home/$USER/local/yx-bin:/home/$USER/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  LOCAL=/home/$USER/.local
+  export PATH=/home/$USER/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   if [ -z "$UNAME" ]; then
     export UNAME=$(uname)
   fi
   if [ "$UNAME" = "FreeBSD" ]; then
-    LOCAL=/home/$USER/local
     if [ -d $LOCAL ]; then
       export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
       export CPATH=$LOCAL/include
@@ -80,7 +80,7 @@ xterm*|rxvt*)
 esac
 
 if [ "$(uname)" = "FreeBSD" ]; then
-  alias ls='ls -G'
+  alias ls='/bin/ls -G'
   alias free='vmstat'
 elif [ "$TERM" != "dumb" ]; then
   #eval "`dircolors -b`"
