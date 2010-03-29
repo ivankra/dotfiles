@@ -28,6 +28,8 @@ def check(url, filename):
     data = urllib2.urlopen(pic_url).read()
     file(filename, 'wb').write(data)
 
+    last_url = pic_url
+
 def main(argv):
     parser = optparse.OptionParser(usage='%prog [options]')
     parser.add_option('-i', '--interval', dest='interval', default=3600,
