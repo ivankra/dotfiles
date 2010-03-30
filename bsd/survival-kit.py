@@ -73,8 +73,8 @@ def install_tarball(entry):
         raise Exception('Tarball %s wasn\'t extracted into "%s"' % (url, archive_dir))
 
     os.chdir(archive_dir)
-    cmd = entry.get('config_make_install', "./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
-    sh(cmd % dict(LOCAL=LOCAL, configure_flags=entry.get('configure_flags', ''))
+    cmd = entry.get('config_make_install', "%(pre_configure)s && ./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
+    sh(cmd % dict(LOCAL=LOCAL, pre_configure=entry.get('pre_configure', 'true'), configure_flags=entry.get('configure_flags', ''))
     os.chdir(BUILD_DIR)
     sh("rm -rf '%s'" % archive_dir)
 
@@ -126,8 +126,7 @@ PACKAGES = [
 
     gnu('gdb/gdb-7.1.tar.bz2'),
     gnu('gperf/gperf-3.0.4.tar.gz'),
-    dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
-        config_make_install="export PYTHON_PATH=$(which python); ./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install"),
+    dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2', pre_configure='export PYTHON_PATH=$(which python)'),
     dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2'),
     dict(url='http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2'),
     dict(url='http://prdownloads.sourceforge.net/ctags/ctags-5.8.tar.gz'),
@@ -221,7 +220,7 @@ PACKAGES = [
     dict(url='http://www.x.org/releases/individual/app/xlsfonts-1.0.2.tar.bz2'),
     dict(url='http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.07.tar.bz2', configure_flags='--enable-everything'),
     dict(url='http://www.vergenet.net/~conrad/software/xsel/download/xsel-1.2.0.tar.gz',
-        config_make_install="sed -i -e 's/-Werror/-Wno-error/' ./configure && ./configure '--prefix=%(LOCAL)s' && make && make install"),
+        pre_configure="sed -i -e 's/-Werror/-Wno-error/' ./configure"),
 
     # GTK
     dict(url='http://cairographics.org/releases/pixman-0.17.14.tar.gz'),
