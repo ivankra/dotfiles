@@ -39,7 +39,10 @@ def main():
         if os.path.exists(src) and check_symlink(src, dst):
             continue
 
-        items_str.append('Replace "%s" by a symlink to "%s"' % (src, dst))
+        if os.path.exists(src):
+            items_str.append('Replace "%s" by a symlink to "%s"' % (src, dst))
+        else:
+            items_str.append('Create symlink "%s" to "%s"' % (src, dst))
 
     if len(items_str) == 0:
         sys.stdout.write('This script has already been executed. Nothing to do.\n')
