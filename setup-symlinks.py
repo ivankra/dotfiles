@@ -10,7 +10,7 @@ def check_symlink(src, dst):
 def sh(cmd):
     ret = os.system(cmd)
     if ret != 0:
-        sys.stderr.write('Error: command "%s" terminated with exit code %d.' % (cmd, ret))
+        sys.stderr.write('Error: command "%s" terminated with exit code %d.\n' % (cmd, ret))
         sys.exit(1)
 
 def main():
@@ -22,7 +22,7 @@ def main():
         sys.stderr.write(
             "This script assumes that it and all config files " +
             "are located in %s, but this directory does not exist " +
-            "or doesn't contain what we expect." % base)
+            "or doesn't contain what we expect.\n" % base)
         sys.exit(1)
 
     actions = []
@@ -33,7 +33,7 @@ def main():
     items_str = []
     for src, dst in actions:
         if not os.path.exists(dst):
-            sys.stderr.write('Error: "%s" does not exist.' % dst)
+            sys.stderr.write('Error: "%s" does not exist.\n' % dst)
             sys.exit(1)
 
         if os.path.exists(src) and check_symlink(src, dst):
