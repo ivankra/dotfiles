@@ -1,41 +1,67 @@
 #!/usr/bin/env python
-import os, sys
+import os, sys, pwd
 
-USER = os.getlogin()
-HOME = '/home/' + USER
-BASE_DIR = HOME + '/git/configs'
+def check_symlink(src, dst):
+    try:
+        return os.readlink(src) == dst
+    except:
+        return False
 
-COMMANDS = []
-
-def mksym(src, dst):
-    global COMMANDS
-    assert "'" not in src
-    assert "'" not in dst
-    if not os.path.exists(src):
-        print 'Error: %s does not exist' % src
+def sh(cmd):
+    ret = os.system(cmd)
+    if ret != 0:
+        sys.stderr.write('Error: command "%s" terminated with exit code %d.' % (cmd, ret))
         sys.exit(1)
-    if os.path.exists(dst):
-        COMMANDS += ["rm -rf '%s'" % dst]
-    COMMANDS += ["ln -s '%s' '%s'" % (os.path.abspath(src), dst)]
-    print '%s -> %s' % (src, dst)
 
 def main():
-    if not os.path.exists(BASE_DIR):
-        print 'This script assumes that it and all config files are located in %s' % BASE_DIR
-        print 'but this directory does not exist'
+    home = os.environ['HOME']
+    assert home.startswith('/')
+
+    base = home + '/git/configs'
+    if not os.path.exists(os.path.join(base, 'setup-symlinks.py')):
+        sys.stderr.write(
+            "This script assumes that it and all config files " +
+            "are located in %s, but this directory does not exist " +
+            "or doesn't contain what we expect." % base)
         sys.exit(1)
 
-    mksym(BASE_DIR + '/bashrc', HOME + '/.bashrc')
-    mksym(BASE_DIR + '/vimrc', HOME + '/.vimrc')
-    mksym(BASE_DIR + '/vim', HOME + '/.vim')
+    actions = []
+    actions.append([home + '/.bashrc', base + '/bashrc'])
+    actions.append([home + '/.vimrc', base + '/vimrc'])
+    actions.append([home + '/.vim', base + '/vim'])
 
-    for c in COMMANDS:
-        ret = os.system(c)
-        if ret != 0:
-            print 'Error: command "%s" failed' % c
+    items_str = []
+    for src, dst in actions:
+        if not os.path.exists(dst):
+            sys.stderr.write('Error: "%s" does not exist.' % dst)
             sys.exit(1)
 
-    print 'Success'
+        if os.path.exists(src) and check_symlink(src, dst):
+            continue
+
+        items_str.append('Replace "%s" by a symlink to "%s"' % (src, dst))
+
+    if len(items_str) == 0:
+        sys.stdout.write('This script has already been executed. Nothing to do.\n')
+        sys.exit(0)
+
+    sys.stdout.write('The following actions will be taken:\n')
+    for s in items_str:
+        sys.stdout.write('  * %s\n' % s)
+    sys.stdout.write('Confirm (yes/no)? ')
+    sys.stdout.flush()
+
+    if sys.stdin.readline().strip().lower() != 'yes':
+        sys.stdout.write('Aborted.\n')
+        sys.exit(0)
+
+    for src, dst in actions:
+        assert "'" not in src and "'" not in dst
+        if os.path.exists(src):
+            sh("rm -rf '%s'" % src)
+        sh("ln -s '%s' '%s'" % (os.path.abspath(dst), src))
+
+    sys.stdout.write('Finished successfully.\n')
 
 if __name__ == '__main__':
     main()
