@@ -73,8 +73,8 @@ def install_tarball(entry):
         raise Exception('Tarball %s wasn\'t extracted into "%s"' % (url, archive_dir))
 
     os.chdir(archive_dir)
-    cmd = entry.get('config_make_install', "./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install")
-    sh(cmd % dict(LOCAL=LOCAL))
+    cmd = entry.get('config_make_install', "./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
+    sh(cmd % dict(LOCAL=LOCAL, configure_flags=entry.get('configure_flags', ''))
     os.chdir(BUILD_DIR)
     sh("rm -rf '%s'" % archive_dir)
 
@@ -107,6 +107,10 @@ PACKAGES = [
     # let's install some gnu tools to replace the junk shipped with bsd.
     gnu('make/make-3.81.tar.bz2', config_make_install="./configure '--prefix=%(LOCAL)s' && make && make install"),
     gnu('wget/wget-1.12.tar.bz2'),
+    gnu('libiconv/libiconv-1.13.1.tar.gz'),
+    gnu('gettext/gettext-0.17.tar.gz'),
+    gnu('ncurses/ncurses-5.7.tar.gz'),
+    gnu('gmp/gmp-5.0.1.tar.bz2'),
     gnu('tar/tar-1.23.tar.bz2'),
     gnu('coreutils/coreutils-8.4.tar.gz'),
     gnu('diffutils/diffutils-2.9.tar.gz'),
@@ -119,16 +123,13 @@ PACKAGES = [
     gnu('gawk/gawk-3.1.7.tar.bz2'),
     gnu('bison/bison-2.4.2.tar.bz2'),
     dict(url='http://prdownloads.sourceforge.net/flex/flex-2.5.35.tar.bz2?download', url_filename='flex-2.5.35.tar.bz2', url_basename='flex-2.5.35'),
-    gnu('libiconv/libiconv-1.13.1.tar.gz'),
-    gnu('gettext/gettext-0.17.tar.gz'),
-    gnu('ncurses/ncurses-5.7.tar.gz'),
-    gnu('gmp/gmp-5.0.1.tar.bz2'),
 
     gnu('gdb/gdb-7.1.tar.bz2'),
     gnu('gperf/gperf-3.0.4.tar.gz'),
     dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
         config_make_install="export PYTHON_PATH=$(which python); ./configure '--prefix=%(LOCAL)s' && nice -20 make -j 10 && make install"),
     dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2'),
+    dict(url='http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2'),
     dict(url='http://prdownloads.sourceforge.net/ctags/ctags-5.8.tar.gz'),
     dict(url='http://downloads.sourceforge.net/project/cscope/cscope/15.7a/cscope-15.7a.tar.bz2'),
 
@@ -218,8 +219,7 @@ PACKAGES = [
     dict(url='http://www.x.org/releases/individual/app/xeyes-1.1.0.tar.bz2'),
     dict(url='http://www.x.org/releases/individual/app/twm-1.0.4.tar.bz2'),
     dict(url='http://www.x.org/releases/individual/app/xlsfonts-1.0.2.tar.bz2'),
-    dict(url='http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.07.tar.bz2',  # uxvt
-        config_make_install="./configure '--prefix=%(LOCAL)s' --enable-everything && nice -20 make -j 10 && make install"),
+    dict(url='http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.07.tar.bz2', configure_flags='--enable-everything'),
     dict(url='http://www.vergenet.net/~conrad/software/xsel/download/xsel-1.2.0.tar.gz',
         config_make_install="sed -i -e 's/-Werror/-Wno-error/' ./configure && ./configure '--prefix=%(LOCAL)s' && make && make install"),
 
@@ -232,9 +232,7 @@ PACKAGES = [
 
     dict(url='ftp://ftp.vim.org/pub/vim/unix/vim-7.2.tar.bz2',
         archive_dir="vim72",
-        config_make_install=("./configure '--prefix=%(LOCAL)s' " +
-            " --with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls " +
-            "&& nice -20 make -j 10 && make install")),
+        configure_flags='--with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls'),
 
     # TODO: copy some fonts over to .local/share/fonts and create a symlink for it:
     # ln -s .local/share/fonts ~/.fonts
