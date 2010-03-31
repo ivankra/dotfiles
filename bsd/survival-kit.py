@@ -74,7 +74,7 @@ def install_tarball(entry):
 
     os.chdir(archive_dir)
     cmd = entry.get('config_make_install', "%(pre_configure)s && ./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
-    sh(cmd % dict(LOCAL=LOCAL, pre_configure=entry.get('pre_configure', 'true'), configure_flags=entry.get('configure_flags', ''))
+    sh(cmd % dict(LOCAL=LOCAL, pre_configure=entry.get('pre_configure', 'true'), configure_flags=entry.get('configure_flags', '')))
     os.chdir(BUILD_DIR)
     sh("rm -rf '%s'" % archive_dir)
 
@@ -123,6 +123,11 @@ PACKAGES = [
     gnu('gawk/gawk-3.1.7.tar.bz2'),
     gnu('bison/bison-2.4.2.tar.bz2'),
     dict(url='http://prdownloads.sourceforge.net/flex/flex-2.5.35.tar.bz2?download', url_filename='flex-2.5.35.tar.bz2', url_basename='flex-2.5.35'),
+
+    dict(url='http://www.openssl.org/source/openssl-1.0.0.tar.gz',
+        config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s shared && make -j 20 && make install'),
+    # TODO: static openssl
+    dict(url='http://curl.haxx.se/download/curl-7.20.0.tar.bz2'),
 
     gnu('gdb/gdb-7.1.tar.bz2'),
     gnu('gperf/gperf-3.0.4.tar.gz'),
