@@ -1,24 +1,34 @@
 #!/usr/bin/env python
 # Downloads and compiles from source some generally useful software, Culminates in compiling a gtk+ enabled vim.
-import os, re, sys, urllib2
+import os, re, sys, urllib2, optparse
 
 HOME = os.environ['HOME']
 assert HOME.startswith('/home/')
 LOCAL = os.path.join(HOME, '.local')
 TARBALLS_DIR = LOCAL + '/tarballs'
 INSTALLED_TARBALLS_FILE = os.path.join(LOCAL, 'installed-tarballs')
-BUILD_DIR = LOCAL + 'build'
+BUILD_DIR = LOCAL + '/build'
 
-# default build environment
-os.environ['PATH'] = LOCAL + '/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-os.environ['PKG_CONFIG_PATH'] = '%s/lib/pkgconfig:%s/share/pkgconfig' % (LOCAL, LOCAL)
-os.environ['CPATH'] = LOCAL + '/include'
-os.environ['LIBRARY_PATH'] = LOCAL + '/lib'
-os.environ['LD_LIBRARY_PATH'] = LOCAL + '/lib'
-os.environ['CFLAGS'] = '-pipe -O2 -mtune=native -march=native'
-os.environ['LDFLAGS'] = ''
-os.environ['LIBS'] = ''
-os.environ['LANG'] = 'en_US.UTF-8'
+def is_command_available(name):
+    return os.system("which '%s' >/dev/null 2>/dev/null" % name) == 0
+
+def fill_build_environment(env):
+    env['PATH'] = LOCAL + '/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+    env['PKG_CONFIG_PATH'] = '%s/lib/pkgconfig:%s/share/pkgconfig' % (LOCAL, LOCAL)
+    env['CPATH'] = LOCAL + '/include'
+    env['LIBRARY_PATH'] = LOCAL + '/lib'
+    env['LD_LIBRARY_PATH'] = LOCAL + '/lib'
+    env['CFLAGS'] = '-pipe -O2 -mtune=native -march=native'
+    env['LDFLAGS'] = ''
+    env['LIBS'] = ''
+    env['LANG'] = 'en_US.UTF-8'
+    env['TMPDIR'] = '/var/tmp'
+
+    for gcc, gxx in (('gcc44', 'g++44'), ('gcc', 'g++')):
+        if is_command_available(gcc) and is_command_available(gxx):
+            env['CC'] = gcc
+            env['CXX'] = gxx
+            break
 
 def sh(cmd):
     print cmd
@@ -34,9 +44,9 @@ def check_symlink(src, dst):
 
 def download(url, path):
     assert "'" not in (url + path)
-    if os.system('which wget >/dev/null') == 0:
+    if is_command_available('wget'):
         sh("wget -O '%s' '%s'" % (path + '.temp', url))
-    elif os.system('which curl >/dev/null') == 0:
+    elif is_command_available('curl'):
         sh("curl '%s' > '%s'" % (url, path + '.temp'))
     else:
         file(path + '.temp', 'w').write(urllib2.urlopen(url).read())
@@ -55,6 +65,11 @@ def mark_installed(package_id):
 def install_tarball(entry):
     url = entry['url']
 
+    package_id = entry.get('package_id', os.path.basename(url))
+    if is_installed(package_id):
+        print '%s is already installed' % package_id
+        return
+
     print 'Installing %s' % url
 
     if not os.path.exists(LOCAL):
@@ -69,7 +84,7 @@ def install_tarball(entry):
             raise Exception("Couldn't parse the URL: %s" % url)
         url_filename, url_basename, gz_bz2 = m.groups()
 
-    if os.path.exists(TARBALLS_DIR):
+    if not os.path.exists(TARBALLS_DIR):
         os.makedirs(TARBALLS_DIR)
     archive_path = os.path.join(TARBALLS_DIR, url_filename)
     if not os.path.exists(archive_path):
@@ -86,28 +101,29 @@ def install_tarball(entry):
         raise Exception("Tarball %s contained multiple files/directories at the top level: %s" % (url, file_list))
     os.chdir(file_list[0])
 
-    cmd = entry.get('config_make_install', "%(pre_configure)s && ./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
-    sh(cmd % dict(LOCAL=LOCAL, pre_configure=entry.get('pre_configure', 'true'), configure_flags=entry.get('configure_flags', ''))
+    cmd = entry.get('config_make_install',
+            "%(pre_configure)s && ./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
+    sh(cmd % dict(LOCAL=LOCAL, pre_configure=entry.get('pre_configure', 'true'), configure_flags=entry.get('configure_flags', '')))
 
     os.chdir(LOCAL)
     sh("rm -rf '%s'" % BUILD_DIR)
 
     print 'Installed %s' % url
+    mark_installed(package_id)
 
 ###############################################################################
 
 def get_package_list():
-    _page_cache = {}
+    page_cache = dict()
 
     def xorg(package):
-        global _page_cache
         url = 'http://www.x.org/releases/X11R7.5/src/' + package
         if '.tar' in url:
             return url
         dir = os.path.dirname(url)
-        if dir not in _page_cache:
-            _page_cache[dir] = urllib2.urlopen(dir).read()
-        page = _page_cache[dir]
+        if dir not in page_cache:
+            page_cache[dir] = urllib2.urlopen(dir).read()
+        page = page_cache[dir]
         matches = re.findall('<a href="(%s-[^"]*.tar.bz2)">' % os.path.basename(package), page)
         if len(matches) != 1:
             raise Exception('Failed to find package %s (found %d matches on page %s)' % (
@@ -139,7 +155,7 @@ def get_package_list():
         gnu('gawk/gawk-3.1.7.tar.bz2'),
         gnu('bison/bison-2.4.2.tar.bz2'),
         gnu('less/less-418.tar.gz'),
-        'http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.7.tar.gz',
+        'http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz',
         'http://downloads.sourceforge.net/flex/flex-2.5.35.tar.bz2',
         dict(url='http://www.openssl.org/source/openssl-1.0.0.tar.gz',
             config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s shared && make -j 20 && make install'),
@@ -255,18 +271,29 @@ def get_package_list():
     ]
 
 def main():
-    for entry in get_package_list():
-        if type(entry) is str:
-            entry = dict(url=entry)
-        assert type(entry) is dict
-        url = entry['url']
-        package_id = entry.get('package_id', os.path.basename(url))
-        if not is_installed(package_id):
-            install_tarball(entry)
-            mark_installed(package_id)
+    args = sys.argv[1:]
+    if len(args) == 0 or any([s.startswith('-') for s in args]):
+        print 'Usage:'
+        print '  survival-kit.py go               installs a hard-coded list of packages'
+        print '  survival-kit.py url1 [url2] ...  installs tarballs from specified URLs'
+        print 'Software will be installed in %s' % LOCAL
+        sys.exit(1)
 
-    if not check_symlink(os.path.join(os.environ['HOME'], '.fonts'), LOCAL + '/share/fonts'):
-        print 'Action needed: upload some fonts to %s and run the command:' % (LOCAL + '/share/fonts')
-        print "ln -s %s %s" % (LOCAL + '/share/fonts', os.path.join(os.environ['HOME'], '.fonts'))
+    fill_build_environment(os.environ)
+
+    if args == ['go']:
+        for entry in get_package_list():
+            if type(entry) is str:
+                entry = dict(url=entry)
+            assert type(entry) is dict
+            url = entry['url']
+            install_tarball(entry)
+
+        if not check_symlink(os.path.join(os.environ['HOME'], '.fonts'), LOCAL + '/share/fonts'):
+            print 'Action needed: upload some fonts to %s and run the command:' % (LOCAL + '/share/fonts')
+            print "ln -s %s %s" % (LOCAL + '/share/fonts', os.path.join(os.environ['HOME'], '.fonts'))
+    else:
+        for s in args:
+            install_tarball(dict(url=s))
 
 main()
