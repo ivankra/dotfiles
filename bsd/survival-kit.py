@@ -230,8 +230,12 @@ def install_tarball(entry):
     os.chdir(file_list[0])
 
     cmd = entry.get('config_make_install',
-            "%(pre_configure)s && ./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install")
-    sh(cmd % dict(LOCAL=LOCAL, pre_configure=entry.get('pre_configure', 'true'), configure_flags=entry.get('configure_flags', '')))
+            "%(pre_configure)s && ./configure '--prefix=%(LOCAL)s' %(configure_flags)s && nice -20 make -j 10 && make install && %(post_install)s")
+    sh(cmd % dict(
+        LOCAL=LOCAL,
+        pre_configure=entry.get('pre_configure', 'true'),
+        configure_flags=entry.get('configure_flags', ''),
+        post_install=entry.get('post_install', 'true')))
 
     os.chdir(LOCAL)
     sh("rm -rf '%s'" % BUILD_DIR)
@@ -272,7 +276,7 @@ def get_package_list():
         gnu('ncurses/ncurses-5.7.tar.gz'),
         gnu('gmp/gmp-5.0.1.tar.bz2'),
         gnu('tar/tar-1.23.tar.bz2'),
-        gnu('coreutils/coreutils-8.4.tar.gz'),
+        gnu('coreutils/coreutils-8.4.tar.gz', post_install='rm -f %(LOCAL)s/bin/wc'),  # native wc is so much faster
         'http://tukaani.org/xz/xz-4.999.9beta.tar.bz2',
         gnu('diffutils/diffutils-2.9.tar.gz'),
         gnu('findutils/findutils-4.4.2.tar.gz'),
@@ -284,7 +288,7 @@ def get_package_list():
         gnu('gawk/gawk-3.1.7.tar.bz2'),
         gnu('bison/bison-2.4.2.tar.bz2'),
         gnu('less/less-418.tar.gz'),
-        'http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz',
+        dict(url='http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', post_install='chmod u-s %(LOCAL)s/man %(LOCAL)s/mandb'),
         'http://downloads.sourceforge.net/flex/flex-2.5.35.tar.bz2',
         dict(url='http://www.openssl.org/source/openssl-0.9.8n.tar.gz',
             package_id='openssl-0.9.8n.tar.gz (static)',
