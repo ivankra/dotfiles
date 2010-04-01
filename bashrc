@@ -96,6 +96,7 @@ alias ssh='ssh -AX'
 alias gdb='gdb --quiet'
 alias grep="grep --color=auto"
 alias egrep="egrep --color=auto"
+alias gvim="gvim 2>>~/.xsession-errors"
 
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
