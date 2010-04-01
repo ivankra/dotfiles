@@ -9,6 +9,10 @@ TARBALLS_DIR = LOCAL + '/tarballs'
 INSTALLED_TARBALLS_FILE = os.path.join(LOCAL, 'installed-tarballs')
 BUILD_DIR = LOCAL + '/build'
 
+KNOWN_MD5 = """
+
+"""
+
 def is_command_available(name):
     return os.system("which '%s' >/dev/null 2>/dev/null" % name) == 0
 
@@ -70,7 +74,7 @@ def install_tarball(entry):
         print '%s is already installed' % package_id
         return
 
-    print 'Installing %s' % url
+    print 'Installing %s (%s)' % (package_id, url)
 
     if not os.path.exists(LOCAL):
         os.makedirs(LOCAL)
@@ -108,7 +112,7 @@ def install_tarball(entry):
     os.chdir(LOCAL)
     sh("rm -rf '%s'" % BUILD_DIR)
 
-    print 'Installed %s' % url
+    print 'Installed %s' % package_id
     mark_installed(package_id)
 
 ###############################################################################
@@ -145,9 +149,10 @@ def get_package_list():
         gnu('gmp/gmp-5.0.1.tar.bz2'),
         gnu('tar/tar-1.23.tar.bz2'),
         gnu('coreutils/coreutils-8.4.tar.gz'),
+        'http://tukaani.org/xz/xz-4.999.9beta.tar.bz2',
         gnu('diffutils/diffutils-2.9.tar.gz'),
         gnu('findutils/findutils-4.4.2.tar.gz'),
-        #gnu('patch/patch-2.6.1.tar.bz2'),
+        gnu('patch/patch-2.6.tar.bz2'),
         gnu('grep/grep-2.6.1.tar.gz'),
         gnu('groff/groff-1.20.1.tar.gz'),
         gnu('m4/m4-1.4.14.tar.bz2'),
@@ -157,11 +162,15 @@ def get_package_list():
         gnu('less/less-418.tar.gz'),
         'http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz',
         'http://downloads.sourceforge.net/flex/flex-2.5.35.tar.bz2',
-        dict(url='http://www.openssl.org/source/openssl-1.0.0.tar.gz',
-            config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s shared && make -j 20 && make install'),
-        # TODO: static openssl
+        dict(url='http://www.openssl.org/source/openssl-0.9.8n.tar.gz',
+            package_id='openssl-0.9.8n.tar.gz (static)',
+            config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s && (make -j 20 || make) && make install'),
+        dict(url='http://www.openssl.org/source/openssl-0.9.8n.tar.gz',
+            package_id='openssl-0.9.8n.tar.gz (shared)',
+            config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s shared && (make -j 20 || make) && make install'),
         'http://curl.haxx.se/download/curl-7.20.0.tar.bz2',
-        gnu('gdb/gdb-7.1.tar.bz2'),
+        gnu('gdb/gdb-7.1.tar.bz2',
+            config_make_install="export CC=gcc CXX=g++; ./configure '--prefix=%(LOCAL)s' && make -j 20 && make install"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
         gnu('gperf/gperf-3.0.4.tar.gz'),
         dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
             pre_configure='export PYTHON_PATH=$(which python)'),
@@ -289,9 +298,8 @@ def main():
             url = entry['url']
             install_tarball(entry)
 
-        if not check_symlink(os.path.join(os.environ['HOME'], '.fonts'), LOCAL + '/share/fonts'):
-            print 'Action needed: upload some fonts to %s and run the command:' % (LOCAL + '/share/fonts')
-            print "ln -s %s %s" % (LOCAL + '/share/fonts', os.path.join(os.environ['HOME'], '.fonts'))
+        if not os.path.exists(os.path.join(os.environ['HOME'], '.fonts')):
+            print 'Action needed: install some fonts into ~/.fonts'
     else:
         for s in args:
             install_tarball(dict(url=s))
