@@ -1,24 +1,17 @@
-if [ -z "$USER" ]; then
-  export USER=$(whoami)
-fi
+if [ -z "$USER" ]; then export USER=$(whoami); fi
+if [ -z "$HOME" ]; then export HOME=/home/$USER; fi
+if [ -z "$HOSTNAME" ]; then export HOSTNAME=$(hostname); fi
 
-export PATH=$PATH:/home/$USER/git/configs/scripts
-
-if [ -z "$HOSTNAME" ]; then
-  export HOSTNAME=$(hostname)
-fi
+export PATH=$PATH:$HOME/git/configs/scripts
 
 if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export LANG=en_US.UTF-8
   export TMPDIR=/var/tmp
   export CVSROOT=tree.yandex.ru:/opt/CVSROOT
   export DEF_MR_SERVER=sdf200:8013
-  LOCAL=/home/$USER/.local
-  export PATH=/home/$USER/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-  if [ -z "$UNAME" ]; then
-    export UNAME=$(uname)
-  fi
-  if [ "$UNAME" = "FreeBSD" ]; then
+  LOCAL=$HOME/.local
+  export PATH=$HOME/git/ya/bin:$HOME/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  if [ "$(uname)" = "FreeBSD" ]; then
     if [ -d $LOCAL ]; then
       export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
       export CPATH=$LOCAL/include
@@ -106,16 +99,6 @@ alias egrep="egrep --color=auto"
 
 if [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
-fi
-
-if [ ! -f ~/.gdbinit ]; then
-    cat >~/.gdbinit <<EOF
-set history filename ~/.gdb_history
-set history save on
-set history size 16384
-set print asm-demangle on
-set print pretty
-EOF
 fi
 
 if [ -f ~/.gdb_history ]; then
