@@ -215,7 +215,7 @@ def install_tarball(entry):
         m = hashlib.md5()
         m.update(file(archive_path).read())
         m = m.hexdigest()
-        if KNOWN_MD5_TEXT[url_filename] != m:
+        if KNOWN_MD5[url_filename] != m:
             raise Exception('File "%s" has md5 sum %s, expected md5 %s' % (archive_path, m, KNOWN_MD5_TEXT[url_filename]))
 
     if os.path.exists(BUILD_DIR):
@@ -244,7 +244,7 @@ def install_tarball(entry):
 def get_package_list():
     page_cache = dict()
 
-    def xorg(package):
+    def xorg(package, **extra):
         url = 'http://www.x.org/releases/X11R7.5/src/' + package
         if '.tar' in url:
             return url
@@ -257,7 +257,7 @@ def get_package_list():
             raise Exception('Failed to find package %s (found %d matches on page %s)' % (
                 os.path.basename(package), len(matches), dir))
         res = dir + '/' + matches[0]
-        return dict(url=res)
+        return dict(url=res, **extra)
 
     def gnu(package, **extra):
         #return 'http://ftp.gnu.org/gnu/' + package
@@ -294,7 +294,7 @@ def get_package_list():
             config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s shared && (make -j 20 || make) && make install'),
         'http://curl.haxx.se/download/curl-7.20.0.tar.bz2',
         gnu('gdb/gdb-7.1.tar.bz2',
-            config_make_install="export CC=gcc CXX=g++; ./configure '--prefix=%(LOCAL)s' && make -j 20 && make install"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
+            pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
         gnu('gperf/gperf-3.0.4.tar.gz'),
         dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
             pre_configure='export PYTHON_PATH=$(which python)'),
@@ -382,7 +382,7 @@ def get_package_list():
         #'http://xorg.freedesktop.org/releases/individual/data/xcursor-themes-1.0.2.tar.bz2',
 
         # X11 apps
-        xorg('app/xauth'),
+        xorg('app/xauth', pre_configure="export CFLAGS=-static LDFLAGS=-static LIBS='-lxcb -lXdmcp -lXau'"),  # link statically
         xorg('app/xdpyinfo'),
         'http://www.x.org/releases/individual/app/xclock-1.0.4.tar.bz2',
         'http://www.x.org/releases/individual/app/xeyes-1.1.0.tar.bz2',
