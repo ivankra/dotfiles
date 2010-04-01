@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Downloads and compiles from source some generally useful software, Culminates in compiling a gtk+ enabled vim.
-import os, re, sys, urllib2, optparse
+import os, re, sys, urllib2, optparse, hashlib
 
 HOME = os.environ['HOME']
 assert HOME.startswith('/home/')
@@ -9,9 +9,126 @@ TARBALLS_DIR = LOCAL + '/tarballs'
 INSTALLED_TARBALLS_FILE = os.path.join(LOCAL, 'installed-tarballs')
 BUILD_DIR = LOCAL + '/build'
 
-KNOWN_MD5 = """
-
+KNOWN_MD5_TEXT = """
+76ca1c6e1d8904d2d885f81f7332eba6  applewmproto-1.4.1.tar.bz2
+48e06ab8971acb9df4203fbda8d46d77  atk-1.29.92.tar.bz2
+d30c5dbf19ca6dffcd9788227ecff8c5  bigreqsproto-1.1.0.tar.bz2
+63584004613aaef2d3dca19088eb1654  bison-2.4.2.tar.bz2
+b60a82f405f9400bbfdcf850b1728d25  cairo-1.8.10.tar.gz
+3692f3f8b2ea10dff3d2cede8dc65e79  compositeproto-0.4.1.tar.bz2
+56f549854d723d9dcebb77919019df55  coreutils-8.4.tar.gz
+da43987622ace8c36bbf14c15a350ec1  cscope-15.7a.tar.bz2
+c00f82ecdcc357434731913e5b48630d  ctags-5.8.tar.gz
+3dda78c4a808d9a779dc3a2ae81b47d8  curl-7.20.0.tar.bz2
+434b931b02bd83ed9fc44951df81cdac  damageproto-1.2.0.tar.bz2
+d6bc1bdc874ddb14cfed4d1655a0dbbe  diffutils-2.9.tar.gz
+880a41720b2937e2660dcdc0d34a8791  dmxproto-2.3.tar.bz2
+5cb7987d29db068153bdc8f23c767c43  dri2proto-2.1.tar.bz2
+351cc4adb07d54877fa15f75fb77d39f  findutils-4.4.2.tar.gz
+4c1cb4f2ed9f34de59f2f04783ca9483  fixesproto-4.1.1.tar.bz2
+10714e50cea54dc7a227e3eddcd44d57  flex-2.5.35.tar.bz2
+77e15a92006ddc2adbb06f840d591c0e  fontconfig-2.8.0.tar.gz
+f3a857deadca3144fba041af1dbf7603  fontsproto-2.1.0.tar.bz2
+e974a82e5939be8e05ee65f07275d7c5  freetype-2.3.12.tar.bz2
+674cc5875714315c490b26293d36dfcf  gawk-3.1.7.tar.bz2
+21dce610476c054687b52770d2ddc657  gdb-7.1.tar.bz2
+58a2bc6d39c0ba57823034d55d65d606  gettext-0.17.tar.gz
+c7553b73e2156d187ece6ba936ae30ab  git-1.7.0.tar.bz2
+45a8bc697d07f859566c0b64c40382a8  glib-2.24.0.tar.bz2
+c9f8cebfba72bfab674bc0170551fb8d  glproto-1.4.10.tar.bz2
+6bac6df75c192a13419dfd71d19240a7  gmp-5.0.1.tar.bz2
+c1f1db32fb6598d6a93e6e88796a8632  gperf-3.0.4.tar.gz
+8d1496da11029112a4d0986cbf09e26f  grep-2.6.1.tar.gz
+48fa768dd6fdeb7968041dd5ae8e2b02  groff-1.20.1.tar.gz
+5517f78b1eb9b1eb60bd48a0152d09e6  gtk+-2.20.0.tar.bz2
+0f7acbc14a082f9ae03744396527d23d  inputproto-2.0.tar.bz2
+5146e68be3633c597b0d14d3ed8fa2ea  jpegsrc.v8a.tar.gz
+7f439166a9b2bf81471a33951883019f  kbproto-1.0.4.tar.bz2
+b5864d76c54ddf4627fd57ab333c88b4  less-418.tar.gz
+ecf2d6a27da053500283e803efa2a808  libFS-1.0.2.tar.bz2
+2d39bc924af24325dae589e9a849180c  libICE-1.0.6.tar.bz2
+6889a455496aaaa65b1fa05fc518d179  libSM-1.1.1.tar.bz2
+001d780829f936e34851ef7cd37b4dfd  libX11-1.3.2.tar.bz2
+33e54f64b55f22d8bbe822a5b62568cb  libXScrnSaver-1.2.0.tar.bz2
+993b3185c629e4b89401fca072dcb663  libXau-1.0.5.tar.bz2
+815e74de989ccda684e2baf8d12cf519  libXaw-1.0.7.tar.bz2
+0f1367f57fdf5df17a8dd71d0fa68248  libXcomposite-0.4.1.tar.bz2
+7dcdad1c10daea872cb3355af414b2ca  libXcursor-1.1.10.tar.bz2
+b42780bce703ec202a33e5693991c09d  libXdamage-1.1.2.tar.bz2
+d60941d471800f41a3f19b24bea855a7  libXdmcp-1.0.3.tar.bz2
+c417c0e8df39a067f90a2a2e7133637d  libXext-1.1.1.tar.bz2
+7f2c40852eb337b237ad944ca5c30d49  libXfixes-4.0.4.tar.bz2
+4f2bed2a2be82e90a51a24bb3a22cdf0  libXfont-1.4.1.tar.bz2
+254e62a233491e0e1251636536163e20  libXft-2.1.14.tar.bz2
+8df4ece9bd1efb02c28acb2b6f485e09  libXi-1.3.tar.bz2
+a2ac01fc0426cdbb713c5d59cf9955ed  libXinerama-1.1.tar.bz2
+fc4d66be7a1a1eb474954728415e46d6  libXmu-1.0.5.tar.bz2
+38e58e72d476a74298a59052fde185a3  libXpm-3.5.8.tar.bz2
+68eb59c3b7524db6ffd78746ee893d1d  libXrandr-1.3.0.tar.bz2
+276dd9e85daf0680616cd9f132b354c9  libXrender-0.9.5.tar.bz2
+4daf91f93d924e693f6f6ed276791be2  libXres-1.0.4.tar.bz2
+96f3c93434a93186d178b60d4a262496  libXt-1.0.7.tar.bz2
+dd6f3e20b87310187121539f9605d977  libXtst-1.1.0.tar.bz2
+1d97798b1d8bbf8d9085e1b223a0738f  libXv-1.0.5.tar.bz2
+16c3a11add14979beb7510e44623cac6  libXvMC-1.0.5.tar.bz2
+368837d3d7a4d3b4f70be48383e3544e  libXxf86dga-1.1.1.tar.bz2
+b431ad7084e1055fef99a9115237edd8  libXxf86vm-1.1.0.tar.bz2
+a2fcf0382837888d3781b714489a8999  libdmx-1.1.0.tar.bz2
+4f0d8191819be9f2bdf9dad49a65e43b  libfontenc-1.0.5.tar.bz2
+7ab33ebd26687c744a37264a330bbe9a  libiconv-1.13.1.tar.gz
+685cb20e7a6165bc010972f1183addbd  libpciaccess-0.10.9.tar.bz2
+e1767bf290ded9fda9ee05bd23ae4cff  libpng-1.4.1.tar.bz2
+774eabaf33440d534efe108ef9130a7d  libpthread-stubs-0.1.tar.bz2
+b00fd506c717dea01f595e8da31f6914  libxcb-1.4.tar.bz2
+b01156e263eca8177e6b7f10441951c4  libxkbfile-1.0.6.tar.bz2
+9abc9959823ca9ff904f1fbcf21df066  libxml2-2.7.7.tar.gz
+e61d0364a30146aaa3001296f853b2b9  libxslt-1.1.26.tar.gz
+e6fb7d08d50d87e796069cff12a52a93  m4-1.4.14.tar.bz2
+354853e0b2da90c527e35aabb8d6f1e6  make-3.81.tar.bz2
+ca382dd934fc8b9e9a64d13354be48cf  man-db-2.5.5.tar.gz
+cce05daf61a64501ef6cd8da1f727ec6  ncurses-5.7.tar.gz
+0a29eff1736ddb5effd0b1ec1f6fe0ef  netcat-0.7.1.tar.bz2
+076d8efc3ed93646bd01f04e23c07066  openssl-0.9.8n.tar.gz
+ffc867ee6c3173bc3941002f33ea4148  pango-1.27.1.tar.bz2
+5729b1430ba6c2216e0f3eb18f213c81  patch-2.6.tar.bz2
+b0ad87c2cc9346056698eaf6af1933a6  pixman-0.17.14.tar.gz
+d922a88782b64441d06547632fd85744  pkg-config-0.23.tar.gz
+a5c244c36382b0de39b2828cea4b651d  randrproto-1.3.1.tar.bz2
+70f5998c673aa510e2acd6d8fb3799de  recordproto-1.14.tar.bz2
+b160a9733fe91b666e74fca284333148  renderproto-0.11.tar.bz2
+84795594b3ebd2ee2570cf93340d152c  resourceproto-1.1.0.tar.bz2
+49bb52c99e002bf85eb41d8385d903b5  rxvt-unicode-9.07.tar.bz2
+9040c991a56ee9b5976936f8c65d5c8a  scrnsaverproto-1.2.0.tar.bz2
+7d310fbd76e01a01115075c1fd3f455a  sed-4.2.1.tar.bz2
+9c0c5e83ce665f38d4d3aababad275eb  socat-1.7.1.2.tar.bz2
+41e2ca4b924ec7860e51b43ad06cdb7e  tar-1.23.tar.bz2
+93e56e421679c591de7552db13384cb8  tiff-3.9.2.tar.gz
+0865e14c73c08fa8c501ae877298ee9f  twm-1.0.4.tar.bz2
+fb762146a18207a1e8bc9f299dfc7ac0  videoproto-2.3.0.tar.bz2
+f0901284b338e448bfd79ccca0041254  vim-7.2.tar.bz2
+308a5476fc096a8a525d07279a6f6aa3  wget-1.12.tar.bz2
+e74b2ff3172a6117f2a62b655ef99064  windowswmproto-1.0.4.tar.bz2
+fa00078c414c4a57cab7a6d89a0c8734  xauth-1.0.4.tar.bz2
+f9ddd4e70a5375508b3acaf17be0d0ab  xbitmaps-1.1.0.tar.bz2
+7d0481790104a10ff9174895ae954533  xcb-proto-1.5.tar.bz2
+dd8968b8ee613cb027a8ef1fcbdc8fc9  xcb-util-0.3.6.tar.bz2
+bb9fd5e00d39c348a0078b97fdf8258f  xclock-1.0.4.tar.bz2
+7b83e4a7e9f4edc9c6cfb0500f4a7196  xcmiscproto-1.2.0.tar.bz2
+d1d516610316138105cd07064b257c5c  xdpyinfo-1.1.0.tar.bz2
+fb6ccaae76db7a35e49b12aea60ca6ff  xextproto-7.1.1.tar.bz2
+933f6d2b132d14f707f1f3c87b39ebe2  xeyes-1.1.0.tar.bz2
+120e226ede5a4687b25dd357cc9b8efe  xf86bigfontproto-1.2.0.tar.bz2
+a036dc2fcbf052ec10621fd48b68dbb1  xf86dgaproto-2.1.tar.bz2
+309d552732666c3333d7dc63e80d042f  xf86driproto-2.1.0.tar.bz2
+4434894fc7d4eeb4a22e6b876d56fdaa  xf86vidmodeproto-2.3.tar.bz2
+a8aadcb281b9c11a91303e24cdea45f5  xineramaproto-1.2.tar.bz2
+28958248590ff60ecd70e8f590d977b7  xlsfonts-1.0.2.tar.bz2
+75c9edff1f3823e5ab6bb9e66821a901  xproto-7.0.16.tar.bz2
+75983f143ce83dc259796c6eaf85c8f5  xsel-1.2.0.tar.gz
+2d1e57e82acc5f21797e92341415af2f  xtrans-1.2.5.tar.bz2
+cc4044fcc073b8bcf3164d1d0df82161  xz-4.999.9beta.tar.bz2
 """
+KNOWN_MD5 = dict((b, a) for (a, b) in [s.split() for s in KNOWN_MD5_TEXT.strip().split('\n')])
 
 def is_command_available(name):
     return os.system("which '%s' >/dev/null 2>/dev/null" % name) == 0
@@ -93,6 +210,13 @@ def install_tarball(entry):
     archive_path = os.path.join(TARBALLS_DIR, url_filename)
     if not os.path.exists(archive_path):
         download(url, archive_path)
+
+    if url_filename in KNOWN_MD5:
+        m = hashlib.md5()
+        m.update(file(archive_path).read())
+        m = m.hexdigest()
+        if KNOWN_MD5_TEXT[url_filename] != m:
+            raise Exception('File "%s" has md5 sum %s, expected md5 %s' % (archive_path, m, KNOWN_MD5_TEXT[url_filename]))
 
     if os.path.exists(BUILD_DIR):
         sh("rm -rf '%s'" % BUILD_DIR)
