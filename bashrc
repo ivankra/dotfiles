@@ -11,23 +11,19 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export DEF_MR_SERVER=sdf200:8013
   LOCAL=$HOME/.local
   export PATH=$HOME/git/ya/bin:$HOME/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-  if [ "$(uname)" = "FreeBSD" ]; then
-    if [ -d $LOCAL ]; then
-      export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
-      export CPATH=$LOCAL/include
-      export LIBRARY_PATH=$LOCAL/lib
-      export LD_LIBRARY_PATH=$LOCAL/lib
-    fi
+  if [ "$(uname)" = "FreeBSD" -a -d "$LOCAL"]; then
+    export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
+    export CPATH=$LOCAL/include
+    export LIBRARY_PATH=$LOCAL/lib
+    export LD_LIBRARY_PATH=$LOCAL/lib
   fi
-  if [ -z "$DISPLAY" ]; then
-    if [ -e "/tmp/.X11-unix/X42" ]; then
-      export DISPLAY=:42
-    fi
-  fi
-  if [ "$HOSTNAME" != "dagobah" ]; then
-    PS1COL=31
+  if [ -z "$DISPLAY" -a -e "/tmp/.X11-unix/X42" ]; then export DISPLAY=:42; fi
+  if [ "$HOSTNAME" = "dagobah" ]; then
+    PS1COL=32;  # green, home
+  elif [ "$(uname)" = "FreeBSD" ]; then
+    PS1COL=31;  # red, bsd
   else
-    PS1COL=32
+    PS1COL=35;  # purple, linux
   fi
 fi
 
@@ -51,7 +47,7 @@ shopt -s checkwinsize
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
-    debian_chroot=$(cat /etc/debian_chroot)
+  debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 if [ "$TERM" != "dumb" ]; then
@@ -94,14 +90,14 @@ alias df='df -h'
 alias bc='bc -q'
 alias ssh='ssh -AX'
 alias gdb='gdb --quiet'
-alias grep="grep --color=auto"
-alias egrep="egrep --color=auto"
-alias gvim="gvim 2>>~/.xsession-errors"
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias gvim='gvim 2>>~/.xsession-errors'
 
 if [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
+  . /etc/bash_completion
 fi
 
 if [ -f ~/.gdb_history ]; then
-    chmod 0600 ~/.gdb_history
+  chmod 0600 ~/.gdb_history
 fi
