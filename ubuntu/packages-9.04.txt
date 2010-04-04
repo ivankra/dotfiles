@@ -19,7 +19,6 @@ curl
 cvs
 ddd
 doxygen
-eclipse
 ecryptfs-utils
 elinks
 expat
@@ -48,11 +47,10 @@ iamerican
 id-utils
 imagemagick
 indent
-inkscape
 insight
+iotop
 ipython
 irussian
-iotop
 ispell
 kcachegrind
 kdbg
@@ -69,10 +67,10 @@ manpages-dev
 manpages-posix
 manpages-posix-dev
 mc
+mercurial
 mplayer
 mutt
 nautilus-open-terminal
-netbeans
 ntp
 octave3.2
 octave3.2-info
