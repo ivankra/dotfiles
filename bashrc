@@ -11,13 +11,13 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export DEF_MR_SERVER=sdf200:8013
   LOCAL=$HOME/.local
   export PATH=$HOME/git/ya/bin:$HOME/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-  if [ "$(uname)" = "FreeBSD" -a -d "$LOCAL"]; then
+  if [ "$(uname)" = "FreeBSD" ]; then
     export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
     export CPATH=$LOCAL/include
     export LIBRARY_PATH=$LOCAL/lib
     export LD_LIBRARY_PATH=$LOCAL/lib
   fi
-  if [ -z "$DISPLAY" -a -e "/tmp/.X11-unix/X42" ]; then export DISPLAY=:42; fi
+  if [ -z "$DISPLAY" ] && [ -e "/tmp/.X11-unix/X42" ]; then export DISPLAY=:42; fi
   if [ "$HOSTNAME" = "dagobah" ]; then
     PS1COL=32;  # green, home
   elif [ "$(uname)" = "FreeBSD" ]; then
