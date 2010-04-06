@@ -31,6 +31,7 @@ def main():
     actions.append([home + '/.vim', base + '/vim'])
     actions.append([home + '/.gdbinit', base + '/gdbinit'])
     actions.append([home + '/.inputrc', base + '/inputrc'])
+    actions.append([home + '/.gitconfig', base + '/gitconfig'])
 
     items_str = []
     for src, dst in actions:
