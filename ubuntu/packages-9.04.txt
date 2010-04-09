@@ -27,6 +27,7 @@ fbreader
 ffmpeg
 firefox-dom-inspector
 flex
+fortune-mod
 g++
 gawk
 gcc-doc
