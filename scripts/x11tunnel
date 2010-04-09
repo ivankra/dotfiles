@@ -228,7 +228,7 @@ def x11tunnel_ssh(machine, remote_display, verbose):
     # ssh's into remote machine and sets up a display :42 there
     local_display = int(re.findall(':([0-9]+)', os.environ['DISPLAY'])[0])
     home = os.environ['HOME']
-    cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:git/configs/scripts/x11tunnel -d /tmp/.X11-unix/X%(local_display)s'""" % locals()
+    cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:%(home)sgit/configs/scripts/x11tunnel -d /tmp/.X11-unix/X%(local_display)s'""" % locals()
     if verbose:
         print 'Executing command:\n%s' % cmd
     os.system(cmd)
