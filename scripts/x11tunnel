@@ -223,6 +223,18 @@ def demuxer(path):
                 sys.stdout.write(struct.pack('ii', cid, len(data)) + data)
                 sys.stdout.flush()
 
+def x11tunnel_ssh(machine, remote_display, verbose):
+    # x11tunnel.py <machine>
+    # ssh's into remote machine and sets up a display :42 there
+    
+    local_display = int(re.findall(':([0-9]+)', os.environ['DISPLAY'])[0])
+    home = os.environ['HOME']
+
+    cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)"' 'EXEC:git/configs/scripts/x11tunnel -d /tmp/.X11-unix/X%(local_display)'""" % locals()
+
+    if verbose:
+        print 'Executing command:\n%s' % cmd
+        os.system(cmd)
 
 def main():
     global VERBOSE, CHECK_UID, LOG_FILE
@@ -230,7 +242,7 @@ def main():
     sys.stdin = os.fdopen(sys.stdin.fileno(), 'r', 0)
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
-    parser = optparse.OptionParser(usage='%prog [options] <path to unix socket, e.g. /tmp/.X11-unix/X0>')
+    parser = optparse.OptionParser(usage='%prog [options] <path to unix socket, e.g. /tmp/.X11-unix/X0>\n   or: %prog <machine name> [<remote display number> (default: 42)]  (requires socat, ssh)')
     parser.add_option('-m', '--mux', action='store_true', dest='mux', help='mux connections to socket to stdin/stdout')
     parser.add_option('-d', '--demux', action='store_false', dest='mux', help='demux stdin/stdout to connections to socket')
     parser.add_option('-v', '--verbose', action='store_true', dest='verbose')
@@ -240,12 +252,16 @@ def main():
     VERBOSE = options.verbose
     CHECK_UID = (options.no_check is None) or (not options.no_check)
 
-    if VERBOSE:
-        LOG_FILE = file('/tmp/x11tunnel.log', 'w')
+    if options.mux is None and 1 <= len(args) <= 2:
+        x11tunnel_ssh(machine=args[0], remote_display=int(args[1] if (len(args) ==2) else '42'), verbose=options.verbose)
+        return
 
     if options.mux is None or len(args) != 1:
         parser.print_help()
         return
+
+    if VERBOSE:
+        LOG_FILE = file('/tmp/x11tunnel.log', 'w')
 
     try:
         if options.mux:
