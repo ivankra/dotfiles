@@ -38,6 +38,7 @@ git-core
 gitk
 global
 glpk
+gltron
 g++-multilib
 gnome-mplayer
 gnuplot
@@ -57,6 +58,7 @@ kcachegrind
 kdbg
 language-support-ru
 latex-beamer
+libgsl0-dev
 libpcap-dev
 libssl-dev
 libsvm-tools
