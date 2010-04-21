@@ -36,6 +36,8 @@ geany
 gimp
 git-core
 gitk
+git-svn
+gitweb
 global
 glpk
 gltron
