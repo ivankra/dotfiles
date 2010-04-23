@@ -21,7 +21,7 @@ if has("gui_running")
     "set guifont=Inconsolata\ 13
   endif
 
-  "colorscheme summerfruit256
+  colorscheme summerfruit256
 
   set guioptions-=T
   set guioptions-=t
