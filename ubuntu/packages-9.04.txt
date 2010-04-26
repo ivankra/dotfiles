@@ -66,6 +66,7 @@ libssl-dev
 libsvm-tools
 libusb-1.0-0
 libusb-1.0-0-dev
+libxt-dev
 lm-sensors
 mailutils
 manpages-dev
