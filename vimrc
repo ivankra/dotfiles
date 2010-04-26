@@ -117,3 +117,6 @@ runtime cscope_maps.vim
 " Ctrl-A switches between .h and .cc
 runtime fswitch.vim
 nmap <C-A> :FSHere<CR>
+
+" Typing %%/ in vim command line produces file's current directory
+cabbr <expr> %% expand('%:p:h')
