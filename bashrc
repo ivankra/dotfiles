@@ -2,7 +2,7 @@ if [ -z "$USER" ]; then export USER=$(whoami); fi
 if [ -z "$HOME" ]; then export HOME=/home/$USER; fi
 if [ -z "$HOSTNAME" ]; then export HOSTNAME=$(hostname); fi
 
-export PATH=$PATH:$HOME/git/configs/scripts
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:$HOME/git/configs/scripts
 
 if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export LANG=en_US.UTF-8
