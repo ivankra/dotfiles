@@ -27,6 +27,7 @@ fbreader
 ffmpeg
 firefox-dom-inspector
 flex
+fortune-mod
 g++
 gawk
 gcc-doc
@@ -35,8 +36,11 @@ geany
 gimp
 git-core
 gitk
+git-svn
+gitweb
 global
 glpk
+gltron
 g++-multilib
 gnome-mplayer
 gnuplot
@@ -56,11 +60,13 @@ kcachegrind
 kdbg
 language-support-ru
 latex-beamer
+libgsl0-dev
 libpcap-dev
 libssl-dev
 libsvm-tools
 libusb-1.0-0
 libusb-1.0-0-dev
+libxt-dev
 lm-sensors
 mailutils
 manpages-dev
@@ -71,6 +77,7 @@ mercurial
 mplayer
 mutt
 nautilus-open-terminal
+nmap
 ntp
 octave3.2
 octave3.2-info
@@ -121,6 +128,7 @@ tkdiff
 tofrodos
 traceroute
 ubuntu-restricted-extras
+unetbootin
 unrar
 valgrind
 vim
