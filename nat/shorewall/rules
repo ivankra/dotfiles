@@ -1,0 +1,16 @@
+# For information about entries in this file, type "man shorewall-rules"
+#############################################################################################################
+#ACTION		SOURCE		DEST		PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK
+#							PORT	PORT(S)		DEST		LIMIT		GROUP
+
+# accept all packets from firewall machine
+ACCEPT		$FW		all
+
+# Allow pings and ssh connections from anywhere to the firewall machine
+ACCEPT		net		$FW		icmp    8
+ACCEPT		net		$FW		tcp	22
+
+# reject everything else from net to firewall
+REJECT		net		$FW
+
+# eveything else is accepted according to /etc/shorewall/policy
