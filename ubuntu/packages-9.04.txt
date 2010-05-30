@@ -21,6 +21,7 @@ ddd
 doxygen
 ecryptfs-utils
 elinks
+exif
 expat
 exuberant-ctags
 fbreader
@@ -57,7 +58,6 @@ ipython
 irussian
 ispell
 kcachegrind
-kdbg
 language-support-ru
 latex-beamer
 libgsl0-dev
@@ -116,6 +116,7 @@ subversion
 sun-java6-jdk
 sun-java6-plugin
 swig
+sysfsutils
 tcpdump
 texlive
 texlive-generic-extra
