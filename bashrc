@@ -2,7 +2,7 @@ if [ -z "$USER" ]; then export USER=$(whoami); fi
 if [ -z "$HOME" ]; then export HOME=/home/$USER; fi
 if [ -z "$HOSTNAME" ]; then export HOSTNAME=$(hostname); fi
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:$HOME/git/configs/scripts
+export PATH=$HOME/git/configs/scripts:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:$PATH
 
 if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export LANG=en_US.UTF-8
@@ -92,7 +92,7 @@ alias ssh='ssh -AX'
 alias gdb='gdb --quiet'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
-alias gvim='gvim 2>>~/.xsession-errors'
+#alias gvim='gvim 2>>~/.xsession-errors'
 
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
