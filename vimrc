@@ -29,7 +29,11 @@ else
   " settings for console
   set highlight+=s:MyStatusLineHighlight
   highlight MyStatusLineHighlight ctermbg=white ctermfg=black
-  set background=dark "light
+  if ($TERM == "xterm")
+    set background=light
+  else
+    set background=dark
+  endif
 endif
 
 " Toggles wrapping, and enables cursor motion by display lines when

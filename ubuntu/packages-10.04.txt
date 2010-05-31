@@ -26,7 +26,6 @@ expat
 exuberant-ctags
 fbreader
 ffmpeg
-firefox-dom-inspector
 flex
 fortune-mod
 g++
@@ -52,7 +51,6 @@ iamerican
 id-utils
 imagemagick
 indent
-insight
 iotop
 ipython
 irussian
@@ -87,14 +85,11 @@ pidgin
 powertop
 pwgen
 pychecker
-python2.4
-python2.5
 python2.6
 python3-all
 python-all
 python-dev
 python-doc
-python-gnome2-extras
 python-matplotlib
 python-pyparsing
 python-scipy
@@ -113,8 +108,6 @@ sqlite3
 sshfs
 strace
 subversion
-sun-java6-jdk
-sun-java6-plugin
 swig
 sysfsutils
 tcpdump
