@@ -431,7 +431,21 @@ def get_package_list():
         'http://ftp.gnome.org/pub/gnome/sources/gtk+/2.20/gtk+-2.20.0.tar.bz2',
 
         dict(url='ftp://ftp.vim.org/pub/vim/unix/vim-7.2.tar.bz2',
-            configure_flags='--with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls'),
+            config_make_install=(
+                'set -x; ' +
+                'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-extra.tar.gz && tar xf vim-7.2-extra.tar.gz && ' + 
+                'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-extra.tar.gz && (cd ..; tar xf vim72/vim-7.2-extra.tar.gz) && ' + 
+                'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-lang.tar.gz && (cd ..; tar xf vim72/vim-7.2-lang.tar.gz) && ' + 
+                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.001-100.gz | gzip -d | patch -p0 && ' +
+                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.101-200.gz | gzip -d | patch -p0 && ' +
+                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.201-300.gz | gzip -d | patch -p0 && ' +
+                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.301-400.gz | gzip -d | patch -p0 && ' +
+                ' && '.join(['curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.%.3d | patch -p0' % n for n in range(401, 445)]) + ' && ' +
+                './configure --prefix=%s --with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls && ' % LOCAL +
+                'make -j 10 && '
+                'make install'
+            ),            
+        ),
     ]
 
 def main():
