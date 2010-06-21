@@ -276,26 +276,26 @@ def get_package_list():
         gnu('ncurses/ncurses-5.7.tar.gz'),
         gnu('gmp/gmp-5.0.1.tar.bz2'),
         gnu('tar/tar-1.23.tar.bz2'),
-        gnu('coreutils/coreutils-8.4.tar.gz', post_install='rm -f %(LOCAL)s/bin/wc'),  # native wc is so much faster
+        gnu('coreutils/coreutils-8.4.tar.gz', post_install='rm -f %s/bin/wc' % LOCAL),  # native wc is so much faster
         'http://tukaani.org/xz/xz-4.999.9beta.tar.bz2',
         gnu('diffutils/diffutils-2.9.tar.gz'),
         gnu('findutils/findutils-4.4.2.tar.gz'),
         gnu('patch/patch-2.6.tar.bz2'),
         gnu('grep/grep-2.6.1.tar.gz'),
-        gnu('groff/groff-1.20.1.tar.gz'),
+        gnu('groff/groff-1.20.1.tar.gz', configure_flags='--x-includes=%s/include --x-libraries=%s/lib' % (LOCAL, LOCAL)),
         gnu('m4/m4-1.4.14.tar.bz2'),
         gnu('sed/sed-4.2.1.tar.bz2'),
         gnu('gawk/gawk-3.1.7.tar.bz2'),
         gnu('bison/bison-2.4.2.tar.bz2'),
         gnu('less/less-418.tar.gz'),
-        dict(url='http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', post_install='chmod u-s %(LOCAL)s/bin/man %(LOCAL)s/bin/mandb'),
+        dict(url='http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', post_install='chmod u-s %s/bin/man %s/bin/mandb' % (LOCAL, LOCAL)),
         'http://downloads.sourceforge.net/flex/flex-2.5.35.tar.bz2',
         dict(url='http://www.openssl.org/source/openssl-0.9.8n.tar.gz',
             package_id='openssl-0.9.8n.tar.gz (static)',
-            config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s && (make -j 20 || make) && make install'),
+            config_make_install='./config --openssldir=%s/etc/ssl --prefix=%s && (make -j 20 || make) && make install' % (LOCAL, LOCAL)),
         dict(url='http://www.openssl.org/source/openssl-0.9.8n.tar.gz',
             package_id='openssl-0.9.8n.tar.gz (shared)',
-            config_make_install='./config --openssldir=%(LOCAL)s/etc/ssl --prefix=%(LOCAL)s shared && (make -j 20 || make) && make install'),
+            config_make_install='./config --openssldir=%s/etc/ssl --prefix=%s shared && (make -j 20 || make) && make install' % (LOCAL, LOCAL)),
         'http://curl.haxx.se/download/curl-7.20.0.tar.bz2',
         gnu('gdb/gdb-7.1.tar.bz2',
             pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
@@ -312,11 +312,37 @@ def get_package_list():
         'http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz',
         'http://pkgconfig.freedesktop.org/releases/pkg-config-0.23.tar.gz',
         'http://ftp.gnome.org/pub/gnome/sources/glib/2.24/glib-2.24.0.tar.bz2',
-        'http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz',
+        dict(
+            url='http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz',
+            pre_configure='export CC=gcc CXX=g++',
+        ),
         'http://downloads.sourceforge.net/freetype/freetype-2.3.12.tar.bz2',
         'http://www.ijg.org/files/jpegsrc.v8a.tar.gz',
         'http://downloads.sourceforge.net/libpng/01-libpng-master/1.4.1/libpng-1.4.1.tar.bz2',
         'ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz',
+
+        dict(
+            url='http://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2',
+            config_make_install=(
+                'set -x; cd hints; chmod a+rw *; '
+                r'''echo -e '223c223\n< 		 exit 1\n---\n> 		 ldflags="-pthread $ldflags"  # FUCK BSD!\n' | patch freebsd.sh; cd ..; ''' +
+                'sed -i -e "s/<command line>/<command-line>/" makedepend.SH; '
+                './Configure -sde -Dprefix=%(LOCAL)s -Dvendorprefix=%(LOCAL)s ' + 
+                '-Dman1dir=%(LOCAL)s/share/man/man1 -Dman3dir=%(LOCAL)s/share/man/man3 ' +
+                '-Dsiteman1dir=%(LOCAL)s/share/man/man1 -Dsiteman3dir=%(LOCAL)s/share/man/man3 ' +
+                '"-Dpager=%(LOCAL)s/bin/less -isR"'
+                '-Darchlib=%(LOCAL)s/lib/perl5/5.8.9/mach ' + 
+                '-Dprivlib=%(LOCAL)s/lib/perl5/5.8.9 ' + 
+                '-Dsitearchlib=%(LOCAL)s/lib/perl5/site_perl/5.8.9/mach ' + 
+                '-Dsitelib=%(LOCAL)s/lib/perl5/site_perl/5.8.9 ' + 
+                '-Ui_malloc -Ui_iconv -Dcc=cc -Duseshrplib ' +  # gcc 4.2.1 ?
+                '"-Doptimize=-O2 -fno-strict-aliasing -pipe -mtune=native" -Ud_dosuid -Ui_gdbm -Dusethreads=y -Dusemymalloc=n -Duse64bitint &&'
+                # -Dinc_version_list=none -Uinstallusrbinperl -Dscriptdir=/usr/local/bin
+                #'-Dccflags=-DAPPLLIB_EXP="/usr/local/lib/perl5/5.8.9/BSDPAN" ' +
+                ' make -j 10 && make install' %
+                { 'LOCAL': LOCAL }
+            )
+        ),
 
         # X11 libs
         xorg('proto/applewmproto'),
@@ -399,7 +425,7 @@ def get_package_list():
 
         # GTK
         'http://cairographics.org/releases/pixman-0.17.14.tar.gz',
-        'http://cairographics.org/releases/cairo-1.8.10.tar.gz',
+        dict(url='http://cairographics.org/releases/cairo-1.8.10.tar.gz', pre_configure='export CC=gcc CXX=g++'),
         'http://ftp.gnome.org/pub/gnome/sources/atk/1.29/atk-1.29.92.tar.bz2',
         'http://ftp.gnome.org/pub/gnome/sources/pango/1.27/pango-1.27.1.tar.bz2',
         'http://ftp.gnome.org/pub/gnome/sources/gtk+/2.20/gtk+-2.20.0.tar.bz2',
