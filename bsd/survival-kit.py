@@ -353,7 +353,7 @@ def get_package_list():
         ),
         dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.1.tar.bz2',
             config_make_install=(
-                'export PYTHON_PATH=$(which python); ./configure --prefix=%s && ' % LOCAL +
+                'export PYTHON_PATH=$(which python); ./configure --prefix=%s && make -j 10 && make install && ' % LOCAL +
                 '(cd %s/man && curl http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.1.tar.bz2 | tar -jx)' % LOCAL
             )
         ),
