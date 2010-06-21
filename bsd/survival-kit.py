@@ -300,8 +300,7 @@ def get_package_list():
         gnu('gdb/gdb-7.1.tar.bz2',
             pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
         gnu('gperf/gperf-3.0.4.tar.gz'),
-        dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.0.tar.bz2',
-            pre_configure='export PYTHON_PATH=$(which python)'),
+
         dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2',
             pre_configure='export CFLAGS="-O2 -static"; export LDFLAGS="$CFLAGS"'),
         'http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2',
@@ -341,6 +340,21 @@ def get_package_list():
                 #'-Dccflags=-DAPPLLIB_EXP="/usr/local/lib/perl5/5.8.9/BSDPAN" ' +
                 ' make -j 10 && make install' %
                 { 'LOCAL': LOCAL }
+            )
+        ),
+
+        'http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz',
+        'http://prdownloads.sourceforge.net/swig/swig-2.0.0.tar.gz',
+        dict(
+            url='http://subversion.tigris.org/downloads/subversion-1.6.11.tar.bz2',
+            config_make_install=(
+                './configure --prefix=%s && make -j 10 && make install && make swig-pl && make check-swig-pl && make install-swig-pl' % LOCAL
+            )
+        ),
+        dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.1.tar.bz2',
+            config_make_install=(
+                'export PYTHON_PATH=$(which python); ./configure --prefix=%s && ' % LOCAL +
+                '(cd %s/man && curl http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.1.tar.bz2 | tar -jx)' % LOCAL
             )
         ),
 
