@@ -6,6 +6,7 @@ set foldmethod=marker backspace=2 formatoptions+=r encoding=utf8
 set incsearch ignorecase smartcase hlsearch display+=lastline,uhex
 set laststatus=2 statusline=%<%f%h%m%r%=%b=0x%B\ \ %l,%c%V\ %P
 set tags=./tags,./TAGS,tags,TAGS,../tags,../../tags,../../../tags,../../../../tags,../../../../../tags,../../../../../../tags
+set virtualedit=block   " allow cursor to move unrestricted in block mode
 
 set tabstop=8 noexpandtab autoindent
 syntax on
@@ -63,24 +64,24 @@ function ToggleWrap()
 endfunction
 com! ToggleWrap call ToggleWrap()
 
+filetype plugin indent on
+
 autocmd BufReadPre SConstruct set filetype=python
 autocmd BufReadPre SConscript set filetype=python
 
-autocmd FileType c      set sts=4 sw=4 et cindent
-autocmd FileType cpp    set sts=4 sw=4 et cindent
+autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
 autocmd FileType asm    set sts=4 sw=4 et autoindent
-autocmd FileType java   set sts=4 sw=4 et cindent
 autocmd FileType python set sts=4 sw=4 et autoindent
 autocmd FileType lua    set sts=4 sw=4 et autoindent
 autocmd FileType make   set sts=0 sw=8 noet nowrap
+autocmd FileType cmake  set sts=4 sw=4 et nowrap
+autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
 
 autocmd BufEnter *.cpp let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
 autocmd BufEnter *.cc let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
 autocmd BufEnter *.h let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
 
 set formatprg=indent\ -kr\ --no-tabs
-
-filetype plugin indent on
 
 " Keys remaps:
 "   F2 - save
@@ -117,6 +118,7 @@ autocmd! BufNewFile *:* nested call s:gotoline()
 autocmd! BufNewFile *:*: nested call s:gotoline()
 
 runtime cscope_maps.vim
+set nocscopetag
 
 " Ctrl-A switches between .h and .cc
 runtime fswitch.vim
