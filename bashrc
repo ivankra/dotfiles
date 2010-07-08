@@ -34,6 +34,8 @@ export PAGER=less
 export EDITOR=vim
 export SVN_EDITOR=vim
 
+export LESSHISTFILE="-"
+
 # History control: do not write to disk, ignore all dups
 export HISTFILE=
 export HISTCONTROL=ignoreboth
