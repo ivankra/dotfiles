@@ -10,7 +10,7 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export CVSROOT=tree.yandex.ru:/opt/CVSROOT
   export DEF_MR_SERVER=sdf200:8013
   LOCAL=$HOME/.local
-  export PATH=$HOME/git/ya/bin:$HOME/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  export PATH=$HOME/git/ya/bin:$HOME/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/Berkanavt/bin
   if [ "$(uname)" = "FreeBSD" ]; then
     export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
     export CPATH=$LOCAL/include
@@ -33,6 +33,8 @@ fi
 export PAGER=less
 export EDITOR=vim
 export SVN_EDITOR=vim
+
+export LESSHISTFILE="-"
 
 # History control: do not write to disk, ignore all dups
 export HISTFILE=
