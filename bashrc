@@ -16,6 +16,9 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
     export CPATH=$LOCAL/include
     export LIBRARY_PATH=$LOCAL/lib
     export LD_LIBRARY_PATH=$LOCAL/lib
+    if [ -x /usr/local/bin/gdb66 ]; then
+      alias gdb=/usr/local/bin/gdb66
+    fi
   fi
   if [ -z "$DISPLAY" ] && [ -e "/tmp/.X11-unix/X42" ]; then export DISPLAY=:42; fi
   if [ "$HOSTNAME" = "dagobah" ]; then

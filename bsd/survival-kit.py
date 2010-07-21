@@ -297,8 +297,8 @@ def get_package_list():
             package_id='openssl-0.9.8n.tar.gz (shared)',
             config_make_install='./config --openssldir=%s/etc/ssl --prefix=%s shared && (make -j 20 || make) && make install' % (LOCAL, LOCAL)),
         'http://curl.haxx.se/download/curl-7.20.0.tar.bz2',
-        gnu('gdb/gdb-7.1.tar.bz2',
-            pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
+        #gnu('gdb/gdb-7.1.tar.bz2',
+        #    pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
         gnu('gperf/gperf-3.0.4.tar.gz'),
 
         dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2',
