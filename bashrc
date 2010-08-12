@@ -47,9 +47,6 @@ export HISTCONTROL=ignoreboth
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
-
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
   debian_chroot=$(cat /etc/debian_chroot)
@@ -97,7 +94,6 @@ alias ssh='ssh -AX'
 alias gdb='gdb --quiet'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
-#alias gvim='gvim 2>>~/.xsession-errors'
 
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
