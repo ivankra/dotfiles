@@ -1,11 +1,16 @@
 set nocompatible
-
-set ruler showcmd showmode noerrorbells nowrap wildmenu
-set autoread autowrite history=50
-set backspace=2 formatoptions+=r
-set display+=lastline,uhex laststatus=2 statusline=%<%f%h%m%r%=%b=0x%B\ \ %l,%c%V\ %P
-
+set noerrorbells                        " Be quiet
+set wildmenu                            " Enhanced command line completion mode
+set autoread                            " Automatically re-read files changed outside of vim
+set autowrite                           " Automatically save file before calling external commands
+set display+=uhex,lastline              " Display unprintable characters in hex as <xx>,
+set showcmd                             " Show command on the last screen line
+set showmode                            " Show current mode in the last screen line
+set laststatus=2                        " All windows have a status line
+set statusline=%<%f%h%m%r%=%b=0x%B\ \ %l,%c%V\ %P
 set virtualedit=block                   " Allow cursor to move beyond end-of-line in block selection mode
+set backspace=2                         " Allow backspacing over indent, EOL, start of insert
+set formatoptions+=r                    " Automatically continue comments after pressing <Enter>
 set nobackup noswapfile viminfo=""      " Don't create any kind of temporary files
 set tags=tags,./tags;                   " Look for tags in current directory, then in current file's directory and upwards
 set encoding=utf-8                      " Use utf-8 to represent text internally in vim
@@ -13,12 +18,12 @@ setglobal fileencoding=utf-8            " Default file encoding for new files
 set fileencodings=ucs-bom,utf-8,cp1251  " List of encodings to check when opening an existing file
 set formatprg=indent\ -kr\ --no-tabs    " Formatting command for "gq" operator
 set foldmethod=marker                   " Folds are defined by lines with {{{ and }}} markers
+set noexpandtab tabstop=8 sts=0 sw=8    " Default tab settings
+set nowrap                              " No wrapping by default
 set incsearch ignorecase smartcase hlsearch  " Search options
 syntax on
 
-" Tabs, wrapping, indentation settings, defaults and filetype-specific.
-set noexpandtab tabstop=8 sts=0 sw=8 autoindent
-
+set noautoindent
 filetype plugin indent on
 
 autocmd BufReadPre SConstruct set filetype=python
@@ -63,7 +68,7 @@ noremap <F2> :w<CR>
 inoremap <F2> <C-O>:w<CR>
 
 " Make yank/paste work with system's clipboard.
-" But unfortunately, this prevents working with other vim registers...
+" Unfortunately, this prevents working with other vim registers.
 vnoremap y "+y
 vnoremap p "+p
 set clipboard=unnamed
@@ -106,8 +111,9 @@ endfunction
 runtime cscope_maps.vim
 set nocscopetag
 
-" Separate settings for gvim and console vim
 if has("gui_running")
+  " gvim settings
+
   if has("win32")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
@@ -118,11 +124,10 @@ if has("gui_running")
 
   colorscheme summerfruit256
 
-  set guioptions-=T
-  set guioptions-=t
+  set guioptions-=T   " disable toolbar
+  set guioptions-=t   " disable tear-off menu items
 else
-  set highlight+=s:MyStatusLineHighlight
-  highlight MyStatusLineHighlight ctermbg=white ctermfg=black
+  " console vim settings
   if ($TERM == "xterm")
     set background=light
   else
