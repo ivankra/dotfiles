@@ -75,7 +75,7 @@ else
   " Unfortunately, this prevents working with other vim registers.
   vnoremap y "+y
   vnoremap p "+p
-fi
+endif
 
 " Ctrl-V in command mode pastes from system clipboard
 cmap <C-V> <C-R>+
