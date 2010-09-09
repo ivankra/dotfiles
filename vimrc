@@ -68,10 +68,14 @@ noremap <F2> :w<CR>
 inoremap <F2> <C-O>:w<CR>
 
 " Make yank/paste work with system's clipboard.
-" Unfortunately, this prevents working with other vim registers.
-vnoremap y "+y
-vnoremap p "+p
-set clipboard=unnamed
+if has("win32")
+  set clipboard=unnamed
+else
+  " Workaround for X11 vim via remaps.
+  " Unfortunately, this prevents working with other vim registers.
+  vnoremap y "+y
+  vnoremap p "+p
+fi
 
 " Ctrl-V in command mode pastes from system clipboard
 cmap <C-V> <C-R>+
