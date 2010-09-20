@@ -1,45 +1,45 @@
 set nocompatible
-set nobackup noswapfile
-set ruler showcmd showmode noerrorbells nowrap wildmenu
-set autoread autowrite clipboard=unnamed history=50
-set foldmethod=marker backspace=2 formatoptions+=r encoding=utf8
-set incsearch ignorecase smartcase hlsearch display+=lastline,uhex
-set laststatus=2 statusline=%<%f%h%m%r%=%b=0x%B\ \ %l,%c%V\ %P
-set tags=./tags,./TAGS,tags,TAGS,../tags,../../tags,../../../tags,../../../../tags,../../../../../tags,../../../../../../tags
-set virtualedit=block   " allow cursor to move unrestricted in block mode
-
-set tabstop=8 noexpandtab autoindent
+set noerrorbells                        " Be quiet
+set wildmenu                            " Enhanced command line completion mode
+set autoread                            " Automatically re-read files changed outside of vim
+set autowrite                           " Automatically save file before calling external commands
+set display+=uhex,lastline              " Display unprintable characters in hex as <xx>,
+set showcmd                             " Show command on the last screen line
+set showmode                            " Show current mode in the last screen line
+set laststatus=2                        " All windows have a status line
+set statusline=%<%f%h%m%r%=%b=0x%B\ \ %l,%c%V\ %P
+set virtualedit=block                   " Allow cursor to move beyond end-of-line in block selection mode
+set backspace=2                         " Allow backspacing over indent, EOL, start of insert
+set formatoptions+=r                    " Automatically continue comments after pressing <Enter>
+set nobackup noswapfile viminfo=""      " Don't create any kind of temporary files
+set tags=tags,./tags;                   " Look for tags in current directory, then in current file's directory and upwards
+set encoding=utf-8                      " Use utf-8 to represent text internally in vim
+setglobal fileencoding=utf-8            " Default file encoding for new files
+set fileencodings=ucs-bom,utf-8,cp1251  " List of encodings to check when opening an existing file
+set formatprg=indent\ -kr\ --no-tabs    " Formatting command for "gq" operator
+set foldmethod=marker                   " Folds are defined by lines with {{{ and }}} markers
+set noexpandtab tabstop=8 sts=0 sw=8    " Default tab settings
+set nowrap                              " No wrapping by default
+set incsearch ignorecase smartcase hlsearch  " Search options
 syntax on
 
-set fileencodings=ucs-bom,utf-8,cp1251,default,latin1
+set noautoindent
+filetype plugin indent on
 
-if has("gui_running")
-  if has("win32")
-    set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
-    autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
-  else
-    "set guifont=Monospace\ 11
-    "set guifont=Inconsolata\ 13
-  endif
+autocmd BufReadPre SConstruct set filetype=python
+autocmd BufReadPre SConscript set filetype=python
 
-  colorscheme summerfruit256
+autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
+autocmd FileType asm        set sts=4 sw=4 et autoindent
+autocmd FileType python     set sts=4 sw=4 et autoindent
+autocmd FileType lua        set sts=4 sw=4 et autoindent
+autocmd FileType make       set sts=0 sw=8 noet nowrap
+autocmd FileType cmake      set sts=4 sw=4 et nowrap
+autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
 
-  set guioptions-=T
-  set guioptions-=t
-else
-  " settings for console
-  set highlight+=s:MyStatusLineHighlight
-  highlight MyStatusLineHighlight ctermbg=white ctermfg=black
-  if ($TERM == "xterm")
-    set background=light
-  else
-    set background=dark
-  endif
-endif
-
-" Toggles wrapping, and enables cursor motion by display lines when
-" wrapping is on.
-function ToggleWrap()
+" :ToggleWrap command - toggles wrap/nowrap, enables cursor motion by display lines when wrap is on.
+com! ToggleWrap call ToggleWrap()
+function ToggleWrap()  " {{{
   if &wrap
     setlocal nowrap
     silent! nunmap <buffer> <Up>
@@ -61,70 +61,80 @@ function ToggleWrap()
     inoremap <buffer> <silent> <Home> <C-o>g<Home>
     inoremap <buffer> <silent> <End>  <C-o>g<End>
   endif
-endfunction
-com! ToggleWrap call ToggleWrap()
+endfunction  " }}}
 
-filetype plugin indent on
-
-autocmd BufReadPre SConstruct set filetype=python
-autocmd BufReadPre SConscript set filetype=python
-
-autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
-autocmd FileType asm    set sts=4 sw=4 et autoindent
-autocmd FileType python set sts=4 sw=4 et autoindent
-autocmd FileType lua    set sts=4 sw=4 et autoindent
-autocmd FileType make   set sts=0 sw=8 noet nowrap
-autocmd FileType cmake  set sts=4 sw=4 et nowrap
-autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
-
-autocmd BufEnter *.cpp let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
-autocmd BufEnter *.cc let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
-autocmd BufEnter *.h let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
-
-autocmd BufNewFile *.cpp 0 read ~/.vimrc
-
-set formatprg=indent\ -kr\ --no-tabs
-
-" Keys remaps:
-"   F2 - save
-"   F5 - make
-"   Ctrl-[Shift]-V - paste from X clipboard  (you can still use Ctrl-Q for block selection)
+" Key map: F2 = save
 noremap <F2> :w<CR>
 inoremap <F2> <C-O>:w<CR>
-noremap <F5> :make<CR>
-inoremap <F5> <C-O>:make<CR>
-map  <C-S-V> "+gp
-imap <C-S-V> <C-O>"+gp
-map! <C-S-V> <C-R>+
 
-" :CD switches to the directory where the current buffer currently is
+" Make yank/paste work with system's clipboard.
+if has("win32")
+  set clipboard=unnamed
+else
+  " Workaround for X11 vim via remaps.
+  " Unfortunately, this prevents working with other vim registers.
+  vnoremap y "+y
+  vnoremap p "+p
+endif
+
+" Ctrl-V in command mode pastes from system clipboard
+cmap <C-V> <C-R>+
+
+" :CD switches to current file's directory
 com! CD cd %:p:h
 
-" file:line.vim
-function! s:gotoline()
-	let file = bufname("%")
-	let names =  matchlist( file, '\(.*\):\(\d\+\):*')
+" Typing %% in vim command line expands to current file's directory
+cabbr <expr> %% expand('%:p:h')
 
-	if len(names) != 0 && filereadable(names[1])
-		let l:bufn = bufnr("%")
-		exec ":e " . names[1]
-		exec ":" . names[2]
-		exec ":bdelete " . l:bufn
-		if foldlevel(names[2]) > 0
-			exec ":foldopen!"
-		endif
-	endif
+" Enable fswitch plugin.  Ctrl-A switches between .h and .cc
+runtime fswitch.vim
+nmap <C-A> :FSHere<CR>
+autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
+autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
+autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
+
+" Interpret filenames of the form <filename>:<number> as the instruction
+" to open <filename> (if it exists) and position the cursor at a given line.
+autocmd! BufNewFile *:* nested call s:gotoline()
+function! s:gotoline()
+  let file = bufname("%")
+  let names = matchlist(file, '\(.*\):\(\d\+\):*')
+
+  if len(names) != 0 && filereadable(names[1])
+    let l:bufn = bufnr("%")
+    exec ":e " . names[1]
+    exec ":" . names[2]
+    exec ":bdelete " . l:bufn
+    if foldlevel(names[2]) > 0
+      exec ":foldopen!"
+    endif
+  endif
 endfunction
 
-autocmd! BufNewFile *:* nested call s:gotoline()
-autocmd! BufNewFile *:*: nested call s:gotoline()
-
+" Enable cscope keymaps
 runtime cscope_maps.vim
 set nocscopetag
 
-" Ctrl-A switches between .h and .cc
-runtime fswitch.vim
-nmap <C-A> :FSHere<CR>
+if has("gui_running")
+  " gvim settings
 
-" Typing %%/ in vim command line produces file's current directory
-cabbr <expr> %% expand('%:p:h')
+  if has("win32")
+    set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
+    autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
+  else
+    "set guifont=Monospace\ 11
+    "set guifont=Inconsolata\ 13
+  endif
+
+  colorscheme summerfruit256
+
+  set guioptions-=T   " disable toolbar
+  set guioptions-=t   " disable tear-off menu items
+else
+  " console vim settings
+  if ($TERM == "xterm")
+    set background=light
+  else
+    set background=dark
+  endif
+endif

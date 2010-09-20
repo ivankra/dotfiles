@@ -16,6 +16,9 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
     export CPATH=$LOCAL/include
     export LIBRARY_PATH=$LOCAL/lib
     export LD_LIBRARY_PATH=$LOCAL/lib
+    if [ -x /usr/local/bin/gdb66 ]; then
+      alias gdb=/usr/local/bin/gdb66
+    fi
   fi
   if [ -z "$DISPLAY" ] && [ -e "/tmp/.X11-unix/X42" ]; then export DISPLAY=:42; fi
   if [ "$HOSTNAME" = "dagobah" ]; then
@@ -43,9 +46,6 @@ export HISTCONTROL=ignoreboth
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
-
-# make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
@@ -94,7 +94,6 @@ alias ssh='ssh -AX'
 alias gdb='gdb --quiet'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
-#alias gvim='gvim 2>>~/.xsession-errors'
 
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
