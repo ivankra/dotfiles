@@ -1,0 +1,3 @@
+inkscape
+netbeans
+eclipse

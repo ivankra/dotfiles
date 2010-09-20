@@ -81,6 +81,8 @@ autocmd BufEnter *.cpp let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
 autocmd BufEnter *.cc let b:fswitchdst='hpp,h' | let b:fswitchlocs='.'
 autocmd BufEnter *.h let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
 
+autocmd BufNewFile *.cpp 0 read ~/.vimrc
+
 set formatprg=indent\ -kr\ --no-tabs
 
 " Keys remaps:
