@@ -297,8 +297,8 @@ def get_package_list():
             package_id='openssl-0.9.8n.tar.gz (shared)',
             config_make_install='./config --openssldir=%s/etc/ssl --prefix=%s shared && (make -j 20 || make) && make install' % (LOCAL, LOCAL)),
         'http://curl.haxx.se/download/curl-7.20.0.tar.bz2',
-        gnu('gdb/gdb-7.1.tar.bz2',
-            pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
+        #gnu('gdb/gdb-7.1.tar.bz2',
+        #    pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
         gnu('gperf/gperf-3.0.4.tar.gz'),
 
         dict(url='http://downloads.sourceforge.net/project/netcat/netcat/0.7.1/netcat-0.7.1.tar.bz2',
@@ -318,7 +318,7 @@ def get_package_list():
         'http://downloads.sourceforge.net/freetype/freetype-2.3.12.tar.bz2',
         'http://www.ijg.org/files/jpegsrc.v8a.tar.gz',
         'http://downloads.sourceforge.net/libpng/01-libpng-master/1.4.1/libpng-1.4.1.tar.bz2',
-        'ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz',
+        'http://download.osgeo.org/libtiff/tiff-3.9.2.tar.gz',  #'ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz',
 
         dict(
             url='http://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2',
@@ -355,7 +355,7 @@ def get_package_list():
             config_make_install=(
                 'export PYTHON_PATH=$(which python); ./configure --prefix=%s && make -j 10 && make install && ' % LOCAL +
                 '(cd %s/man && curl http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.1.tar.bz2 | tar -jx) && ' % LOCAL +
-                r"sed -i -e 's/^#![/]usr[/]bin[/]perl/^#\/usr\/bin\/env perl/' %(LOCAL)s/libexec/git-core/git-*" % LOCAL
+                r"sed -i -e 's/^#![/]usr[/]bin[/]perl/^#\/usr\/bin\/env perl/' %s/libexec/git-core/git-*" % LOCAL
             )
         ),
 
