@@ -36,6 +36,7 @@ autocmd FileType lua        set sts=4 sw=4 et autoindent
 autocmd FileType make       set sts=0 sw=8 noet nowrap
 autocmd FileType cmake      set sts=4 sw=4 et nowrap
 autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
+autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
 
 " :ToggleWrap command - toggles wrap/nowrap, enables cursor motion by display lines when wrap is on.
 com! ToggleWrap call ToggleWrap()
