@@ -4,6 +4,7 @@ autoconf
 automake
 avidemux
 bison
+bochs
 build-essential
 bum
 calibre
@@ -18,6 +19,7 @@ cscope
 curl
 cvs
 ddd
+dosbox
 doxygen
 ecryptfs-utils
 elinks
@@ -44,6 +46,8 @@ gltron
 g++-multilib
 gnome-mplayer
 gnuplot
+gparted
+gperf
 graphviz
 gtkpod
 htop
@@ -79,6 +83,7 @@ nmap
 ntp
 octave3.2
 octave3.2-info
+openjdk-6-jdk
 openoffice.org-thesaurus-ru
 p7zip-full
 pidgin
@@ -95,10 +100,12 @@ python-pyparsing
 python-scipy
 python-setuptools
 qbittorrent
+qemu
 rar
 r-base
 r-cran-randomforest
 rdesktop
+ruby
 scalable-cyrfonts-tex
 sdparm
 socat
