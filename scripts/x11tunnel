@@ -140,8 +140,18 @@ def muxer(path):
                 sys.stdout.write(struct.pack('ii', cid, len(data)) + data)
                 sys.stdout.flush()
 
+def demuxer_connect(params):
+    if params.startswith('tcp:'):
+        host, port = params[4:].split(':')
+        return socket.create_connection((host, int(port)))
+    else:
+        if params.startswith('unix:'):
+            params = params[5:]
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(params)
+        return sock
 
-def demuxer(path):
+def demuxer(connect_params):
     fd_to_cid = {}
     connections = {}
 
@@ -170,8 +180,7 @@ def demuxer(path):
                 data = sread(sys.stdin, dlen)
 
                 if dlen == -1:  # new client
-                    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                    sock.connect(path)
+                    sock = demuxer_connect(connect_params)
 
                     fd_to_cid[sock.fileno()] = cid
                     connections[cid] = sock
@@ -228,7 +237,11 @@ def x11tunnel_ssh(machine, remote_display, verbose):
     # ssh's into remote machine and sets up a display :42 there
     local_display = int(re.findall(':([0-9]+)', os.environ['DISPLAY'])[0])
     home = os.environ['HOME']
-    cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:%(home)s/git/configs/scripts/x11tunnel -d /tmp/.X11-unix/X%(local_display)s'""" % locals()
+    if os.path.exists('/tmp/.X11-unix/X%s' % local_display):
+        cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:"%(home)s/git/configs/scripts/x11tunnel -d unix:/tmp/.X11-unix/X%(local_display)s"'""" % locals()
+    else:
+        local_display_6000 = local_display + 6000
+        cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:"%(home)s/git/configs/scripts/x11tunnel -d tcp:127.0.0.1:%(local_display_6000)s"'""" % locals()
     if verbose:
         print 'Executing command:\n%s' % cmd
     os.system(cmd)
@@ -241,7 +254,7 @@ def main():
 
     parser = optparse.OptionParser(usage='%prog [options] <path to unix socket, e.g. /tmp/.X11-unix/X0>\n   or: %prog <machine name> [<remote display number> (default: 42)]  (requires socat, ssh)')
     parser.add_option('-m', '--mux', action='store_true', dest='mux', help='mux connections to socket to stdin/stdout')
-    parser.add_option('-d', '--demux', action='store_false', dest='mux', help='demux stdin/stdout to connections to socket')
+    parser.add_option('-d', '--demux', action='store_false', dest='mux', help='demux stdin/stdout to connections to socket (format: unix:<unix socket path> or tcp:<host>:<port>)')
     parser.add_option('-v', '--verbose', action='store_true', dest='verbose')
     parser.add_option('-n', '--no-check', action='store_true', dest='no_check', help='allow socket to be used by other users (for muxer)')
     (options, args) = parser.parse_args()
