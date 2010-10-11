@@ -1,27 +1,45 @@
-if [ -z "$USER" ]; then export USER=$(whoami); fi
-if [ -z "$HOME" ]; then export HOME=/home/$USER; fi
-if [ -z "$HOSTNAME" ]; then export HOSTNAME=$(hostname); fi
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
 
-export PATH=$HOME/git/configs/scripts:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:$PATH
+if [ -z "$HOME" ]; then
+  export HOME=/home/$(whoami);
+fi
 
+export PATH=$HOME/git/configs/scripts:$PATH
+if [ -d $HOME/bin ]; then
+  export PATH=$HOME/bin:$PATH
+fi
+export EDITOR=vim
+export PAGER=less
+export LESSHISTFILE=-
+
+# work environment
 if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export LANG=en_US.UTF-8
+  export LC_ALL=en_US.UTF-8
   export TMPDIR=/var/tmp
   export CVSROOT=tree.yandex.ru:/opt/CVSROOT
   export DEF_MR_SERVER=sdf200:8013
-  LOCAL=$HOME/.local
-  export PATH=$HOME/git/ya/bin:$HOME/git/configs/scripts:$LOCAL/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/Berkanavt/bin
+  export PATH=$HOME/git/ya/bin:$PATH:/Berkanavt/bin
   if [ "$(uname)" = "FreeBSD" ]; then
+    LOCAL=$HOME/.local
+    export PATH=$LOCAL/bin:$PATH
     export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
     export CPATH=$LOCAL/include
     export LIBRARY_PATH=$LOCAL/lib
     export LD_LIBRARY_PATH=$LOCAL/lib
-    if [ -x /usr/local/bin/gdb66 ]; then
+    if [ which gdb66 >/dev/null 2>/dev/null ]; then
       alias gdb=/usr/local/bin/gdb66
     fi
+    if [ which g++44 >/dev/null 2>/dev/null ]; then
+      export CC=$(which gcc44)
+      export CXX=$(which g++44)
+    fi
+    if [ -z "$DISPLAY" ] && [ -e "/tmp/.X11-unix/X42" ]; then
+      export DISPLAY=:42
+    fi
   fi
-  if [ -z "$DISPLAY" ] && [ -e "/tmp/.X11-unix/X42" ]; then export DISPLAY=:42; fi
-  if [ "$HOSTNAME" = "dagobah" ]; then
+  if [ "$(hostname)" = "dagobah" ]; then
     PS1COL=32;  # green, home
   elif [ "$(uname)" = "FreeBSD" ]; then
     PS1COL=31;  # red, bsd
@@ -30,18 +48,10 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   fi
 fi
 
-# quit now if not running interactively
-[ -z "$PS1" ] && return
-
-export PAGER=less
-export EDITOR=vim
-export SVN_EDITOR=vim
-
-export LESSHISTFILE="-"
-
-# History control: do not write to disk, ignore all dups
-export HISTFILE=
-export HISTCONTROL=ignoreboth
+# History control: do not write to disk, ignore all duplicates and commands starting with space
+HISTFILE=
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
@@ -64,7 +74,7 @@ fi
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
-    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME}: ${PWD/$HOME/~}\007"'
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
     ;;
 *)
     ;;
@@ -73,32 +83,33 @@ esac
 if [ "$(uname)" = "FreeBSD" ]; then
   alias ls='/bin/ls -G'
   alias free='vmstat'
-elif [ "$TERM" != "dumb" ]; then
-  #eval "`dircolors -b`"
-  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:tw=30;42:ow=34:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.svgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:';
-  export LS_COLORS
-  alias ls='ls --color=auto'
+else
+  # enable color support of ls
+  if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+  fi
+  alias l='ls -CF'
+  alias la='ls -A'
 fi
 
 alias ll='ls -l'
-alias la='ls -A'
-alias l='ls -CF'
 alias mv='mv -i'
 alias rm='rm -i'
 alias cp='cp -i'
-alias bc='bc -q'
-alias du='du -h'
 alias df='df -h'
-alias bc='bc -q'
-alias ssh='ssh -AX'
-alias gdb='gdb --quiet'
+alias du='du -h'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
-
-if [ -f /etc/bash_completion ]; then
-  . /etc/bash_completion
-fi
+alias fgrep='fgrep --color=auto'
+alias bc='bc -q'
+alias gdb='gdb --quiet'
+alias ssh='ssh -AX'
 
 if [ -f ~/.gdb_history ]; then
   chmod 0600 ~/.gdb_history
+fi
+
+if [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
 fi
