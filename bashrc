@@ -9,6 +9,7 @@ export PATH=$HOME/git/configs/scripts:$PATH
 if [ -d $HOME/bin ]; then
   export PATH=$HOME/bin:$PATH
 fi
+
 export EDITOR=vim
 export PAGER=less
 export LESSHISTFILE=-
@@ -20,7 +21,7 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export TMPDIR=/var/tmp
   export CVSROOT=tree.yandex.ru:/opt/CVSROOT
   export DEF_MR_SERVER=sdf200:8013
-  export PATH=$HOME/git/ya/bin:$PATH:/Berkanavt/bin
+  export PATH=$HOME/git/ya/scripts:$PATH:/Berkanavt/bin
   if [ "$(uname)" = "FreeBSD" ]; then
     LOCAL=$HOME/.local
     export PATH=$LOCAL/bin:$PATH
@@ -35,9 +36,7 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
       export CC=$(which gcc44)
       export CXX=$(which g++44)
     fi
-    if [ -z "$DISPLAY" ] && [ -e "/tmp/.X11-unix/X42" ]; then
-      export DISPLAY=:42
-    fi
+    export DISPLAY=:42
   fi
   if [ "$(hostname)" = "dagobah" ]; then
     PS1COL=32;  # green, home
