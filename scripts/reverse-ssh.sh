@@ -26,6 +26,7 @@ while true; do
     -o PreferredAuthentications=publickey  \
     -o ExitOnForwardFailure=yes \
     -o ConnectTimeout=30 \
+    -o StrictHostKeyChecking=no \
     -xnNT -v \
     -R 127.0.0.1:${TUNNEL_PORT}:127.0.0.1:22 \
     ${REMOTE_USER_HOST}
