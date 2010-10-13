@@ -9,6 +9,7 @@ bochs
 build-essential
 bum
 calibre
+cone
 cgdb
 checkinstall
 cmake
