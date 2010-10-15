@@ -8,6 +8,7 @@ bison
 bochs
 build-essential
 bum
+byobu
 calibre
 cone
 cgdb
@@ -54,6 +55,7 @@ gperf
 graphviz
 gtkpod
 htop
+human-theme
 iamerican
 id-utils
 imagemagick
@@ -102,6 +104,7 @@ python-dev
 python-doc
 python-matplotlib
 python-pyparsing
+python-rpy2
 python-scipy
 python-setuptools
 qbittorrent
