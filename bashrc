@@ -104,6 +104,7 @@ alias fgrep='fgrep --color=auto'
 alias bc='bc -q'
 alias gdb='gdb --quiet'
 alias ssh='ssh -AX'
+alias R='R --no-save --no-restore --quiet'
 
 if [ -f ~/.gdb_history ]; then
   chmod 0600 ~/.gdb_history
