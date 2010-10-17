@@ -102,6 +102,7 @@ python-dev
 python-doc
 python-matplotlib
 python-pyparsing
+python-rpy2
 python-scipy
 python-setuptools
 qbittorrent
@@ -110,6 +111,7 @@ rar
 r-base
 r-cran-randomforest
 rdesktop
+rrdtool
 ruby
 scalable-cyrfonts-tex
 sdparm
