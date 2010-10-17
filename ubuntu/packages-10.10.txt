@@ -8,6 +8,7 @@ bison
 bochs
 build-essential
 bum
+byobu
 calibre
 cone
 cgdb
@@ -54,6 +55,7 @@ gperf
 graphviz
 gtkpod
 htop
+human-theme
 iamerican
 id-utils
 imagemagick
