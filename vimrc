@@ -7,7 +7,6 @@ set display+=uhex,lastline              " Display unprintable characters in hex 
 set showcmd                             " Show command on the last screen line
 set showmode                            " Show current mode in the last screen line
 set laststatus=2                        " All windows have a status line
-set statusline=%<%f%h%m%r%=%b=0x%B\ \ %l,%c%V\ %P
 set virtualedit=block                   " Allow cursor to move beyond end-of-line in block selection mode
 set backspace=2                         " Allow backspacing over indent, EOL, start of insert
 set formatoptions+=r                    " Automatically continue comments after pressing <Enter>
@@ -21,6 +20,9 @@ set foldmethod=marker                   " Folds are defined by lines with {{{ an
 set noexpandtab tabstop=8 sts=0 sw=8    " Default tab settings
 set nowrap                              " No wrapping by default
 set incsearch ignorecase smartcase hlsearch  " Search options
+
+set statusline=%<%f%h%m%r%=%{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
+
 syntax on
 
 set noautoindent
@@ -37,6 +39,8 @@ autocmd FileType make       set sts=0 sw=8 noet nowrap
 autocmd FileType cmake      set sts=4 sw=4 et nowrap
 autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
 autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
+
+autocmd BufNewFile *.py 0r ~/.vim/skeleton/skeleton.py | exec(":10")
 
 " :ToggleWrap command - toggles wrap/nowrap, enables cursor motion by display lines when wrap is on.
 com! ToggleWrap call ToggleWrap()
@@ -74,9 +78,11 @@ if has("win32")
 else
   " Workaround for X11 vim via remaps.
   " Unfortunately, this prevents working with other vim registers.
-  vnoremap y "+y
-  vnoremap p "+p
+  "vnoremap y "+y
+  "vnoremap p "+p
 endif
+vmap <C-C> "+yi
+imap <C-V> "+gPi
 
 " Ctrl-V in command mode pastes from system clipboard
 cmap <C-V> <C-R>+
@@ -94,21 +100,25 @@ autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
 autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
 autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
 
-" Interpret filenames of the form <filename>:<number> as the instruction
-" to open <filename> (if it exists) and position the cursor at a given line.
+" Interpret filenames of the form <filename>:<line>[:<col>] as the instruction
+" to open <filename> (if it exists) and position the cursor at a given line number.
 autocmd! BufNewFile *:* nested call s:gotoline()
 function! s:gotoline()
   let file = bufname("%")
-  let names = matchlist(file, '\(.*\):\(\d\+\):*')
-
-  if len(names) != 0 && filereadable(names[1])
+  let matches = matchlist(file, '\(.*\):\(\d\+\)\(:\(\d\+\)\)\?:*')
+  if len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
     let l:bufn = bufnr("%")
-    exec ":e " . names[1]
-    exec ":" . names[2]
+    exec ":e " . matches[1]
+    if len(matches[4]) != 0
+      call cursor(matches[2], matches[4])
+    else
+      exec ":" . matches[2]
+    endif
     exec ":bdelete " . l:bufn
-    if foldlevel(names[2]) > 0
+    if foldlevel(matches[2]) > 0
       exec ":foldopen!"
     endif
+    return
   endif
 endfunction
 
@@ -135,7 +145,76 @@ else
   " console vim settings
   if ($TERM == "xterm")
     set background=light
+    set t_Co=256
+    colorscheme xoria256
   else
     set background=dark
   endif
 endif
+
+" йцукен->qwerty keymaps {{{
+map й q
+map ц w
+map у e
+map к r
+map е t
+map н y
+map г u
+map ш i
+map щ o
+map з p
+map х [
+map ъ ]
+map ф a
+map ы s
+map в d
+map а f
+map п g
+map р h
+map о j
+map л k
+map д l
+map ж ;
+map э '
+map я z
+map ч x
+map с c
+map м v
+map и b
+map т n
+map ь m
+map б ,
+map ю .
+map Й Q
+map Ц W
+map У E
+map К R
+map Е T
+map Н Y
+map Г U
+map Ш I
+map Щ O
+map З P
+map Х {
+map Ъ }
+map Ф A
+map Ы S
+map В D
+map А F
+map П G
+map Р H
+map О J
+map Л K
+map Д L
+map Ж :
+map Э "
+map Я Z
+map Ч X
+map С C
+map М V
+map И B
+map Т N
+map Ь M
+map Б <
+map Ю >
+" }}}
