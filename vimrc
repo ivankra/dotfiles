@@ -105,17 +105,32 @@ autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
 autocmd! BufNewFile *:* nested call s:gotoline()
 function! s:gotoline()
   let file = bufname("%")
-  let matches = matchlist(file, '\(.*\):\(\d\+\)\(:\(\d\+\)\)\?:*')
+  let newfile = ""
+
+  let matches = matchlist(file, '\(.*\):\(\d\+\):*')
   if len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
+    let newfile = matches[1]
+    let row = matches[2]
+    let col = ""
+  endif
+
+  let matches = matchlist(file, '\(.*\):\(\d\+\):\(\d\+\):*$')
+  if len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
+    let newfile = matches[1]
+    let row = matches[2]
+    let col = matches[3]
+  endif
+
+  if len(newfile) > 0
     let l:bufn = bufnr("%")
-    exec ":e " . matches[1]
-    if len(matches[4]) != 0
-      call cursor(matches[2], matches[4])
+    exec ":e " . newfile
+    if len(col) > 0
+      call cursor(row, col)
     else
-      exec ":" . matches[2]
+      exec ":" . row
     endif
     exec ":bdelete " . l:bufn
-    if foldlevel(matches[2]) > 0
+    if foldlevel(row) > 0
       exec ":foldopen!"
     endif
     return
