@@ -70,7 +70,11 @@ if [ "$TERM" != "dumb" ]; then
   if [ -z "$PS1COL" ]; then
     PS1COL=32
   fi
-  PS1='${debian_chroot:+($debian_chroot)}\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[035;01m\]$(__git_ps1)\[\033[00m\]\\$ '
+  PS1='${debian_chroot:+($debian_chroot)}'
+  PS1+='\[\033[36m\]\A '  # time
+  PS1+='\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+  PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
+  PS1+='\\$ '
 else
   PS1='\u@\h:\w\\$ '
 fi
