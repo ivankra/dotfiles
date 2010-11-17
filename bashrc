@@ -14,6 +14,8 @@ export EDITOR=vim
 export PAGER=less
 export LESSHISTFILE=-
 
+__git_ps1 () { return; }
+
 # work environment
 if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export LANG=en_US.UTF-8
@@ -37,6 +39,9 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
       export CXX=$(which g++44)
     fi
     export DISPLAY=:42
+    if [ -f ~/.local/etc/bash_completion -a ! -d /etc/bash_completion.d/git ]; then
+      . ~/.local/etc/bash_completion.d/git
+    fi
   fi
   if [ "$(hostname)" = "dagobah" ]; then
     PS1COL=32;  # green, home
@@ -65,7 +70,7 @@ if [ "$TERM" != "dumb" ]; then
   if [ -z "$PS1COL" ]; then
     PS1COL=32
   fi
-  PS1="${debian_chroot:+($debian_chroot)}\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\\$ "
+  PS1='${debian_chroot:+($debian_chroot)}\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[035;01m\]$(__git_ps1)\[\033[00m\]\\$ '
 else
   PS1='\u@\h:\w\\$ '
 fi
