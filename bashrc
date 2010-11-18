@@ -32,16 +32,13 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
     export LIBRARY_PATH=$LOCAL/lib
     export LD_LIBRARY_PATH=$LOCAL/lib
     if [ which gdb66 >/dev/null 2>/dev/null ]; then
-      alias gdb=/usr/local/bin/gdb66
+      alias gdb=$(which gdb66)
     fi
     if [ which g++44 >/dev/null 2>/dev/null ]; then
       export CC=$(which gcc44)
       export CXX=$(which g++44)
     fi
     export DISPLAY=:42
-    if [ -f ~/.local/etc/bash_completion -a ! -d /etc/bash_completion.d/git ]; then
-      . ~/.local/etc/bash_completion.d/git
-    fi
   fi
   if [ "$(hostname)" = "dagobah" ]; then
     PS1COL=32;  # green, home
@@ -71,7 +68,7 @@ if [ "$TERM" != "dumb" ]; then
     PS1COL=32
   fi
   PS1='${debian_chroot:+($debian_chroot)}'
-  PS1+='\[\033[36m\]\A '  # time
+  #PS1+='\[\033[36m\]\A '  # time
   PS1+='\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
   PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
   PS1+='\\$ '
@@ -121,4 +118,6 @@ fi
 
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
+elif [ -f ~/git/configs/bash-completion-git ]; then
+  . ~/git/configs/bash-completion-git
 fi
