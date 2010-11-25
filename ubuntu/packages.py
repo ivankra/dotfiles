@@ -176,3 +176,4 @@ if release >= 1010:
 
 print 'sudo apt-get install ' + ' '.join([s for s in packages if not s.startswith('-')])
 print 'sudo apt-get remove ' + ' '.join([s[1:] for s in packages if s.startswith('-')])
+print 'sudo easy_install gitserve'
