@@ -16,32 +16,39 @@ set encoding=utf-8                      " Use utf-8 to represent text internally
 setglobal fileencoding=utf-8            " Default file encoding for new files
 set fileencodings=ucs-bom,utf-8,cp1251  " List of encodings to check when opening an existing file
 set formatprg=indent\ -kr\ --no-tabs    " Formatting command for "gq" operator
-set foldmethod=marker                   " Folds are defined by lines with {{{ and }}} markers
 set noexpandtab tabstop=8 sts=0 sw=8    " Default tab settings
 set nowrap                              " No wrapping by default
 set incsearch ignorecase smartcase hlsearch  " Search options
-
+if has("folding")
+  set foldmethod=marker                 " Folds are defined by lines with {{{ and }}} markers
+endif
 set statusline=%<%f%h%m%r%=%{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
 
-syntax on
+if has("syntax")
+  syntax on
+endif
 
 set noautoindent
-filetype plugin indent on
 
-autocmd BufReadPre SConstruct set filetype=python
-autocmd BufReadPre SConscript set filetype=python
+if has("autocmd")
+  filetype plugin indent on
 
-autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
-autocmd FileType asm        set sts=4 sw=4 et autoindent
-autocmd FileType python     set sts=4 sw=4 et autoindent
-autocmd FileType lua        set sts=4 sw=4 et autoindent
-autocmd FileType make       set sts=0 sw=8 noet nowrap
-autocmd FileType cmake      set sts=4 sw=4 et nowrap
-autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
-autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
+  autocmd BufReadPre SConstruct set filetype=python
+  autocmd BufReadPre SConscript set filetype=python
 
-autocmd BufNewFile *.py 0r ~/.vim/skeleton/skeleton.py | exec(":10")
+  autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
+  autocmd FileType asm        set sts=4 sw=4 et autoindent
+  autocmd FileType python     set sts=4 sw=4 et autoindent
+  autocmd FileType lua        set sts=4 sw=4 et autoindent
+  autocmd FileType make       set sts=0 sw=8 noet nowrap
+  autocmd FileType cmake      set sts=4 sw=4 et nowrap
+  autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
+  autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
 
+  autocmd BufNewFile *.py 0r ~/.vim/skeleton/skeleton.py | exec(":10")
+endif
+
+if has("user_commands")
 " :ToggleWrap command - toggles wrap/nowrap, enables cursor motion by display lines when wrap is on.
 com! ToggleWrap call ToggleWrap()
 function ToggleWrap()  " {{{
@@ -67,6 +74,7 @@ function ToggleWrap()  " {{{
     inoremap <buffer> <silent> <End>  <C-o>g<End>
   endif
 endfunction  " }}}
+endif
 
 " Key map: F2 = save
 noremap <F2> :w<CR>
@@ -86,18 +94,23 @@ imap <C-V> "+gPi
 cmap <C-V> <C-R>+
 
 " :CD switches to current file's directory
-com! CD cd %:p:h
+if has("user_commands")
+  com! CD cd %:p:h
+endif
 
 " Typing %% in vim command line expands to current file's directory
 cabbr <expr> %% expand('%:p:h')
 
 " Enable fswitch plugin.  Ctrl-A switches between .h and .cc
-runtime fswitch.vim
-nmap <C-A> :FSHere<CR>
-autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
-autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
-autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
+if has("autocmd")
+  runtime fswitch.vim
+  nmap <C-A> :FSHere<CR>
+  autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
+  autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
+  autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
+endif
 
+if has("autocmd") && has("user_commands")
 " Interpret filenames of the form <filename>:<line>[:<col>] as the instruction
 " to open <filename> (if it exists) and position the cursor at a given line number.
 autocmd! BufNewFile *:* nested call s:gotoline()
@@ -134,10 +147,13 @@ function! s:gotoline()
     return
   endif
 endfunction
+endif
 
 " Enable cscope keymaps
-runtime cscope_maps.vim
-set nocscopetag
+if has("cscope")
+  runtime cscope_maps.vim
+  set nocscopetag
+endif
 
 if has("gui_running")
   " gvim settings
