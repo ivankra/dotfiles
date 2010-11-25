@@ -32,6 +32,7 @@ def main():
     actions.append([home + '/.gdbinit', base + '/gdbinit'])
     actions.append([home + '/.inputrc', base + '/inputrc'])
     actions.append([home + '/.gitconfig', base + '/gitconfig'])
+    actions.append([home + '/.hgrc', base + '/hgrc'])
     actions.append([home + '/.Rprofile', base + '/Rprofile'])
 
     items_str = []
