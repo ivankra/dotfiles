@@ -71,9 +71,9 @@ if [ "$TERM" != "dumb" ]; then
   #PS1+='\[\033[36m\]\A '  # time
   PS1+='\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
   PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
-  PS1+='\\$ '
+  PS1+='\$ '
 else
-  PS1='\u@\h:\w\\$ '
+  PS1='\u@\h:\w\$ '
 fi
 
 # If this is an xterm set the title to user@host:dir
