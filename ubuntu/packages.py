@@ -135,6 +135,7 @@ rdesktop
 rrdtool
 ruby
 scalable-cyrfonts-tex
+scons
 sdparm
 socat
 sox
