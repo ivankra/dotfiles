@@ -98,6 +98,7 @@ octave3.2
 octave3.2-info
 openjdk-6-jdk
 openoffice.org-thesaurus-ru
+openssh-server
 openvpn
 p7zip-full
 pidgin
