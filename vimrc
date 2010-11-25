@@ -75,11 +75,9 @@ inoremap <F2> <C-O>:w<CR>
 " Make yank/paste work with system's clipboard.
 if has("win32")
   set clipboard=unnamed
-else
-  " Workaround for X11 vim via remaps.
-  " Unfortunately, this prevents working with other vim registers.
-  "vnoremap y "+y
-  "vnoremap p "+p
+endif
+if has("unnamedplus")  " for hacked vim binary
+  set clipboard=unnamed
 endif
 vmap <C-C> "+yi
 imap <C-V> "+gPi

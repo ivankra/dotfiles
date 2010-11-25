@@ -1,0 +1,64 @@
+diff -r b2789846ed39 src/eval.c
+--- a/src/eval.c	Wed Nov 24 18:48:12 2010 +0100
++++ b/src/eval.c	Thu Nov 25 17:19:53 2010 +0300
+@@ -12186,6 +12186,7 @@
+ #endif
+ #ifdef FEAT_XCLIPBOARD
+ 	"xterm_clipboard",
++	"unnamedplus",
+ #endif
+ #ifdef FEAT_XTERM_SAVE
+ 	"xterm_save",
+diff -r b2789846ed39 src/ops.c
+--- a/src/ops.c	Wed Nov 24 18:48:12 2010 +0100
++++ b/src/ops.c	Thu Nov 25 17:19:53 2010 +0300
+@@ -1586,7 +1586,7 @@
+ {
+     /* If no reg. specified, and "unnamed" is in 'clipboard', use '*' reg. */
+     if (*rp == 0 && clip_unnamed)
+-	*rp = '*';
++	*rp = '+';
+     if (!clip_star.available && *rp == '*')
+ 	*rp = 0;
+     if (!clip_plus.available && *rp == '+')
+@@ -3113,14 +3113,8 @@
+      * If no register was specified, and "unnamed" in 'clipboard', make a copy
+      * to the '*' register.
+      */
+-    if (clip_star.available
+-	    && (curr == &(y_regs[STAR_REGISTER])
+-		|| (!deleting && oap->regname == 0 && clip_unnamed)))
++    if (clip_star.available && curr == &(y_regs[STAR_REGISTER]))
+     {
+-	if (curr != &(y_regs[STAR_REGISTER]))
+-	    /* Copy the text from register 0 to the clipboard register. */
+-	    copy_yank_reg(&(y_regs[STAR_REGISTER]));
+-
+ 	clip_own_selection(&clip_star);
+ 	clip_gen_set_selection(&clip_star);
+     }
+@@ -3130,8 +3124,12 @@
+      * If we were yanking to the '+' register, send result to selection.
+      * Also copy to the '*' register, in case auto-select is off.
+      */
+-    else if (clip_plus.available && curr == &(y_regs[PLUS_REGISTER]))
++    else if (clip_plus.available && (curr == &(y_regs[PLUS_REGISTER]) || (!deleting && oap->regname == 0 && clip_unnamed)))
+     {
++	if (curr != &(y_regs[PLUS_REGISTER]))
++	    /* Copy the text from register 0 to the clipboard register. */
++	    copy_yank_reg(&(y_regs[PLUS_REGISTER]));
++
+ 	/* No need to copy to * register upon 'unnamed' now - see below */
+ 	clip_own_selection(&clip_plus);
+ 	clip_gen_set_selection(&clip_plus);
+diff -r b2789846ed39 src/version.c
+--- a/src/version.c	Wed Nov 24 18:48:12 2010 +0100
++++ b/src/version.c	Thu Nov 25 17:19:53 2010 +0300
+@@ -693,6 +693,7 @@
+ # endif
+ # ifdef FEAT_XCLIPBOARD
+ 	"+xterm_clipboard",
++	"+unnamedplus",
+ # else
+ 	"-xterm_clipboard",
+ # endif
