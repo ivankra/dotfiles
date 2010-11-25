@@ -88,7 +88,8 @@ if has("unnamedplus")  " for hacked vim binary
   set clipboard=unnamed
 endif
 vmap <C-C> "+yi
-imap <C-V> "+gPi
+nmap <C-V> "+gPi
+imap <C-V> <C-O>"+gP
 
 " Ctrl-V in command mode pastes from system clipboard
 cmap <C-V> <C-R>+
