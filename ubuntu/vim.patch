@@ -1,64 +1,95 @@
 diff -r b2789846ed39 src/eval.c
 --- a/src/eval.c	Wed Nov 24 18:48:12 2010 +0100
-+++ b/src/eval.c	Thu Nov 25 17:19:53 2010 +0300
-@@ -12186,6 +12186,7 @@
++++ b/src/eval.c	Thu Nov 25 23:58:02 2010 +0300
+@@ -12135,6 +12135,9 @@
+ #ifdef FEAT_TOOLBAR
+ 	"toolbar",
  #endif
- #ifdef FEAT_XCLIPBOARD
- 	"xterm_clipboard",
++#ifdef FEAT_CLIPBOARD
 +	"unnamedplus",
- #endif
- #ifdef FEAT_XTERM_SAVE
- 	"xterm_save",
++#endif
+ #ifdef FEAT_USR_CMDS
+ 	"user-commands",    /* was accidentally included in 5.4 */
+ 	"user_commands",
 diff -r b2789846ed39 src/ops.c
 --- a/src/ops.c	Wed Nov 24 18:48:12 2010 +0100
-+++ b/src/ops.c	Thu Nov 25 17:19:53 2010 +0300
-@@ -1586,7 +1586,7 @@
++++ b/src/ops.c	Thu Nov 25 23:58:02 2010 +0300
+@@ -1585,8 +1585,8 @@
+     int		*rp;
  {
      /* If no reg. specified, and "unnamed" is in 'clipboard', use '*' reg. */
-     if (*rp == 0 && clip_unnamed)
+-    if (*rp == 0 && clip_unnamed)
 -	*rp = '*';
-+	*rp = '+';
++    if (*rp == 0 && clip_unnamed != 0)
++	*rp = clip_unnamed == 1 ? '*' : '+';
      if (!clip_star.available && *rp == '*')
  	*rp = 0;
      if (!clip_plus.available && *rp == '+')
-@@ -3113,14 +3113,8 @@
-      * If no register was specified, and "unnamed" in 'clipboard', make a copy
-      * to the '*' register.
+@@ -3115,7 +3115,7 @@
       */
--    if (clip_star.available
--	    && (curr == &(y_regs[STAR_REGISTER])
+     if (clip_star.available
+ 	    && (curr == &(y_regs[STAR_REGISTER])
 -		|| (!deleting && oap->regname == 0 && clip_unnamed)))
-+    if (clip_star.available && curr == &(y_regs[STAR_REGISTER]))
++		|| (!deleting && oap->regname == 0 && clip_unnamed == 1)))
      {
--	if (curr != &(y_regs[STAR_REGISTER]))
--	    /* Copy the text from register 0 to the clipboard register. */
--	    copy_yank_reg(&(y_regs[STAR_REGISTER]));
--
- 	clip_own_selection(&clip_star);
- 	clip_gen_set_selection(&clip_star);
-     }
-@@ -3130,8 +3124,12 @@
+ 	if (curr != &(y_regs[STAR_REGISTER]))
+ 	    /* Copy the text from register 0 to the clipboard register. */
+@@ -3130,8 +3130,14 @@
       * If we were yanking to the '+' register, send result to selection.
       * Also copy to the '*' register, in case auto-select is off.
       */
 -    else if (clip_plus.available && curr == &(y_regs[PLUS_REGISTER]))
-+    else if (clip_plus.available && (curr == &(y_regs[PLUS_REGISTER]) || (!deleting && oap->regname == 0 && clip_unnamed)))
++    else if (clip_plus.available
++	         && (curr == &(y_regs[PLUS_REGISTER])
++		     || (!deleting && oap->regname == 0 && clip_unnamed == 2)))
      {
 +	if (curr != &(y_regs[PLUS_REGISTER]))
-+	    /* Copy the text from register 0 to the clipboard register. */
++	    /* Copy the text from register 0 to the + register. */
 +	    copy_yank_reg(&(y_regs[PLUS_REGISTER]));
 +
  	/* No need to copy to * register upon 'unnamed' now - see below */
  	clip_own_selection(&clip_plus);
  	clip_gen_set_selection(&clip_plus);
+diff -r b2789846ed39 src/option.c
+--- a/src/option.c	Wed Nov 24 18:48:12 2010 +0100
++++ b/src/option.c	Thu Nov 25 23:58:02 2010 +0300
+@@ -7304,7 +7304,7 @@
+     static char_u *
+ check_clipboard_option()
+ {
+-    int		new_unnamed = FALSE;
++    int		new_unnamed = 0;
+     int		new_autoselect = FALSE;
+     int		new_autoselectml = FALSE;
+     int		new_html = FALSE;
+@@ -7316,9 +7316,14 @@
+     {
+ 	if (STRNCMP(p, "unnamed", 7) == 0 && (p[7] == ',' || p[7] == NUL))
+ 	{
+-	    new_unnamed = TRUE;
++	    new_unnamed = 1;
+ 	    p += 7;
+ 	}
++        else if (STRNCMP(p, "unnamedplus", 11) == 0 && (p[11] == ',' || p[11] == NUL))
++	{
++	    new_unnamed = 2;
++	    p += 11;
++	}
+ 	else if (STRNCMP(p, "autoselect", 10) == 0
+ 					&& (p[10] == ',' || p[10] == NUL))
+ 	{
 diff -r b2789846ed39 src/version.c
 --- a/src/version.c	Wed Nov 24 18:48:12 2010 +0100
-+++ b/src/version.c	Thu Nov 25 17:19:53 2010 +0300
-@@ -693,6 +693,7 @@
- # endif
- # ifdef FEAT_XCLIPBOARD
- 	"+xterm_clipboard",
++++ b/src/version.c	Thu Nov 25 23:58:02 2010 +0300
+@@ -609,6 +609,11 @@
+ #else
+ 	"-toolbar",
+ #endif
++#ifdef FEAT_CLIPBOARD
 +	"+unnamedplus",
- # else
- 	"-xterm_clipboard",
- # endif
++#else
++	"-unnamedplus",
++#endif
+ #ifdef FEAT_USR_CMDS
+ 	"+user_commands",
+ #else

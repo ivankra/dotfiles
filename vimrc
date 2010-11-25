@@ -84,8 +84,8 @@ inoremap <F2> <C-O>:w<CR>
 if has("win32")
   set clipboard=unnamed
 endif
-if has("unnamedplus")  " for hacked vim binary
-  set clipboard=unnamed
+if has("unnamedplus")  " for patched vim binary
+  set clipboard=unnamedplus
 endif
 vmap <C-C> "+yi
 nmap <C-V> "+gPi
