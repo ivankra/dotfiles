@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Compiles cutting-edge vim in which "set clipboard=unnamed" yanks to plus register on X11
 set -e -x
+#sudo apt-get build-dep vim-gnome
 cd /tmp
 rm -rf /tmp/vim-hg
 hg clone https://vim.googlecode.com/hg/ vim-hg
