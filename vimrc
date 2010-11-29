@@ -23,6 +23,9 @@ if has("folding")
   set foldmethod=marker                 " Folds are defined by lines with {{{ and }}} markers
 endif
 set statusline=%<%f%h%m%r%=%{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
+set lazyredraw
+set pastetoggle=<F12>
+set history=100                         " remember more then the default 20 commands
 
 if has("syntax")
   syntax on
