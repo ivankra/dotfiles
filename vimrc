@@ -172,6 +172,15 @@ if has("gui_running")
 
   colorscheme summerfruit256
 
+  " Highlight trailing whitespace and spaces before tabs
+  if has("autocmd")
+    hi ExtraWhitespace guibg=#ffcccc
+    autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
+    autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
+    autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
+    match ExtraWhitespace /\s\+$/
+  endif
+
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
 else
