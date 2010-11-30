@@ -170,12 +170,18 @@ weka
 wine
 wireshark
 xsel
+fakeroot build-essential crash kexec-tools makedumpfile kernel-wedge
+git-core libncurses5 libncurses5-dev libelf-dev asciidoc binutils-dev
+mesa-utils
+
 -f-spot
 -gwibber
 -gwibber-service
 -tomboy
 -ubuntuone-client
-'''.split()
+'''
+
+packages = packages.split()
 
 if len(sys.argv) == 2:
     release = int(float(sys.argv[1]) * 100 + 1e-5)
@@ -185,6 +191,8 @@ else:
 if release >= 1010:
     packages += 'g++-4.5 python2.7'.split()
 
+print '#!/bin/sh'
 print 'sudo apt-get install ' + ' '.join([s for s in packages if not s.startswith('-')])
+print 'sudo apt-get build-dep linux'
 print 'sudo apt-get remove ' + ' '.join([s[1:] for s in packages if s.startswith('-')])
 print 'sudo easy_install gitserve'
