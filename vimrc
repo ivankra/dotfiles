@@ -86,19 +86,20 @@ endif
 noremap <F2> :w<CR>
 inoremap <F2> <C-O>:w<CR>
 
-" Make yank/paste work with system's clipboard.
+" Make yank/put operations by default work with system's clipboard.
 if has("win32")
   set clipboard=unnamed
 endif
-if has("unnamedplus")  " for patched vim binary
-  set clipboard=unnamedplus
+if has("unnamedplus")  " for Vim 7.3.074 and above on X11
+  " Makes 'yank' copy into + and * registers, and 'put' copy from + register.
+  set clipboard=unnamed,unnamedplus
 endif
-vmap <C-C> "+yi
-nmap <C-V> "+gPi
-imap <C-V> <C-O>"+gP
 
-" Ctrl-V in command mode pastes from system clipboard
-cmap <C-V> <C-R>+
+" Ctrl-V in command mode pastes from system clipboard, but only in GUI
+" as Ctrl-V alternative (Ctrl-Q) isn't available in terminal.
+if has("gui_running")
+  cmap <C-V> <C-R>+
+endif
 
 " :CD switches to current file's directory
 if has("user_commands")
@@ -196,7 +197,7 @@ else
   endif
 endif
 
-" йцукен->qwerty keymaps {{{
+" йцукен->qwerty translations for normal mode
 map й q
 map ц w
 map у e
@@ -261,4 +262,5 @@ map Т N
 map Ь M
 map Б <
 map Ю >
-" }}}
+
+" vim: fdm=manual
