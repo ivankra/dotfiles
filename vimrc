@@ -36,6 +36,9 @@ set noautoindent
 if has("autocmd")
   filetype plugin indent on
 
+  " Load large files faster
+  autocmd BufReadPre * if getfsize(expand("<afile>")) > 10485760 | setlocal syntax=OFF fdm=manual | endif
+
   autocmd BufReadPre SConstruct set filetype=python
   autocmd BufReadPre SConscript set filetype=python
 
