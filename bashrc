@@ -17,43 +17,8 @@ export LESSHISTFILE=-
 __git_ps1 () { return; }
 
 # work environment
-if [ -d "/Berkanavt" -o -d "/hol" ]; then
-  export LANG=en_US.UTF-8
-  export LC_ALL=en_US.UTF-8
-  export TMPDIR=/var/tmp
-  export CVSROOT=tree.yandex.ru:/opt/CVSROOT
-  export DEF_MR_SERVER=sdf200:8013
-  PATH=$HOME/git/ya/scripts:$PATH
-  if ! (echo "$PATH" | grep /Berkanavt/bin >/dev/null 2>&1); then
-    PATH=$PATH:/Berkanavt/bin:/Berkanavt/bin/scripts
-  fi
-  if ! (echo "$PATH" | grep /skynet >/dev/null 2>&1); then
-    PATH=$PATH:/skynet/tools/bin
-  fi
-  export PATH
-  if [ "$(uname)" = "FreeBSD" ]; then
-    LOCAL=$HOME/.local
-    export PATH=$LOCAL/bin:$PATH
-    export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
-    export CPATH=$LOCAL/include
-    export LIBRARY_PATH=$LOCAL/lib
-    export LD_LIBRARY_PATH=$LOCAL/lib
-    if [ which gdb66 >/dev/null 2>/dev/null ]; then
-      alias gdb=$(which gdb66)
-    fi
-    if [ which g++44 >/dev/null 2>/dev/null ]; then
-      export CC=$(which gcc44)
-      export CXX=$(which g++44)
-    fi
-    export DISPLAY=:42
-  fi
-  if [ "$(hostname)" = "dagobah" ]; then
-    PS1COL=32;  # green, home
-  elif [ "$(uname)" = "FreeBSD" ]; then
-    PS1COL=31;  # red, bsd
-  else
-    PS1COL=35;  # purple, linux
-  fi
+if [ -d /Berkanavt -o -d /hol ]; then
+  source ~/git/configs/bashrc-arc
 fi
 
 # History control: do not write to disk, ignore all duplicates and commands starting with space
