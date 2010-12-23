@@ -23,7 +23,14 @@ if [ -d "/Berkanavt" -o -d "/hol" ]; then
   export TMPDIR=/var/tmp
   export CVSROOT=tree.yandex.ru:/opt/CVSROOT
   export DEF_MR_SERVER=sdf200:8013
-  export PATH=$HOME/git/ya/scripts:$PATH:/Berkanavt/bin
+  PATH=$HOME/git/ya/scripts:$PATH
+  if ! (echo "$PATH" | grep /Berkanavt/bin >/dev/null 2>&1); then
+    PATH=$PATH:/Berkanavt/bin:/Berkanavt/bin/scripts
+  fi
+  if ! (echo "$PATH" | grep /skynet >/dev/null 2>&1); then
+    PATH=$PATH:/skynet/tools/bin
+  fi
+  export PATH
   if [ "$(uname)" = "FreeBSD" ]; then
     LOCAL=$HOME/.local
     export PATH=$LOCAL/bin:$PATH
