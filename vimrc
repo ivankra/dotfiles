@@ -54,10 +54,33 @@ if has("autocmd")
   autocmd BufNewFile *.py 0r ~/.vim/skeleton/skeleton.py | exec(":10")
 endif
 
-if has("user_commands")
+" Key map: F2 = save
+noremap <F2> :w<CR>
+inoremap <F2> <C-O>:w<CR>
+
+" Make yank/put operations by default work with system's clipboard.
+if has("win32")
+  set clipboard=unnamed
+endif
+if has("unnamedplus")  " for Vim 7.3.074 and above on X11
+  " Makes 'yank' copy into + and * registers, and 'put' copy from + register.
+  set clipboard=unnamed,unnamedplus
+endif
+
+" Ctrl-V in command mode pastes from system clipboard, but only in GUI
+" as Ctrl-V alternative (Ctrl-Q) isn't available in terminal.
+if has("gui_running")
+  cmap <C-V> <C-R>+
+endif
+
+" Typing %% in vim command line expands to current file's directory
+cabbr <expr> %% expand('%:p:h')
+
+if has("autocmd") && has("user_commands")
+
 " :ToggleWrap command - toggles wrap/nowrap, enables cursor motion by display lines when wrap is on.
 com! ToggleWrap call ToggleWrap()
-function ToggleWrap()  " {{{
+function ToggleWrap()
   if &wrap
     setlocal nowrap
     silent! nunmap <buffer> <Up>
@@ -79,46 +102,18 @@ function ToggleWrap()  " {{{
     inoremap <buffer> <silent> <Home> <C-o>g<Home>
     inoremap <buffer> <silent> <End>  <C-o>g<End>
   endif
-endfunction  " }}}
-endif
-
-" Key map: F2 = save
-noremap <F2> :w<CR>
-inoremap <F2> <C-O>:w<CR>
-
-" Make yank/put operations by default work with system's clipboard.
-if has("win32")
-  set clipboard=unnamed
-endif
-if has("unnamedplus")  " for Vim 7.3.074 and above on X11
-  " Makes 'yank' copy into + and * registers, and 'put' copy from + register.
-  set clipboard=unnamed,unnamedplus
-endif
-
-" Ctrl-V in command mode pastes from system clipboard, but only in GUI
-" as Ctrl-V alternative (Ctrl-Q) isn't available in terminal.
-if has("gui_running")
-  cmap <C-V> <C-R>+
-endif
+endfunction
 
 " :CD switches to current file's directory
-if has("user_commands")
-  com! CD cd %:p:h
-endif
-
-" Typing %% in vim command line expands to current file's directory
-cabbr <expr> %% expand('%:p:h')
+com! CD cd %:p:h
 
 " Enable fswitch plugin.  Ctrl-A switches between .h and .cc
-if has("autocmd")
-  runtime fswitch.vim
-  nmap <C-A> :FSHere<CR>
-  autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
-  autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
-  autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
-endif
+runtime fswitch.vim
+nmap <C-A> :FSHere<CR>
+autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
+autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
+autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
 
-if has("autocmd") && has("user_commands")
 " Interpret filenames of the form <filename>:<line>[:<col>] as the instruction
 " to open <filename> (if it exists) and position the cursor at a given line number.
 autocmd! BufNewFile *:* nested call s:gotoline()
@@ -155,7 +150,8 @@ function! s:gotoline()
     return
   endif
 endfunction
-endif
+
+endif  " has("autocmd") && has("user_commands")
 
 " Enable cscope keymaps
 if has("cscope")
