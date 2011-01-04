@@ -88,8 +88,10 @@ if [ -f ~/.gdb_history ]; then
   chmod 0600 ~/.gdb_history
 fi
 
-if [ -f /etc/bash_completion ]; then
-  . /etc/bash_completion
-elif [ -f ~/git/configs/bash-completion-git ]; then
-  . ~/git/configs/bash-completion-git
+if [[ ! -d /cygdrive ]]; then
+  if [[ -f /etc/bash_completion ]]; then
+    . /etc/bash_completion
+  elif [[ -f ~/git/configs/bash-completion-git ]]; then
+    . ~/git/configs/bash-completion-git
+  fi
 fi
