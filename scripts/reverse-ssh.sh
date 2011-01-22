@@ -18,6 +18,7 @@ fi
 
 set -x
 while true; do
+  date
   ssh \
     -o TCPKeepAlive=no \
     -o ServerAliveInterval=60 \
@@ -25,10 +26,10 @@ while true; do
     -o BatchMode=yes \
     -o PreferredAuthentications=publickey  \
     -o ExitOnForwardFailure=yes \
-    -o ConnectTimeout=30 \
+    -o ConnectTimeout=60 \
     -o StrictHostKeyChecking=no \
     -xnNT -v \
     -R 127.0.0.1:${TUNNEL_PORT}:127.0.0.1:22 \
     ${REMOTE_USER_HOST}
-  sleep 10
+  sleep 60
 done
