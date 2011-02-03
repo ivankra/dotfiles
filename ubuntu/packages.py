@@ -1,198 +1,98 @@
 #!/usr/bin/env python
-import os, sys
+# Usage: packages.py [release version] [tags]
+import os, sys, re
 
-packages = '''
-adblock-plus
-amule
-aptitude
-autoconf
-automake
-avidemux
-bison
-bochs
-build-essential
-bum
-byobu
-calibre
-cgdb
-checkinstall
-cmake
-cmake-curses-gui
-cmake-gui
-cone
-cpufrequtils
-crack-attack
-cscope
-curl
-cvs
-ddd
-dosbox
-doxygen
-ecryptfs-utils
-elinks
-exif
-expat
-exuberant-ctags
-fbreader
-ffmpeg
-flex
-fortune-mod
-g++
-gawk
-gcc-doc
-gdb-doc
-geany
-gimp
-git-core
-gitk
-git-svn
-gitweb
-global
-glpk
-gltron
-gmp-doc
-g++-multilib
-gnome-mplayer
-gnuplot
-gparted
-gperf
-graphviz
-gtkpod
-htop
-human-theme
-iamerican
-id-utils
-imagemagick
-indent
-inkscape
-iotop
-ipython
-irussian
-ispell
-kcachegrind
-language-support-ru
-latex-beamer
-libatk1.0-dev
-libbonoboui2-dev
-libcairo2-dev
-libgmp3-dev
-libgmp3-doc
-libgnome2-dev
-libgnomeui-dev
-libgsl0-dev
-libgtk2.0-dev
-libncurses5-dev
-libnotify-bin
-libpcap-dev
-libssl-dev
-libsvm-tools
-libusb-1.0-0
-libusb-1.0-0-dev
-libx11-dev
-libxpm-dev
-libxt-dev
-lm-sensors
-mailutils
-manpages-dev
-manpages-posix
-manpages-posix-dev
-mc
-mercurial
-mplayer
-mutt
-nautilus-open-terminal
-network-manager-openvpn-gnome
-nmap
-ntp
-octave3.2
-octave3.2-info
-openjdk-6-jdk
-openoffice.org-thesaurus-ru
-openssh-server
-openvpn
-p7zip-full
-pidgin
-powertop
-pwgen
-pychecker
-python2.6
-python3-all
-python-all
-python-dev
-python-doc
-python-gmpy
-python-matplotlib
-python-pyparsing
-python-rpy2
-python-scipy
-python-setuptools
-qbittorrent
-qemu
-rar
-r-base
-r-cran-randomforest
-rdesktop
-rrdtool
-ruby
-scalable-cyrfonts-tex
-scons
-sdparm
-socat
-sox
-sqlite
-sqlite3
-sshfs
-strace
-subversion
-swig
-sysfsutils
-tcpdump
-texlive
-texlive-generic-extra
-texlive-lang-cyrillic
-texlive-latex-extra
-texlive-science
-texmaker
-thunderbird
-tkdiff
-tofrodos
-traceroute
-ubuntu-restricted-extras
-unetbootin
-unrar
-valgrind
-vim
-vim-gnome
-vinagre
-vlc
-wamerican-huge
-weka
-wine
-wireshark
-xsel
-fakeroot build-essential crash kexec-tools makedumpfile kernel-wedge
-git-core libncurses5 libncurses5-dev libelf-dev asciidoc binutils-dev
-mesa-utils
+def get_sys_release():
+    return os.popen('lsb_release -r -s', 'r').read()
 
--f-spot
--gwibber
--gwibber-service
--tomboy
--ubuntuone-client
-'''
+def is_release_tag(s):
+    return re.match('[0-9.]+', s) is not None
 
-packages = packages.split()
+def read_package_list(filename):
+    for line in file(filename):
+        line = line.strip()
+        if '#' in line:
+            line = line[:line.index('#')].strip()
 
-if len(sys.argv) == 2:
-    release = int(float(sys.argv[1]) * 100 + 1e-5)
-else:
-    release = int(float(os.popen('lsb_release -r -s', 'r').read()) * 100 + 1e-5)
+        if len(line) == 0:
+            continue
 
-if release >= 1010:
-    packages += 'g++-4.5 python2.7'.split()
+        if '[' not in line:
+            for package in line.split():
+                yield package, []
+        else:
+            packages = line[:line.index('[')].split()
+            assert line.endswith(']')
+            tags_sets = line[line.index('[')+1:-1].split('] [')
+            tags_sets = [ s.split() for s in tags_sets ]
 
-print '#!/bin/sh'
-print 'sudo apt-get install ' + ' '.join([s for s in packages if not s.startswith('-')])
-print 'sudo apt-get build-dep linux'
-print 'sudo apt-get remove ' + ' '.join([s[1:] for s in packages if s.startswith('-')])
-print 'sudo easy_install gitserve'
+            for package in packages:
+                for tags in tags_sets:
+                    yield package, tags
+
+def main():
+    filename = os.path.join(sys.path[0], 'packages.txt')
+    package_list = list(read_package_list(filename))
+
+    user_tags = set(sys.argv[1:])
+
+    release_tags = filter(is_release_tag, user_tags)
+    assert len(release_tags) <= 1, 'Please specify only one release'
+
+    if len(release_tags) == 0:
+        release_tag = get_sys_release()
+    else:
+        release_tag = release_tags[0]
+        user_tags.remove(release_tag)
+
+    known_tags = set()
+    for package, tags in package_list:
+        for tag in tags:
+            known_tags.add(tag)
+
+    for tag in known_tags:
+        if tag.endswith('+') and is_release_tag(tag[:-1]) and float(release_tag) >= float(tag[:-1]) - 1e-9:
+            user_tags.add(tag)
+
+    for tag in user_tags:
+        if tag not in known_tags:
+            sys.stderr.write('Unknown tag: %s\n' % tag)
+            sys.stderr.write('Available tags: %s\n' % ', '.join(tag for tag in known_tags if not is_release_tag(tag) and not is_release_tag(tag[:-1])))
+            sys.exit(1)
+
+    sys.stderr.write('Install script will be written to ./packages.sh\n')
+    outf = file('packages.sh', 'w')
+
+    outf.write('#!/bin/sh\n')
+    outf.write('# Selected tags: %s\n' % ' '.join(user_tags))
+
+    install_packages = set()
+    remove_packages = set()
+    build_dep_packages = set()
+    easy_install_packages = set()
+
+    for package, tags in package_list:
+        if len(tags) == 0 or all(tag in user_tags for tag in tags):
+            if package.startswith('-'):
+                remove_packages.add(package[1:])
+            elif package.startswith('build-dep:'):
+                build_dep_packages.add(package[10:])
+            elif package.startswith('easy-install:') or package.startswith('easy_install:'):
+                easy_install_packages.add(package[13:])
+            else:
+                install_packages.add(package)
+
+    if len(install_packages) > 0:
+        outf.write('apt-get install %s\n' % ' \\\n  '.join(sorted(install_packages)))
+    if len(build_dep_packages) > 0:
+        outf.write('apt-get build-dep %s\n' % ' \\\n  '.join(sorted(build_dep_packages)))
+    if len(remove_packages) > 0:
+        outf.write('apt-get remove %s\n' % ' \\\n  '.join(sorted(remove_packages)))
+    if len(easy_install_packages) > 0:
+        outf.write('easy_install %s\n' % ' '.join(sorted(easy_install_packages)))
+
+    outf.close()
+    os.chmod('packages.sh', 0766)
+
+if __name__ == '__main__':
+    main()
