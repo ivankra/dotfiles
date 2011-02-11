@@ -12,6 +12,8 @@ export TMPDIR=/var/tmp
 export DEF_MR_SERVER=sdf200:8013
 export CVSROOT=tree.yandex.ru:/opt/CVSROOT
 
+export NOSIGHANDLER=1
+
 if [ "`uname`" = "FreeBSD" ]; then
   LOCAL=$HOME/.local
   export PATH=$LOCAL/bin:$PATH
