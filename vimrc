@@ -153,10 +153,19 @@ endfunction
 
 endif  " has("autocmd") && has("user_commands")
 
-" Enable cscope keymaps
 if has("cscope")
+  " Search for any cscope.out in current directory and upward
+  let cscopeoutpath = findfile("cscope.out", ".;")
+  if cscopeoutpath != '' && filereadable(cscopeoutpath)
+    exe 'cs add' cscopeoutpath fnamemodify(cscopeoutpath, ':p:h')
+  endif
+
+  " Enable cscope keymaps
   runtime cscope_maps.vim
+
+  " Use only ctags for Ctrl-]
   set nocscopetag
+  "set csto=1
 endif
 
 if has("gui_running")

@@ -14,6 +14,9 @@ export EDITOR=vim
 export PAGER=less
 export LESSHISTFILE=-
 
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US:en
+
 __git_ps1 () { return; }
 
 # work environment

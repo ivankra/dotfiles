@@ -1,0 +1,7 @@
+== Detach job ==
+
+Detach an already running background job from bash so that SIGHUP doesn't kill it:
+
+$ disown %1
+
+where %1 (or %2, %3, ...) is a background job's identifier.
