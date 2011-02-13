@@ -6,16 +6,14 @@ if ! (echo "$PATH" | grep /skynet >/dev/null 2>&1); then
   export PATH=$PATH:/skynet/tools/bin
 fi
 
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
 export TMPDIR=/var/tmp
-export DEF_MR_SERVER=sdf200:8013
 export CVSROOT=tree.yandex.ru:/opt/CVSROOT
 
+export DEF_MR_SERVER=sdf200:8013
 export NOSIGHANDLER=1
 
-if [ "`uname`" = "FreeBSD" ]; then
-  LOCAL=$HOME/.local
+LOCAL=$HOME/.local
+if [ -d $LOCAL ]; then
   export PATH=$LOCAL/bin:$PATH
   export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
   export CPATH=$LOCAL/include
@@ -26,19 +24,19 @@ if [ "`uname`" = "FreeBSD" ]; then
   if [ -d "$LOCALPERL" ]; then
     export GITPERLLIB=$LOCALPERL:$LOCALPERL/mach
   fi
+fi
 
-  if [ -z "$DISPLAY" ]; then
-    export DISPLAY=:42
-  fi
+if [ -z "$DISPLAY" ]; then
+  export DISPLAY=:42
+fi
 
-  if [ which gdb66 >/dev/null 2>/dev/null ]; then
-    alias gdb=`which gdb66`
-  fi
+if [ which gdb66 >/dev/null 2>/dev/null ]; then
+  alias gdb=`which gdb66`
+fi
 
-  if [ which g++44 >/dev/null 2>/dev/null ]; then
-    export CC=`which gcc44`
-    export CXX=`which g++44`
-  fi
+if [ which g++44 >/dev/null 2>/dev/null ]; then
+  export CC=`which gcc44`
+  export CXX=`which g++44`
 fi
 
 if [ "`hostname`" = "tatooine" ]; then

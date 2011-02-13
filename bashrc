@@ -21,7 +21,7 @@ __git_ps1 () { return; }
 
 # work environment
 if [ -d /Berkanavt -o -d /hol ]; then
-  source ~/git/configs/bashrc-arc
+  source ~/git/configs/bashrc.arcadia
 fi
 
 # History control: do not write to disk, ignore all duplicates and commands starting with space
