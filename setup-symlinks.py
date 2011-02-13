@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os, sys, pwd
 
+DOT_FILES = 'bashrc vimrc vim gdbinit inputrc gitconfig hgrc Rprofile tkdiffrc'.split()
+
 def check_symlink(src, dst):
     try:
         return os.readlink(src) == dst
@@ -25,15 +27,7 @@ def main():
             "or doesn't contain what we expect.\n" % base)
         sys.exit(1)
 
-    actions = []
-    actions.append([home + '/.bashrc', base + '/bashrc'])
-    actions.append([home + '/.vimrc', base + '/vimrc'])
-    actions.append([home + '/.vim', base + '/vim'])
-    actions.append([home + '/.gdbinit', base + '/gdbinit'])
-    actions.append([home + '/.inputrc', base + '/inputrc'])
-    actions.append([home + '/.gitconfig', base + '/gitconfig'])
-    actions.append([home + '/.hgrc', base + '/hgrc'])
-    actions.append([home + '/.Rprofile', base + '/Rprofile'])
+    actions = [ (os.path.join(home, '.' + filename), os.path.join(base, filename)) for filename in DOT_FILES ]
 
     items_str = []
     for src, dst in actions:
