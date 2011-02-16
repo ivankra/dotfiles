@@ -54,6 +54,7 @@ gmp-doc
 g++-multilib
 gnome-mplayer
 gnuplot
+google-perftools
 gparted
 gperf
 graphviz
@@ -84,6 +85,7 @@ libgtk2.0-dev
 libncurses5-dev
 libnotify-bin
 libpcap-dev
+libprotobuf-dev
 libssl-dev
 libsvm-tools
 libusb-1.0-0
@@ -132,7 +134,6 @@ qbittorrent
 qemu
 rar
 r-base
-r-cran-randomforest
 rdesktop
 rrdtool
 ruby
@@ -172,6 +173,10 @@ fakeroot build-essential crash kexec-tools makedumpfile kernel-wedge build-dep:l
 libncurses5 libncurses5-dev libelf-dev asciidoc binutils-dev
 
 easy-install:gitserve
+
+cran:gbm
+cran:ggplot2
+cran:randomForest
 
 -f-spot
 -gwibber -gwibber-service

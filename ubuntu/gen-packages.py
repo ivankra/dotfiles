@@ -60,16 +60,19 @@ def main():
             sys.stderr.write('Available tags: %s\n' % ', '.join(tag for tag in known_tags if not is_release_tag(tag) and not is_release_tag(tag[:-1])))
             sys.exit(1)
 
-    sys.stderr.write('Install script will be written to ./packages.sh\n')
+    sys.stderr.write('Install script is written to ./packages.sh\n')
     outf = file('packages.sh', 'w')
 
-    outf.write('#!/bin/sh\n')
-    outf.write('# Selected tags: %s\n' % ' '.join(user_tags))
+    outf.write('#!/bin/bash\n')
+    outf.write('if [ "`whoami`" != "root" ]; then\n  echo You must run this script under root.\n  exit 1\nfi\n\n')
+    outf.write('echo Selected tags: %s\n\n' % ' '.join(user_tags))
+    outf.write('set -e -x\n\n')
 
     install_packages = set()
     remove_packages = set()
     build_dep_packages = set()
     easy_install_packages = set()
+    cran_packages = set()
 
     for package, tags in package_list:
         if len(tags) == 0 or all(tag in user_tags for tag in tags):
@@ -79,6 +82,8 @@ def main():
                 build_dep_packages.add(package[10:])
             elif package.startswith('easy-install:') or package.startswith('easy_install:'):
                 easy_install_packages.add(package[13:])
+            elif package.startswith('cran:'):
+                cran_packages.add(package[5:])
             else:
                 install_packages.add(package)
 
@@ -90,6 +95,10 @@ def main():
         outf.write('apt-get remove %s\n' % ' \\\n  '.join(sorted(remove_packages)))
     if len(easy_install_packages) > 0:
         outf.write('easy_install %s\n' % ' '.join(sorted(easy_install_packages)))
+
+    if len(cran_packages) > 0:
+        for package in sorted(cran_packages):
+            outf.write('''echo 'install.packages("%s", repos="http://cran.r-project.org");' | R --no-save --no-restore --quiet\n''' % package)
 
     outf.close()
     os.chmod('packages.sh', 0766)
