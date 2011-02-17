@@ -29,6 +29,7 @@ set history=100                         " remember more then the default 20 comm
 
 if has("syntax")
   syntax on
+  let g:is_bash=1
 endif
 
 set noautoindent
