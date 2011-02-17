@@ -13,7 +13,7 @@ export DEF_MR_SERVER=sdf200:8013
 export NOSIGHANDLER=1
 
 LOCAL=$HOME/.local
-if [ -d $LOCAL ]; then
+if [[ -d $LOCAL ]]; then
   export PATH=$LOCAL/bin:$PATH
   export PKG_CONFIG_PATH=$LOCAL/lib/pkgconfig:$LOCAL/share/pkgconfig
   export CPATH=$LOCAL/include
@@ -21,27 +21,28 @@ if [ -d $LOCAL ]; then
   export LD_LIBRARY_PATH=$LOCAL/lib
 
   LOCALPERL=`ls -d $LOCAL/lib/perl5/site_perl/5.* 2>&1`
-  if [ -d "$LOCALPERL" ]; then
+  if [[ -d "$LOCALPERL" ]]; then
     export GITPERLLIB=$LOCALPERL:$LOCALPERL/mach
   fi
 fi
 
-if [ -z "$DISPLAY" ]; then
+if [[ -z "$DISPLAY" ]]; then
   export DISPLAY=:42
 fi
 
-if [ which gdb66 >/dev/null 2>/dev/null ]; then
+if which gdb66 >/dev/null 2>/dev/null; then
   alias gdb=`which gdb66`
 fi
 
-if [ which g++44 >/dev/null 2>/dev/null ]; then
+if which g++44 >/dev/null 2>/dev/null; then
   export CC=`which gcc44`
   export CXX=`which g++44`
 fi
 
-if [ "`hostname`" = "tatooine" ]; then
+if [[ "`hostname`" = "tatooine" ]]; then
   PS1COL=32
-elif [ "`uname`" = "FreeBSD" ]; then
+  alias sky="/usr/bin/ssh -t rod sky"
+elif [[ "`uname`" = "FreeBSD" ]]; then
   PS1COL=31
 else
   PS1COL=35

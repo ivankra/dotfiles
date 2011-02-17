@@ -1,12 +1,12 @@
 # If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+[[ -z "$PS1" ]] && return
 
-if [ -z "$HOME" ]; then
-  export HOME=/home/$(whoami);
+if [[ -z "$HOME" ]]; then
+  export HOME=/home/$(whoami)
 fi
 
 export PATH=$HOME/git/configs/scripts:$PATH
-if [ -d $HOME/bin ]; then
+if [[ -d $HOME/bin ]]; then
   export PATH=$HOME/bin:$PATH
 fi
 
@@ -20,8 +20,8 @@ export LANGUAGE=en_US:en
 __git_ps1 () { return; }
 
 # work environment
-if [ -d /Berkanavt -o -d /hol ]; then
-  source ~/git/configs/bashrc.arcadia
+if [[ -d /Berkanavt ]] || [[ -d /hol ]]; then
+  . ~/git/configs/bashrc.arcadia
 fi
 
 # History control: do not write to disk, ignore all duplicates and commands starting with space
@@ -34,12 +34,12 @@ HISTSIZE=1000
 shopt -s checkwinsize
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
   debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-if [ "$TERM" != "dumb" ]; then
-  if [ -z "$PS1COL" ]; then
+if [[ "$TERM" != "dumb" ]]; then
+  if [[ -z "$PS1COL" ]]; then
     PS1COL=32
   fi
   PS1='${debian_chroot:+($debian_chroot)}'
@@ -60,12 +60,12 @@ xterm*|rxvt*)
     ;;
 esac
 
-if [ "$(uname)" = "FreeBSD" ]; then
+if [[ "$(uname)" = "FreeBSD" ]]; then
   alias ls='/bin/ls -G'
   alias free='vmstat'
 else
   # enable color support of ls
-  if [ -x /usr/bin/dircolors ]; then
+  if [[ -x /usr/bin/dircolors ]]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
   fi
@@ -87,14 +87,18 @@ alias gdb='gdb --quiet'
 alias ssh='ssh -AX'
 alias R='R --no-save --no-restore --quiet'
 
-if [ -f ~/.gdb_history ]; then
+if [[ -f ~/.gdb_history ]]; then
   chmod 0600 ~/.gdb_history
 fi
 
 if [[ ! -d /cygdrive ]]; then
-  if [[ -f /etc/bash_completion ]]; then
-    . /etc/bash_completion
-  elif [[ -f ~/git/configs/bash-completion-git ]]; then
+  #if [[ -f /etc/bash_completion ]]; then
+  #  . /etc/bash_completion
+  if [[ -f ~/git/configs/bash-completion-git ]]; then
     . ~/git/configs/bash-completion-git
   fi
+fi
+
+if [[ -f ~/.bashrc.local ]]; then
+  . ~/.bashrc.local
 fi
