@@ -42,6 +42,7 @@ fi
 if [[ "`hostname`" = "tatooine" ]]; then
   PS1COL=32
   alias sky="/usr/bin/ssh -t rod sky"
+  export TMPDIR=/tmp
 elif [[ "`uname`" = "FreeBSD" ]]; then
   PS1COL=31
 else
