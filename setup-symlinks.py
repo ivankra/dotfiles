@@ -38,7 +38,7 @@ def main():
         if os.path.exists(src) and check_symlink(src, dst):
             continue
 
-        if os.path.exists(src):
+        if os.path.lexists(src):
             items_str.append('Replace "%s" by a symlink to "%s"' % (src, dst))
         else:
             items_str.append('Create symlink "%s" to "%s"' % (src, dst))
@@ -59,7 +59,7 @@ def main():
 
     for src, dst in actions:
         assert "'" not in src and "'" not in dst
-        if os.path.exists(src):
+        if os.path.lexists(src):
             sh("rm -rf '%s'" % src)
         sh("ln -s '%s' '%s'" % (os.path.abspath(dst), src))
 
