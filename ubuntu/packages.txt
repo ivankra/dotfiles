@@ -99,6 +99,7 @@ manpages-dev
 manpages-posix
 manpages-posix-dev
 mc
+meld
 mercurial
 mesa-utils
 mplayer
