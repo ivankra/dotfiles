@@ -1,4 +1,4 @@
-export PATH=$HOME/git/ya/scripts:$PATH
+export PATH=$HOME/src/ya/scripts:$PATH
 if ! (echo "$PATH" | grep /Berkanavt/bin >/dev/null 2>&1); then
   export PATH=$PATH:/Berkanavt/bin:/Berkanavt/bin/scripts
 fi
