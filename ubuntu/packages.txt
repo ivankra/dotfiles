@@ -52,6 +52,7 @@ glpk
 gltron
 gmp-doc
 g++-multilib
+gnome-backgrounds
 gnome-mplayer
 gnuplot
 google-perftools
