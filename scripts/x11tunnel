@@ -238,10 +238,10 @@ def x11tunnel_ssh(machine, remote_display, verbose):
     local_display = int(re.findall(':([0-9]+)', os.environ['DISPLAY'])[0])
     home = os.environ['HOME']
     if os.path.exists('/tmp/.X11-unix/X%s' % local_display):
-        cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:"%(home)s/git/configs/scripts/x11tunnel -d unix:/tmp/.X11-unix/X%(local_display)s"'""" % locals()
+        cmd = """socat 'exec:"ssh %(machine)s %(home)s/src/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:"%(home)s/src/configs/scripts/x11tunnel -d unix:/tmp/.X11-unix/X%(local_display)s"'""" % locals()
     else:
         local_display_6000 = local_display + 6000
-        cmd = """socat 'exec:"ssh %(machine)s %(home)s/git/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:"%(home)s/git/configs/scripts/x11tunnel -d tcp:127.0.0.1:%(local_display_6000)s"'""" % locals()
+        cmd = """socat 'exec:"ssh %(machine)s %(home)s/src/configs/scripts/x11tunnel -m /tmp/.X11-unix/X%(remote_display)d"' 'EXEC:"%(home)s/src/configs/scripts/x11tunnel -d tcp:127.0.0.1:%(local_display_6000)s"'""" % locals()
     if verbose:
         print 'Executing command:\n%s' % cmd
     os.system(cmd)

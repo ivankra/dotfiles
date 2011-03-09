@@ -5,7 +5,12 @@ if [[ -z "$HOME" ]]; then
   export HOME=/home/$(whoami)
 fi
 
-export PATH=$HOME/git/configs/scripts:$PATH
+CONFIGS=$HOME/src/configs
+if [[ ! -d $CONFIGS ]]; then
+  CONFIGS=$HOME/git/configs
+fi
+
+export PATH=$CONFIGS/scripts:$PATH
 if [[ -d $HOME/bin ]]; then
   export PATH=$HOME/bin:$PATH
 fi
@@ -21,7 +26,7 @@ __git_ps1 () { return; }
 
 # work environment
 if [[ -d /Berkanavt ]] || [[ -d /hol ]]; then
-  . ~/git/configs/bashrc.arcadia
+  source $CONFIGS/bashrc.arcadia
 fi
 
 # History control: do not write to disk, ignore all duplicates and commands starting with space
@@ -63,6 +68,7 @@ esac
 if [[ "$(uname)" = "FreeBSD" ]]; then
   alias ls='/bin/ls -G'
   alias free='vmstat'
+  alias strace='truss'
 else
   # enable color support of ls
   if [[ -x /usr/bin/dircolors ]]; then
@@ -92,13 +98,10 @@ if [[ -f ~/.gdb_history ]]; then
 fi
 
 if [[ ! -d /cygdrive ]]; then
-  #if [[ -f /etc/bash_completion ]]; then
-  #  . /etc/bash_completion
-  if [[ -f ~/git/configs/bash-completion-git ]]; then
-    . ~/git/configs/bash-completion-git
-  fi
+  #if [[ -f /etc/bash_completion ]]; then source /etc/bash_completion; fi
+  source $CONFIGS/bash-completion-git
 fi
 
 if [[ -f ~/.bashrc.local ]]; then
-  . ~/.bashrc.local
+  source ~/.bashrc.local
 fi
