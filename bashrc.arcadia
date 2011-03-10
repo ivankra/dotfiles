@@ -30,8 +30,8 @@ if [[ -z "$DISPLAY" ]]; then
   export DISPLAY=:42
 fi
 
-if which gdb66 >/dev/null 2>/dev/null; then
-  alias gdb=`which gdb66`
+if which gdb72 >/dev/null 2>/dev/null; then
+  alias gdb=`which gdb72`
 fi
 
 if which g++44 >/dev/null 2>/dev/null; then
