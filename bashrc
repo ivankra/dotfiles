@@ -22,13 +22,6 @@ export LESSHISTFILE=-
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 
-__git_ps1 () { return; }
-
-# work environment
-if [[ -d /Berkanavt ]] || [[ -d /hol ]]; then
-  source $CONFIGS/bashrc.arcadia
-fi
-
 # History control: do not write to disk, ignore all duplicates and commands starting with space
 HISTFILE=
 HISTCONTROL=ignoreboth
@@ -42,28 +35,6 @@ shopt -s checkwinsize
 if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
   debian_chroot=$(cat /etc/debian_chroot)
 fi
-
-if [[ "$TERM" != "dumb" ]]; then
-  if [[ -z "$PS1COL" ]]; then
-    PS1COL=32
-  fi
-  PS1='${debian_chroot:+($debian_chroot)}'
-  #PS1+='\[\033[36m\]\A '  # time
-  PS1+='\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
-  PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
-  PS1+='\$ '
-else
-  PS1='\u@\h:\w\$ '
-fi
-
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
 
 if [[ "$(uname)" = "FreeBSD" ]]; then
   alias ls='/bin/ls -G'
@@ -102,6 +73,33 @@ if [[ ! -d /cygdrive ]]; then
   source $CONFIGS/bash-completion-git
 fi
 
+# work environment
+if [[ -d /Berkanavt ]] || [[ -d /hol ]]; then
+  source $CONFIGS/bashrc.arcadia
+fi
+
 if [[ -f ~/.bashrc.local ]]; then
   source ~/.bashrc.local
 fi
+
+if [[ "$TERM" != "dumb" ]]; then
+  if [[ -z "$PS1COL" ]]; then
+    PS1COL=32
+  fi
+  PS1='${debian_chroot:+($debian_chroot)}'
+  #PS1+='\[\033[36m\]\A '  # time
+  PS1+='\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+  PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
+  PS1+='\$ '
+else
+  PS1='\u@\h:\w\$ '
+fi
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
