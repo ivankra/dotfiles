@@ -31,7 +31,7 @@ if [[ -z "$DISPLAY" ]]; then
 fi
 
 if which gdb72 >/dev/null 2>/dev/null; then
-  alias gdb=`which gdb72`
+  alias gdb='gdb72 -q'
 fi
 
 if which g++44 >/dev/null 2>/dev/null; then
