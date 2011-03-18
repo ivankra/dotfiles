@@ -26,13 +26,14 @@ set statusline=%<%f%h%m%r%=%{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
 set lazyredraw
 set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
+set noautoindent
 
 if has("syntax")
   syntax on
-  let g:is_bash=1
 endif
 
-set noautoindent
+let g:is_bash=1
+let g:tex_flavor="latex"
 
 if has("autocmd")
   filetype plugin indent on
@@ -176,11 +177,11 @@ if has("gui_running")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   else
-    "set guifont=Monospace\ 11
-    "set guifont=Inconsolata\ 13
+    set lines=50 columns=120
+    set guifont=Consolas\ 11,\ Monospace\ 11
   endif
 
-  colorscheme summerfruit256
+  colorscheme fruidle  "summerfruit256
 
   " Highlight trailing whitespace and spaces before tabs
   if has("autocmd")
