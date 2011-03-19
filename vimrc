@@ -178,7 +178,7 @@ if has("gui_running")
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   else
     set lines=50 columns=120
-    set guifont=Consolas\ 11,\ Monospace\ 11
+    set guifont=Consolas\ 12,\ Monospace\ 11
   endif
 
   colorscheme fruidle  "summerfruit256
