@@ -29,11 +29,10 @@ set history=100                         " remember more then the default 20 comm
 set noautoindent
 
 if has("syntax")
+  let g:is_bash=1
+  let g:tex_flavor="latex"
   syntax on
 endif
-
-let g:is_bash=1
-let g:tex_flavor="latex"
 
 if has("autocmd")
   filetype plugin indent on
@@ -177,8 +176,12 @@ if has("gui_running")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   else
-    set lines=50 columns=120
-    set guifont=Consolas\ 12,\ Monospace\ 11
+    if hostname() == "tatooine"
+      set lines=50 columns=120
+      set guifont=Consolas\ 12
+    else
+      set guifont=Monospace\ 11
+    endif
   endif
 
   colorscheme fruidle  "summerfruit256
