@@ -49,4 +49,25 @@ else
   PS1COL=35
 fi
 
+function up() {
+  local CMD;
+  if [[ -r .git/config ]] && grep svn-remote .git/config >/dev/null 2>&1; then
+    CMD='git svn fetch svn && git svn rebase'
+  elif [[ -d .git ]]; then
+    CMD='git pull'
+  elif [[ -d .svn ]]; then
+    CMD='svn update'
+  else
+    echo 'Not in a repository'
+    return 1
+  fi
+  if [[ "$(basename $PWD)" == "arcadia" ]] && which maketags >/dev/null 2>/dev/null; then
+    CMD+=' && maketags';
+  fi
+  bash -x -c "$CMD"
+}
+export -f up
+
+alias pwdiff='diff --show-function-line=^src: -U 2'
+
 # vim: filetype=sh
