@@ -70,4 +70,21 @@ export -f up
 
 alias pwdiff='diff --show-function-line=^src: -U 2'
 
+if ! which om >/dev/null 2>/dev/null; then
+  function om() {
+    local path=$PWD
+    path=${path%/arcadia/*}
+    path=${path%/arcadia}
+    path=$path/arcadia/cmake/om/om-from-here.py
+    if [[ -x $path ]]; then
+      $path "$@"
+      return $?
+    else
+      echo Unavailable
+      return 1
+    fi
+  }
+  export -f om
+fi
+
 # vim: filetype=sh
