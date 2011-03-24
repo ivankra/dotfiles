@@ -44,9 +44,7 @@ if has("autocmd")
   autocmd BufReadPre SConscript set filetype=python
 
   autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
-  autocmd FileType asm        set sts=4 sw=4 et autoindent
-  autocmd FileType python     set sts=4 sw=4 et autoindent
-  autocmd FileType lua        set sts=4 sw=4 et autoindent
+  autocmd FileType asm,python,perl,lua set sts=4 sw=4 et autoindent
   autocmd FileType make       set sts=0 sw=8 noet nowrap
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
@@ -178,9 +176,6 @@ if has("gui_running")
   else
     if hostname() == "tatooine"
       set lines=50 columns=120
-      set guifont=Consolas\ 12
-    else
-      set guifont=Monospace\ 11
     endif
   endif
 
@@ -207,7 +202,7 @@ else
   endif
 endif
 
-" йцукен->qwerty translations for normal mode
+" йцукен->qwerty translations for normal mode {{{
 map й q
 map ц w
 map у e
@@ -272,5 +267,5 @@ map Т N
 map Ь M
 map Б <
 map Ю >
+" }}}
 
-" vim: fdm=manual
