@@ -64,6 +64,11 @@ alias gdb='gdb --quiet'
 alias ssh='ssh -AX'
 alias R='R --no-save --no-restore --quiet'
 
+alias rod='/usr/bin/ssh -Axt stv ssh -Ax -p 50005 yoda@localhost'
+alias stv='/usr/bin/ssh -Ax stv'
+alias tatooine='/usr/bin/ssh -Axt stv ssh -Axt -p 50005 yoda@localhost ssh -Ax -p 50000 localhost'
+alias tatooinep='/usr/bin/ssh -L 50000:127.0.0.1:50000 -Axt stv ssh -L 50000:127.0.0.1:50000 -Axt -p 50005 yoda@localhost ssh -Ax -p 50000 localhost'
+
 if [[ -f ~/.gdb_history ]]; then
   chmod 0600 ~/.gdb_history
 fi
