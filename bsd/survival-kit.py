@@ -269,24 +269,24 @@ def get_package_list():
 
     return [
         # let's install some gnu tools to replace the junk shipped with bsd.
-        gnu('make/make-3.81.tar.bz2', config_make_install="./configure '--prefix=%(LOCAL)s' && make && make install"),
+        gnu('make/make-3.82.tar.bz2', config_make_install="./configure '--prefix=%(LOCAL)s' && make && make install"),
         gnu('wget/wget-1.12.tar.bz2'),
         gnu('libiconv/libiconv-1.13.1.tar.gz'),
-        gnu('gettext/gettext-0.17.tar.gz'),
-        gnu('ncurses/ncurses-5.7.tar.gz'),
+        gnu('gettext/gettext-0.18.1.1.tar.gz'),
+        gnu('ncurses/ncurses-5.9.tar.gz'),
         gnu('gmp/gmp-5.0.1.tar.bz2'),
-        gnu('tar/tar-1.23.tar.bz2'),
-        gnu('coreutils/coreutils-8.4.tar.gz', post_install='rm -f %s/bin/wc' % LOCAL),  # native wc is so much faster
+        gnu('tar/tar-1.26.tar.bz2'),
+        gnu('coreutils/coreutils-8.9.tar.gz', post_install='mv -f %s/bin/wc %s/bin/gnu.wc' % (LOCAL, LOCAL)),  # native wc is so much faster
         'http://tukaani.org/xz/xz-4.999.9beta.tar.bz2',
-        gnu('diffutils/diffutils-2.9.tar.gz'),
+        gnu('diffutils/diffutils-3.0.tar.gz'),
         gnu('findutils/findutils-4.4.2.tar.gz'),
         gnu('patch/patch-2.6.tar.bz2'),
-        gnu('grep/grep-2.6.1.tar.gz'),
-        gnu('groff/groff-1.20.1.tar.gz', configure_flags='--x-includes=%s/include --x-libraries=%s/lib' % (LOCAL, LOCAL)),
-        gnu('m4/m4-1.4.14.tar.bz2'),
+        gnu('grep/grep-2.7.tar.gz'),
+        gnu('groff/groff-1.20.1.tar.gz', configure_flags='--x-includes=%s/include --x-libraries=%s/lib' % (LOCAL, LOCAL)),  # note: 1.21 is broken
+        gnu('m4/m4-1.4.16.tar.bz2'),
         gnu('sed/sed-4.2.1.tar.bz2'),
-        gnu('gawk/gawk-3.1.7.tar.bz2'),
-        gnu('bison/bison-2.4.2.tar.bz2'),
+        gnu('gawk/gawk-3.1.8.tar.bz2'),
+        gnu('bison/bison-2.4.3.tar.bz2'),
         gnu('less/less-418.tar.gz'),
         dict(url='http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', post_install='chmod u-s %s/bin/man %s/bin/mandb' % (LOCAL, LOCAL)),
         'http://downloads.sourceforge.net/flex/flex-2.5.35.tar.bz2',
@@ -296,7 +296,7 @@ def get_package_list():
         dict(url='http://www.openssl.org/source/openssl-0.9.8n.tar.gz',
             package_id='openssl-0.9.8n.tar.gz (shared)',
             config_make_install='./config --openssldir=%s/etc/ssl --prefix=%s shared && (make -j 20 || make) && make install' % (LOCAL, LOCAL)),
-        'http://curl.haxx.se/download/curl-7.20.0.tar.bz2',
+        'http://curl.haxx.se/download/curl-7.21.4.tar.bz2',
         #gnu('gdb/gdb-7.1.tar.bz2',
         #    pre_configure="export CC=gcc CXX=g++"),  # gcc44 produced a binary that crashes with "Bad system call: 12"
         gnu('gperf/gperf-3.0.4.tar.gz'),
@@ -344,17 +344,23 @@ def get_package_list():
         ),
 
         'http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz',
-        'http://prdownloads.sourceforge.net/swig/swig-2.0.0.tar.gz',
+        'http://sourceforge.net/projects/pcre/files/pcre/8.12/pcre-8.12.tar.bz2',
         dict(
-            url='http://subversion.tigris.org/downloads/subversion-1.6.11.tar.bz2',
+            url='http://prdownloads.sourceforge.net/swig/swig-2.0.3.tar.gz',
+            config_make_install=(
+                'export LDFLAGS=-lpcre; ./configure --with-pcre-prefix=%s --prefix=%s && make -j 10 && make install' % (LOCAL, LOCAL)
+            )
+        ),
+        dict(
+            url='http://subversion.tigris.org/downloads/subversion-1.6.16.tar.bz2',
             config_make_install=(
                 './configure --prefix=%s && make -j 10 && make install && make swig-pl && make check-swig-pl && make install-swig-pl' % LOCAL
             )
         ),
-        dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.1.tar.bz2',
+        dict(url='http://www.kernel.org/pub/software/scm/git/git-1.7.4.4.tar.bz2',
             config_make_install=(
                 'export PYTHON_PATH=$(which python); ./configure --prefix=%s && make -j 10 && make install && ' % LOCAL +
-                '(cd %s/man && curl http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.1.tar.bz2 | tar -jx) && ' % LOCAL +
+                '(cd %s/man && curl http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.4.4.tar.bz2 | tar -jx) && ' % LOCAL +
                 r"sed -i -e 's/^#![/]usr[/]bin[/]perl/^#\/usr\/bin\/env perl/' %s/libexec/git-core/git-*" % LOCAL
             )
         ),
@@ -439,28 +445,29 @@ def get_package_list():
             pre_configure="sed -i -e 's/-Werror/-Wno-error/' ./configure"),
 
         # GTK
-        'http://cairographics.org/releases/pixman-0.17.14.tar.gz',
-        dict(url='http://cairographics.org/releases/cairo-1.8.10.tar.gz', pre_configure='export CC=gcc CXX=g++'),
+        'http://cairographics.org/releases/pixman-0.20.2.tar.gz',
+        dict(url='http://cairographics.org/releases/cairo-1.10.2.tar.gz', pre_configure='export CC=gcc CXX=g++'),
         'http://ftp.gnome.org/pub/gnome/sources/atk/1.29/atk-1.29.92.tar.bz2',
         'http://ftp.gnome.org/pub/gnome/sources/pango/1.27/pango-1.27.1.tar.bz2',
         'http://ftp.gnome.org/pub/gnome/sources/gtk+/2.20/gtk+-2.20.0.tar.bz2',
 
-        dict(url='ftp://ftp.vim.org/pub/vim/unix/vim-7.2.tar.bz2',
-            config_make_install=(
-                'set -x; ' +
-                'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-extra.tar.gz && tar xf vim-7.2-extra.tar.gz && ' + 
-                'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-extra.tar.gz && (cd ..; tar xf vim72/vim-7.2-extra.tar.gz) && ' + 
-                'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-lang.tar.gz && (cd ..; tar xf vim72/vim-7.2-lang.tar.gz) && ' + 
-                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.001-100.gz | gzip -d | patch -p0 && ' +
-                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.101-200.gz | gzip -d | patch -p0 && ' +
-                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.201-300.gz | gzip -d | patch -p0 && ' +
-                'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.301-400.gz | gzip -d | patch -p0 && ' +
-                ' && '.join(['curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.%.3d | patch -p0' % n for n in range(401, 445)]) + ' && ' +
-                './configure --prefix=%s --with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls && ' % LOCAL +
-                'make -j 10 && '
-                'make install'
-            ),            
-        ),
+        # TODO: git clone git://github.com/b4winckler/vim.git && ...
+        #dict(url='ftp://ftp.vim.org/pub/vim/unix/vim-7.2.tar.bz2',
+        #    config_make_install=(
+        #        'set -x; ' +
+        #        'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-extra.tar.gz && tar xf vim-7.2-extra.tar.gz && ' + 
+        #        'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-extra.tar.gz && (cd ..; tar xf vim72/vim-7.2-extra.tar.gz) && ' + 
+        #        'wget ftp://ftp.vim.org/pub/vim/extra/vim-7.2-lang.tar.gz && (cd ..; tar xf vim72/vim-7.2-lang.tar.gz) && ' + 
+        #        'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.001-100.gz | gzip -d | patch -p0 && ' +
+        #        'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.101-200.gz | gzip -d | patch -p0 && ' +
+        #        'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.201-300.gz | gzip -d | patch -p0 && ' +
+        #        'curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.301-400.gz | gzip -d | patch -p0 && ' +
+        #        ' && '.join(['curl http://ftp.vim.org/pub/vim/patches/7.2/7.2.%.3d | patch -p0' % n for n in range(401, 445)]) + ' && ' +
+        #        './configure --prefix=%s --with-features=huge --with-x --with-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls && ' % LOCAL +
+        #        'make -j 10 && '
+        #        'make install'
+        #    ),            
+        #),
     ]
 
 def main():
