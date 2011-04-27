@@ -10,6 +10,7 @@ KIT_DIR = os.path.join(LOCAL, 'kit')
 DOWNLOADS_DIR = '/home/yoda/.tarballs' #os.path.join(KIT_DIR,'downloads')
 INSTALL_DB_FILE = os.path.join(KIT_DIR, 'installed.txt')
 BUILD_DIR = os.path.join(KIT_DIR,'builds')
+MD5_DATABASE = None
 
 class InstallationTree(object):
     def __init__(self):
@@ -161,6 +162,35 @@ def parse_name_version_ext(filename):
     else:
         return parse_name_version(filename[:i]) + [filename[i:]]
 
+def get_database_md5s(urls):
+    db_file = os.path.join(sys.path[0], 'md5.txt')
+
+    if not os.path.exists(db_file):
+        sys.stderr.write('md5 hashes database is missing, aborting. Create an empty database to ignore.\n')
+        sys.exit(1)
+
+    if os.path.getsize(db_file) == 0:
+        return [None] * len(urls)
+
+    db = {}
+    for line in file(db_file):
+        line = line.rstrip('\n')
+        assert line.count('  ') == 1
+        md5, filename = line.split('  ')
+        assert filename not in db or db[filename] == md5
+        db[filename] = md5
+
+    res = []
+    for url in urls:
+        filename = os.path.basename(url)
+        if filename not in db:
+            sys.stderr.write('md5 hash for file %s (%s) is missing from the database.\n' % (filename, url))
+        else:
+            res.append(db[filename])
+    if len(res) != len(urls):
+        sys.exit(1)
+    return res
+
 def make_tarball_package(urls, **kwargs):
     flagnames = 'CFLAGS CXXFLAGS LDFLAGS CC CXX'.split(' ')
     argnames = 'name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags'.split(', ')
@@ -173,7 +203,7 @@ def make_tarball_package(urls, **kwargs):
     if type(urls) is str:
         urls = [urls]
     if md5 is None:
-        md5 = [None] * len(urls)
+        md5 = get_database_md5s(urls)
     elif type(md5) is str:
         md5 = [md5]
     assert len(urls) == len(md5)
@@ -248,18 +278,18 @@ def make_tarball_package(urls, **kwargs):
 def package_list():
     results = []
 
-    def tb(*args, **kwargs):
+    def tarball(*args, **kwargs):
         results.append(make_tarball_package(*args, **kwargs))
         if len(set([r.name for r in results])) != len(results):
             raise Exception('Duplicate package name in: %s' % args)
 
     def gnu(filename, **kwargs):
         name = filename[:filename.rindex('-')]
-        tb('http://mirrors.kernel.org/gnu/%s/%s' % (name, filename), **kwargs)
+        tarball('http://mirrors.kernel.org/gnu/%s/%s' % (name, filename), **kwargs)
 
-    def sf(filename, **kwargs):
+    def sourceforge(filename, **kwargs):
         name = filename[:filename.rindex('-')]
-        tb('http://downloads.sourceforge.net/%s/%s' % (name, filename), **kwargs)
+        tarball('http://downloads.sourceforge.net/%s/%s' % (name, filename), **kwargs)
 
     gnu('make-3.82.tar.bz2')
     gnu('libiconv-1.13.1.tar.gz', CFLAGS='-fPIC')
@@ -268,7 +298,7 @@ def package_list():
     gnu('gmp-5.0.1.tar.bz2')
     gnu('tar-1.26.tar.bz2')
     gnu('coreutils-8.9.tar.gz', postinst='mv -f $LOCAL/bin/{wc,wc.gnu}')  # native BSD wc is so much faster without multibyte support
-    tb('http://tukaani.org/xz/xz-5.0.2.tar.bz2')
+    tarball('http://tukaani.org/xz/xz-5.0.2.tar.bz2')
     gnu('diffutils-3.0.tar.gz')
     gnu('findutils-4.4.2.tar.gz')
     gnu('patch-2.6.tar.bz2')   # 2.6.1 build fails: gl/lib/strnlen.o: No such file or directory
@@ -279,23 +309,23 @@ def package_list():
     gnu('gawk-3.1.8.tar.bz2')
     gnu('bison-2.4.3.tar.bz2')
     gnu('less-443.tar.gz')
-    tb('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}')
-    sf('flex-2.5.35.tar.bz2')
-    tb('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-static', version='0.9.8r',
+    tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}')
+    sourceforge('flex-2.5.35.tar.bz2')
+    tarball('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-static', version='0.9.8r',
        make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL')
-    tb('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-shared', version='0.9.8r',
+    tarball('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-shared', version='0.9.8r',
        make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL shared')
     gnu('wget-1.12.tar.bz2')
-    sf('expat-2.0.1.tar.gz')
-    tb('http://curl.haxx.se/download/curl-7.21.6.tar.bz2', conf=' --enable-static --enable-shared --with-openssl=$LOCAL')
+    sourceforge('expat-2.0.1.tar.gz')
+    tarball('http://curl.haxx.se/download/curl-7.21.6.tar.bz2', conf=' --enable-static --enable-shared --with-openssl=$LOCAL')
     gnu('gperf-3.0.4.tar.gz')
     #gnu('gdb-7.2.tar.bz2', CC='gcc', CXX='g++')  # gcc44 produced a binary that crashed with "Bad system call: 12"
-    sf('netcat-0.7.1.tar.bz2', CFLAGS='-O2 -static', LDFLAGS='-O2 -static')
-    tb('http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2')
-    sf('ctags-5.8.tar.gz')
-    sf('cscope-15.7a.tar.bz2')
+    sourceforge('netcat-0.7.1.tar.bz2', CFLAGS='-O2 -static', LDFLAGS='-O2 -static')
+    tarball('http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2')
+    sourceforge('ctags-5.8.tar.gz')
+    sourceforge('cscope-15.7a.tar.bz2')
 
-    tb(
+    tarball(
         'http://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2',
         conf=(
             r'''set -x; cd hints; chmod u+rw *; echo -e '223c223\n< 		 exit 1\n---\n> 		 ldflags="-pthread $ldflags"\n' | patch freebsd.sh; cd ..; ''' +
@@ -315,33 +345,175 @@ def package_list():
         )
     )
 
-    sf('pcre-8.12.tar.bz2')
-    sf('swig-2.0.3.tar.gz', conf=' --with-pcre-prefix=$LOCAL', LDFLAGS='-lpcre')
-    tb('http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz', workdir='sqlite-3.6.13')
-    tb('http://www.webdav.org/neon/neon-0.29.5.tar.gz', conf=' --with-ssl=openssl', postinst='rm -rf $LOCAL/share/doc/neon-0.29.5')
-    tb(['http://subversion.tigris.org/downloads/subversion-1.6.16.tar.bz2',
+    sourceforge('pcre-8.12.tar.bz2')
+    sourceforge('swig-2.0.3.tar.gz', conf=' --with-pcre-prefix=$LOCAL', LDFLAGS='-lpcre')
+    tarball('http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz', workdir='sqlite-3.6.13')
+    tarball('http://www.webdav.org/neon/neon-0.29.5.tar.gz', conf=' --with-ssl=openssl', postinst='rm -rf $LOCAL/share/doc/neon-0.29.5')
+    tarball(['http://subversion.tigris.org/downloads/subversion-1.6.16.tar.bz2',
         'http://www.apache.org/dist/apr/apr-1.4.2.tar.bz2',
         'http://www.apache.org/dist/apr/apr-util-1.3.10.tar.bz2'],
         preconf='tar -jxf ../apr-1.4.2.tar.bz2 && mv apr-1.4.2 apr && tar -jxf ../apr-util-1.3.10.tar.bz2 && mv apr-util-1.3.10 apr-util',
         conf=' --with-ssl --enable-swig-bindings=perl --with-neon=$LOCAL',
         postinst='$MAKE swig-pl && $MAKE check-swig-pl && $MAKE install-swig-pl')
 
-    tb('http://www.kernel.org/pub/software/scm/git/git-1.7.5.tar.bz2',
+    tarball('http://www.kernel.org/pub/software/scm/git/git-1.7.5.tar.bz2',
         preconf='export PYTHON_PATH=$(which python)',
         conf=' --with-openssl --with-expat --with-curl',
         postinst=r"sed -i -e 's/^#![/]usr[/]bin[/]perl/^#\/usr\/bin\/env perl/' $LOCAL/libexec/git-core/git-*")
-    tb('http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.5.tar.bz2',
+    tarball('http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.5.tar.bz2',
         script='cat git-manpages-*.tar.bz2 | (cd $LOCAL/man && tar -jx)')
 
-    tb('http://xmlsoft.org/sources/libxml2-2.7.8.tar.gz')
-    tb('http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz')
-    tb('http://pkgconfig.freedesktop.org/releases/pkg-config-0.25.tar.gz')
-    tb('http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.6.tar.bz2', conf=' --disable-dtrace')
-    tb('http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz')
-    sf('freetype-2.4.4.tar.bz2')
-    sf('libpng-1.4.7.tar.bz2')
-    tb('http://www.ijg.org/files/jpegsrc.v8c.tar.gz', name='libjpeg', version='8c', workdir='jpeg-8c')
-    tb('http://download.osgeo.org/libtiff/tiff-3.9.5.tar.gz')  #'ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz',
+    tarball('http://xmlsoft.org/sources/libxml2-2.7.8.tar.gz')
+    tarball('http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz')
+    tarball('http://pkgconfig.freedesktop.org/releases/pkg-config-0.25.tar.gz')
+    tarball('http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.6.tar.bz2', conf=' --disable-dtrace')
+    tarball('http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz')
+    sourceforge('freetype-2.4.4.tar.bz2')
+    sourceforge('libpng-1.4.7.tar.bz2')
+    tarball('http://www.ijg.org/files/jpegsrc.v8c.tar.gz', name='libjpeg', version='8c', workdir='jpeg-8c')
+    tarball('http://download.osgeo.org/libtiff/tiff-3.9.5.tar.gz')  #'ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz',
+
+    X11R75 = '''
+        proto/applewmproto-1.4.1.tar.bz2
+        proto/bigreqsproto-1.1.0.tar.bz2
+        proto/compositeproto-0.4.1.tar.bz2
+        proto/damageproto-1.2.0.tar.bz2
+        proto/dmxproto-2.3.tar.bz2
+        proto/dri2proto-2.1.tar.bz2
+        proto/fixesproto-4.1.1.tar.bz2
+        proto/fontsproto-2.1.0.tar.bz2
+        proto/glproto-1.4.10.tar.bz2
+        proto/inputproto-2.0.tar.bz2
+        proto/kbproto-1.0.4.tar.bz2
+        proto/randrproto-1.3.1.tar.bz2
+        proto/recordproto-1.14.tar.bz2
+        proto/renderproto-0.11.tar.bz2
+        proto/resourceproto-1.1.0.tar.bz2
+        proto/scrnsaverproto-1.2.0.tar.bz2
+        proto/videoproto-2.3.0.tar.bz2
+        proto/windowswmproto-1.0.4.tar.bz2
+        proto/xcmiscproto-1.2.0.tar.bz2
+        proto/xextproto-7.1.1.tar.bz2
+        proto/xf86bigfontproto-1.2.0.tar.bz2
+        proto/xf86dgaproto-2.1.tar.bz2
+        proto/xf86driproto-2.1.0.tar.bz2
+        proto/xf86vidmodeproto-2.3.tar.bz2
+        proto/xineramaproto-1.2.tar.bz2
+        proto/xproto-7.0.16.tar.bz2
+        lib/xtrans-1.2.5.tar.bz2
+        lib/libXau-1.0.5.tar.bz2
+        lib/libXdmcp-1.0.3.tar.bz2
+        http://xcb.freedesktop.org/dist/xcb-proto-1.5.tar.bz2
+        http://xcb.freedesktop.org/dist/libpthread-stubs-0.1.tar.bz2
+        http://xcb.freedesktop.org/dist/libxcb-1.4.tar.bz2
+        http://xcb.freedesktop.org/dist/xcb-util-0.3.6.tar.bz2
+        lib/libX11-1.3.2.tar.bz2
+        lib/libXext-1.1.1.tar.bz2
+        lib/libdmx-1.1.0.tar.bz2
+        lib/libfontenc-1.0.5.tar.bz2
+        lib/libFS-1.0.2.tar.bz2
+        lib/libICE-1.0.6.tar.bz2
+        lib/libSM-1.1.1.tar.bz2
+        lib/libXt-1.0.7.tar.bz2
+        lib/libXmu-1.0.5.tar.bz2
+        lib/libXpm-3.5.8.tar.bz2
+        lib/libXaw-1.0.7.tar.bz2
+        lib/libXfixes-4.0.4.tar.bz2
+        lib/libXcomposite-0.4.1.tar.bz2
+        lib/libXrender-0.9.5.tar.bz2
+        lib/libXdamage-1.1.2.tar.bz2
+        lib/libXcursor-1.1.10.tar.bz2
+        lib/libXfont-1.4.1.tar.bz2
+        lib/libXft-2.1.14.tar.bz2
+        lib/libXi-1.3.tar.bz2
+        lib/libXinerama-1.1.tar.bz2
+        lib/libxkbfile-1.0.6.tar.bz2
+        lib/libXrandr-1.3.0.tar.bz2
+        lib/libXres-1.0.4.tar.bz2
+        lib/libXScrnSaver-1.2.0.tar.bz2
+        lib/libXtst-1.1.0.tar.bz2
+        lib/libXv-1.0.5.tar.bz2
+        lib/libXvMC-1.0.5.tar.bz2
+        lib/libXxf86dga-1.1.1.tar.bz2
+        lib/libXxf86vm-1.1.0.tar.bz2
+        lib/libpciaccess-0.10.9.tar.bz2
+        app/xauth-1.0.4.tar.bz2
+        app/xdpyinfo-1.1.0.tar.bz2
+    '''.split()
+    X11R75 = [ s if s.startswith('http://') else ('http://www.x.org/releases/X11R7.5/src/' + s) for s in X11R75 ]
+
+    X11R76 = '''
+        proto/applewmproto-1.4.1.tar.bz2
+        proto/bigreqsproto-1.1.1.tar.bz2
+        proto/compositeproto-0.4.2.tar.bz2
+        proto/damageproto-1.2.1.tar.bz2
+        proto/dmxproto-2.3.tar.bz2
+        proto/dri2proto-2.3.tar.bz2
+        proto/fixesproto-4.1.2.tar.bz2
+        proto/fontsproto-2.1.1.tar.bz2
+        proto/glproto-1.4.12.tar.bz2
+        proto/inputproto-2.0.1.tar.bz2
+        proto/kbproto-1.0.5.tar.bz2
+        proto/randrproto-1.3.2.tar.bz2
+        proto/recordproto-1.14.1.tar.bz2
+        proto/renderproto-0.11.1.tar.bz2
+        proto/resourceproto-1.1.1.tar.bz2
+        proto/scrnsaverproto-1.2.1.tar.bz2
+        proto/videoproto-2.3.1.tar.bz2
+        proto/windowswmproto-1.0.4.tar.bz2
+        proto/xcmiscproto-1.2.1.tar.bz2
+        proto/xextproto-7.1.2.tar.bz2
+        proto/xf86bigfontproto-1.2.0.tar.bz2
+        proto/xf86dgaproto-2.1.tar.bz2
+        proto/xf86driproto-2.1.0.tar.bz2
+        proto/xf86vidmodeproto-2.3.tar.bz2
+        proto/xineramaproto-1.2.tar.bz2
+        proto/xproto-7.0.20.tar.bz2
+        lib/xtrans-1.2.6.tar.bz2
+        lib/libXau-1.0.6.tar.bz2
+        lib/libXdmcp-1.1.0.tar.bz2
+        http://xcb.freedesktop.org/dist/xcb-proto-1.6.tar.bz2
+        http://xcb.freedesktop.org/dist/libpthread-stubs-0.3.tar.bz2
+        http://xcb.freedesktop.org/dist/libxcb-1.7.tar.bz2
+        http://xcb.freedesktop.org/dist/xcb-util-0.3.6.tar.bz2
+        lib/libX11-1.4.0.tar.bz2
+        lib/libXext-1.2.0.tar.bz2
+        lib/libdmx-1.1.1.tar.bz2
+        lib/libfontenc-1.1.0.tar.bz2
+        lib/libFS-1.0.3.tar.bz2
+        lib/libICE-1.0.7.tar.bz2
+        lib/libSM-1.2.0.tar.bz2
+        lib/libXt-1.0.9.tar.bz2
+        lib/libXmu-1.1.0.tar.bz2
+        lib/libXpm-3.5.9.tar.bz2
+        lib/libXaw-1.0.8.tar.bz2
+        lib/libXfixes-4.0.5.tar.bz2
+        lib/libXcomposite-0.4.3.tar.bz2
+        lib/libXrender-0.9.6.tar.bz2
+        lib/libXdamage-1.1.3.tar.bz2
+        lib/libXcursor-1.1.11.tar.bz2
+        lib/libXfont-1.4.3.tar.bz2
+        lib/libXft-2.2.0.tar.bz2
+        lib/libXi-1.4.0.tar.bz2
+        lib/libXinerama-1.1.1.tar.bz2
+        lib/libxkbfile-1.0.7.tar.bz2
+        lib/libXrandr-1.3.1.tar.bz2
+        lib/libXres-1.0.5.tar.bz2
+        lib/libXScrnSaver-1.2.1.tar.bz2
+        lib/libXtst-1.2.0.tar.bz2
+        lib/libXv-1.0.6.tar.bz2
+        lib/libXvMC-1.0.6.tar.bz2
+        lib/libXxf86dga-1.1.2.tar.bz2
+        lib/libXxf86vm-1.1.1.tar.bz2
+        lib/libpciaccess-0.12.0.tar.bz2
+        app/xauth-1.0.5.tar.bz2
+        app/xdpyinfo-1.2.0.tar.bz2
+    '''.split()
+    X11R76 = [ s if s.startswith('http://') else ('http://www.x.org/releases/X11R7.6/src/' + s) for s in X11R76 ]
+
+    for url in X11R76:
+        tarball(url)
+
 
 
     return results
