@@ -10,7 +10,6 @@ KIT_DIR = os.path.join(LOCAL, 'kit')
 DOWNLOADS_DIR = '/home/yoda/.tarballs' #os.path.join(KIT_DIR,'downloads')
 INSTALL_DB_FILE = os.path.join(KIT_DIR, 'installed.txt')
 BUILD_DIR = os.path.join(KIT_DIR,'builds')
-MD5_DATABASE = None
 
 # TODO: installation tree monitoring, create .tar packaged with all modified files
 class InstallationTree(object):
@@ -107,7 +106,14 @@ def install_package(pkg):
             attempt = 0
             while True:
                 try:
-                    sh("rm -f '%(filename)s.tmp' '%(save_as)s' && wget -O '%(filename)s.tmp' '%(url)s' && mv -f '%(filename)s.tmp' '%(save_as)s'" % locals())
+                    sh("rm -f '%(filename)s.tmp' '%(save_as)s'" % locals())
+                    if is_command_available('wget'):
+                        sh("wget -O '%(filename)s.tmp' '%(url)s'" % locals())
+                    elif is_command_available('curl'):
+                        sh("curl '%(url)s'  >'%(filename)s.tmp'" % locals())
+                    else:
+                        sh("fetch -q -o '%(filename)s.tmp' '%(url)s'" % locals())
+                    sh("mv -f '%(filename)s.tmp' '%(save_as)s'" % locals())
                     if md5 is not None:
                         actual_md5 = get_file_md5(save_as)
                         if md5 != actual_md5:
@@ -136,7 +142,7 @@ def install_package(pkg):
     db[pkg.name] = dict(
         installed=1,
         version=pkg.version,
-        seq_no=max(p['seq_no'] for p in db.itervalues()) + 1,
+        seq_no=max([0] + [p['seq_no'] for p in db.itervalues()]) + 1,
         download_time=int(download_end - download_start + 0.5),
         build_time=int(build_end - download_end + 0.5)
     )
