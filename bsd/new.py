@@ -12,6 +12,7 @@ INSTALL_DB_FILE = os.path.join(KIT_DIR, 'installed.txt')
 BUILD_DIR = os.path.join(KIT_DIR,'builds')
 MD5_DATABASE = None
 
+# TODO: installation tree monitoring, create .tar packaged with all modified files
 class InstallationTree(object):
     def __init__(self):
         pass
@@ -262,8 +263,8 @@ def make_tarball_package(urls, **kwargs):
         '#!/usr/bin/env bash\nset -e -o pipefail -x',
         varz,
         unpack,
-        preconf,
         ("cd '%s'" % workdir) if workdir != '.' else None,
+        preconf,
         conf,
         postconf,
         make,
@@ -514,7 +515,40 @@ def package_list():
     for url in X11R76:
         tarball(url)
 
+    # X11 apps
+    tarball('http://www.x.org/releases/individual/app/xclock-1.0.4.tar.bz2')
+    tarball('http://www.x.org/releases/individual/app/xeyes-1.1.0.tar.bz2')
+    tarball('http://www.x.org/releases/individual/app/twm-1.0.4.tar.bz2')
+    tarball('http://www.x.org/releases/individual/app/xlsfonts-1.0.2.tar.bz2')
 
+    tarball('http://dist.schmorp.de/rxvt-unicode/Attic/rxvt-unicode-9.07.tar.bz2', conf=' --enable-everything')
+    tarball('http://www.kfish.org/software/xsel/download/xsel-1.2.0.tar.gz', preconf="sed -i -e 's/-Werror/-Wno-error/' ./configure")
+
+    # Cairo & GTK
+    tarball('http://cairographics.org/releases/pixman-0.20.2.tar.gz')
+    tarball('http://cairographics.org/releases/cairo-1.10.2.tar.gz')
+    tarball('http://ftp.gnome.org/pub/gnome/sources/atk/1.33/atk-1.33.6.tar.bz2')
+    tarball('http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.4.tar.bz2')
+    tarball('http://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-2.23.3.tar.bz2')
+    tarball('http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-2.24.4.tar.bz2')
+
+    vim_pkg = Package(
+        name='vim',
+        version='7.3.162',
+        deps=['gtk+'],
+        script=(
+            '#!/usr/bin/env bash\n'
+            'set -e -x -o pipefail\n'
+            'git clone git://github.com/b4winckler/vim.git\n'
+            'cd vim\n'
+            'git checkout ad7e25727ba5819cc0bb0b280a832b3b6cac6be9\n'
+            './configure --prefix=$LOCAL --with-features=huge --with-x --enable-gui=gtk2 --enable-cscope --enable-multibyte --disable-pythoninterp --disable-nls\n'
+            '$PMAKE\n'
+            '$MAKE test\n'
+            '$MAKE install\n'
+        )
+    )
+    results.append(vim_pkg)
 
     return results
 
@@ -526,6 +560,9 @@ def main():
 
     for pkg in package_list():
         install_package(pkg)
+
+    if not os.path.exists(os.path.join(os.environ['HOME'], '.fonts')):
+        print 'Manual action needed: install some fonts into ~/.fonts'
 
 if __name__ == '__main__':
     main()
