@@ -48,6 +48,10 @@ def fill_build_environment(env):
             env['CXX'] = gxx
             break
 
+    if is_command_available('gfortran44'):
+        env['FC'] = 'gfortran44'
+        env['F77'] = 'gfortran44'
+
 def read_install_db():
     try:
         data = file(INSTALL_DB_FILE).read()
@@ -79,8 +83,6 @@ def install_package(pkg):
 
     print
     print '=== Installing %s v. %s ===' % (pkg.name, pkg.version)
-    print 'Downloads: ' % pkg.downloads
-    print 'Script:'
     print pkg.script
 
     fill_build_environment(os.environ)
@@ -134,7 +136,7 @@ def install_package(pkg):
     db[pkg.name] = dict(
         installed=1,
         version=pkg.version,
-        seq_no=len(db)+1,
+        seq_no=max(p['seq_no'] for p in db.itervalues()) + 1,
         download_time=int(download_end - download_start + 0.5),
         build_time=int(build_end - download_end + 0.5)
     )
@@ -360,7 +362,7 @@ def package_list():
     tarball('http://www.kernel.org/pub/software/scm/git/git-1.7.5.tar.bz2',
         preconf='export PYTHON_PATH=$(which python)',
         conf=' --with-openssl --with-expat --with-curl',
-        postinst=r"sed -i -e 's/^#![/]usr[/]bin[/]perl/^#\/usr\/bin\/env perl/' $LOCAL/libexec/git-core/git-*")
+        postinst=r"sed -i -e 's/^#![/]usr[/]bin[/]perl/#!\/usr\/bin\/env perl/' $LOCAL/libexec/git-core/git-*")
     tarball('http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.5.tar.bz2',
         script='cat git-manpages-*.tar.bz2 | (cd $LOCAL/man && tar -jx)')
 
@@ -550,6 +552,16 @@ def package_list():
     )
     results.append(vim_pkg)
 
+    if is_command_available('gfortran44'):
+        tarball('http://cran.r-project.org/src/base/R-2/R-2.13.0.tar.gz', conf=' --with-x --disable-nls')
+    else:
+        print 'Skipping R because fortran is not available.\n'
+
+    tarball('http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2.tar.gz',
+            conf='',
+            make='./setup.py build -v',
+            install='./setup.py install -v --prefix $LOCAL')
+
     return results
 
 
@@ -563,6 +575,8 @@ def main():
 
     if not os.path.exists(os.path.join(os.environ['HOME'], '.fonts')):
         print 'Manual action needed: install some fonts into ~/.fonts'
+
+    print 'All done.'
 
 if __name__ == '__main__':
     main()

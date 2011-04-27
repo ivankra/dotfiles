@@ -19,6 +19,7 @@ if [[ -d $LOCAL ]]; then
   export CPATH=$LOCAL/include
   export LIBRARY_PATH=$LOCAL/lib
   export LD_LIBRARY_PATH=$LOCAL/lib
+  export PYTHONPATH=$LOCAL/lib/python2.6/site-packages
 
   LOCALPERL=`ls -d $LOCAL/lib/perl5/site_perl/5.* 2>&1`
   if [[ -d "$LOCALPERL" ]]; then
