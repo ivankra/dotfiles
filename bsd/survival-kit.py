@@ -11,10 +11,7 @@ DOWNLOADS_DIR = '/home/yoda/.tarballs' #os.path.join(KIT_DIR,'downloads')
 INSTALL_DB_FILE = os.path.join(KIT_DIR, 'installed.txt')
 BUILD_DIR = os.path.join(KIT_DIR,'builds')
 
-# TODO: installation tree monitoring, create .tar packaged with all modified files
-class InstallationTree(object):
-    def __init__(self):
-        pass
+# TODO: installation tree monitoring, create .tar packages with all modified files; discover dependencies with ldd
 
 def is_command_available(name):
     return os.system("which '%s' >/dev/null 2>/dev/null" % name) == 0
@@ -33,12 +30,20 @@ def fill_build_environment(env):
     env['LIBRARY_PATH'] = LOCAL + '/lib'
     env['LD_LIBRARY_PATH'] = LOCAL + '/lib'
     env['CFLAGS'] = '-pipe -O2 -mtune=native -march=native'
-    env['CXXFLAGS'] = ''
-    env['LDFLAGS'] = ''
-    env['LIBS'] = ''
+    for flag in ('CXXFLAGS', 'LDFLAGS', 'LIBS', 'LIB'):
+        if flag in env:
+            del env['FLAG']
     env['LANG'] = 'en_US.UTF-8'
     env['TMPDIR'] = '/var/tmp'
     env['MAKE'] = 'make'
+
+    local_make = os.path.join(LOCAL, 'bin/make')
+    if os.path.exists(local_make):
+        env['MAKE'] = local_make
+    elif is_command_available('gmake'):
+        env['MAKE'] = 'gmake'
+    else:
+        env['MAKE'] = 'make'
     env['PMAKE'] = env['MAKE'] + ' -j 10'
 
     for gcc, gxx in (('gcc44', 'g++44'), ('gcc', 'g++')):
@@ -79,6 +84,10 @@ def install_package(pkg):
     if pkg.name in db:
         print '%s is already installed' % pkg.name
         return
+
+    for dep in pkg.deps:
+        if dep not in db or db[dep].installed != 1:
+            raise Exception("Can't install %s: unsatisfied dependency %s" % (pkg.name, dep))
 
     print
     print '=== Installing %s v. %s ===' % (pkg.name, pkg.version)
@@ -201,7 +210,7 @@ def get_database_md5s(urls):
     return res
 
 def make_tarball_package(urls, **kwargs):
-    flagnames = 'CFLAGS CXXFLAGS LDFLAGS CC CXX'.split(' ')
+    flagnames = 'CFLAGS CXXFLAGS LDFLAGS CC CXX CPATH'.split(' ')
     argnames = 'name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags, skippable'.split(', ')
     name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags, skippable = [kwargs.get(s, None) for s in argnames]
 
@@ -308,28 +317,31 @@ def package_list():
         tarball('http://mirrors.kernel.org/gnu/%s/%s' % (name, filename), **kwargs)
 
     def sourceforge(filename, **kwargs):
-        name = filename[:filename.rindex('-')]
-        tarball('http://downloads.sourceforge.net/%s/%s' % (name, filename), **kwargs)
+        if '/' not in filename:
+            filename = filename[:filename.rindex('-')] + '/' + filename
+        tarball('http://downloads.sourceforge.net/%s' % filename, **kwargs)
 
     gnu('make-3.82.tar.bz2')
+    sourceforge('libpng/zlib-1.2.5.tar.bz2')
     gnu('libiconv-1.13.1.tar.gz', CFLAGS='-fPIC')
     gnu('ncurses-5.9.tar.gz', CFLAGS='-fPIC')
     gnu('gettext-0.18.1.1.tar.gz')
-    gnu('gmp-5.0.1.tar.bz2')
+    gnu('m4-1.4.16.tar.bz2')
+    gnu('gmp-5.0.1.tar.bz2', deps=['m4'])
     gnu('tar-1.26.tar.bz2')
     gnu('coreutils-8.9.tar.gz', postinst='mv -f $LOCAL/bin/{wc,wc.gnu}')  # native BSD wc is so much faster without multibyte support
     tarball('http://tukaani.org/xz/xz-5.0.2.tar.bz2')
     gnu('diffutils-3.0.tar.gz')
     gnu('findutils-4.4.2.tar.gz')
     gnu('patch-2.6.tar.bz2', skippable=1)   # 2.6.1 build fails: gl/lib/strnlen.o: No such file or directory
-    gnu('grep-2.7.tar.gz')
-    gnu('groff-1.20.1.tar.gz', conf=' --x-includes=$LOCAL/include --x-libraries=$LOCAL/lib')  # 1.21 breaks some x11 builds
-    gnu('m4-1.4.16.tar.bz2')
+    gnu('grep-2.7.tar.gz', LDFLAGS='-liconv')
+    gnu('groff-1.20.1.tar.gz', conf=' --without-x')  # 1.21 breaks some x11 builds
     gnu('sed-4.2.1.tar.bz2')
     gnu('gawk-3.1.8.tar.bz2')
     gnu('bison-2.4.3.tar.bz2')
     gnu('less-443.tar.gz')
-    tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}')
+    gnu('gdbm-1.8.3.tar.gz', postconf='sed -i -e "s/-o .(BINOWN.*BINGRP)//" Makefile')
+    tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}', LDFLAGS='-liconv', deps=['gdbm', 'less'])
     sourceforge('flex-2.5.35.tar.bz2')
     tarball('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-static', version='0.9.8r',
        make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL')
@@ -343,7 +355,7 @@ def package_list():
     sourceforge('netcat-0.7.1.tar.bz2', CFLAGS='-O2 -static', LDFLAGS='-O2 -static')
     tarball('http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2')
     sourceforge('ctags-5.8.tar.gz')
-    sourceforge('cscope-15.7a.tar.bz2')
+    sourceforge('cscope-15.7a.tar.bz2', preconf='export CPATH=$CPATH:$LOCAL/include/ncurses', conf=' --with-ncurses=$LOCAL')
 
     tarball(
         'http://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2',
@@ -377,7 +389,7 @@ def package_list():
         )
     )
 
-    sourceforge('pcre-8.12.tar.bz2')
+    sourceforge('pcre-8.12.tar.bz2', conf=' --enable-utf8 --enable-unicode-properties')
     sourceforge('swig-2.0.3.tar.gz', conf=' --with-pcre-prefix=$LOCAL', LDFLAGS='-lpcre')
     tarball('http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz', workdir='sqlite-3.6.13')
     tarball('http://www.webdav.org/neon/neon-0.29.5.tar.gz', conf=' --with-ssl=openssl', postinst='rm -rf $LOCAL/share/doc/neon-0.29.5')
@@ -400,9 +412,9 @@ def package_list():
     tarball('http://pkgconfig.freedesktop.org/releases/pkg-config-0.25.tar.gz')
     tarball('http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.6.tar.bz2',
             preconf=r"echo -e '611a612,614\n> #ifdef HAVE_SYS_PARAM_H\n> # include <sys/param.h>\n> #endif' | patch configure",  # sys/param.h is required for sys/mount.h on freebsd 6.3
-            conf=' --disable-dtrace')
-    tarball('http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz')
+            conf=' --disable-dtrace --with-threads=posix --with-pcre=system --with-libiconv=gnu')
     sourceforge('freetype-2.4.4.tar.bz2')
+    tarball('http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz', deps=['freetype'])
     sourceforge('libpng-1.4.7.tar.bz2')
     tarball('http://www.ijg.org/files/jpegsrc.v8c.tar.gz', name='libjpeg', version='8c', workdir='jpeg-8c')
     tarball('http://download.osgeo.org/libtiff/tiff-3.9.5.tar.gz')  #'ftp://ftp.remotesensing.org/pub/libtiff/tiff-3.9.2.tar.gz',
@@ -567,14 +579,14 @@ def package_list():
 
     vim_pkg = Package(
         name='vim',
-        version='7.3.162',
-        deps=['gtk+'],
+        version='7.3.169',
+        deps=['gtk+', 'cscope'],
         script=(
             '#!/usr/bin/env bash\n'
             'set -e -x -o pipefail\n'
             'git clone git://github.com/b4winckler/vim.git\n'
             'cd vim\n'
-            'git checkout ad7e25727ba5819cc0bb0b280a832b3b6cac6be9\n'
+            'git checkout 4cb303909d07e95a8450dfac5d12fc06b6225162\n'
             './configure --prefix=$LOCAL --with-features=huge --with-x --enable-gui=gtk2 --enable-cscope --enable-multibyte --disable-pythoninterp --disable-nls\n'
             '$PMAKE\n'
             '$MAKE test\n'
@@ -601,6 +613,7 @@ def main():
     parser.add_option('-q', dest='quiet')
     (options, args) = parser.parse_args()
 
+    bad_packages = []
     for pkg in package_list():
         try:
             install_package(pkg)
@@ -610,11 +623,14 @@ def main():
                 raise
             else:
                 sys.stderr.write('Skipping %s\n' % pkg.name)
+                bad_packages.append(pkg.name)
 
     if not os.path.exists(os.path.join(os.environ['HOME'], '.fonts')):
         print 'Manual action needed: install some fonts into ~/.fonts'
 
-    print 'All done.'
+    print 'Finished.'
+    if len(bad_packages) > 0:
+        print 'Skipped packages: %s' % bad_packages
 
 if __name__ == '__main__':
     main()
