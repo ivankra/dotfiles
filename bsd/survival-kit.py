@@ -5,7 +5,7 @@ import os, sys, optparse, time, hashlib
 
 HOME = os.environ['HOME']
 assert HOME.startswith('/home/')
-LOCAL = os.path.join(HOME, '.local2')
+LOCAL = os.path.join(HOME, '.local')
 KIT_DIR = os.path.join(LOCAL, 'kit')
 DOWNLOADS_DIR = '/home/yoda/.tarballs' #os.path.join(KIT_DIR,'downloads')
 INSTALL_DB_FILE = os.path.join(KIT_DIR, 'installed.txt')
@@ -134,10 +134,9 @@ def install_package(pkg):
     os.chmod('install.sh', 0766)
 
     sh("./install.sh")
+    sh("cd $LOCAL; rm -rf '%s'" % pkg_build_dir)
 
     build_end = time.time()
-
-    sh("cd $LOCAL; rm -rf '%s'" % pkg_build_dir)
 
     db[pkg.name] = dict(
         installed=1,
@@ -149,12 +148,13 @@ def install_package(pkg):
     write_install_db(db)
 
 class Package(object):
-    def __init__(self, name, version=None, deps=[], downloads=[], script=''):
+    def __init__(self, name, version=None, deps=[], downloads=[], script='', skippable=0):
         self.name = name
         self.version = version
         self.deps = deps
         self.downloads = downloads  # list of (url, md5)
         self.script = script
+        self.skippable = skippable
 
 def parse_name_version(s):
     i = s.rfind('-')
@@ -202,8 +202,8 @@ def get_database_md5s(urls):
 
 def make_tarball_package(urls, **kwargs):
     flagnames = 'CFLAGS CXXFLAGS LDFLAGS CC CXX'.split(' ')
-    argnames = 'name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags'.split(', ')
-    name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags = [kwargs.get(s, None) for s in argnames]
+    argnames = 'name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags, skippable'.split(', ')
+    name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags, skippable = [kwargs.get(s, None) for s in argnames]
 
     bad_keys = [key for key in kwargs.keys() if key not in argnames + flagnames]
     if len(bad_keys) > 0:
@@ -223,7 +223,9 @@ def make_tarball_package(urls, **kwargs):
     elif type(deps) is str:
         deps = deps.split()
 
-    filename = None if len(urls) == 0 else os.path.basename(urls[0])
+    filename = None
+    if len(urls) > 0:
+        filename = os.path.basename(urls[0])
 
     if script is not None:
         if name is None:
@@ -250,7 +252,9 @@ def make_tarball_package(urls, **kwargs):
     if workdir is None:
         workdir = filename[:-len(ext)]
     if conf is None or conf.startswith(' '):
-        conf = './configure --prefix=$LOCAL' + ('' if conf is None else conf)
+        if conf is None:
+            conf = ''
+        conf = './configure --prefix=$LOCAL' + conf
     if make is None:
         make = '$PMAKE'
     if install is None:
@@ -259,7 +263,10 @@ def make_tarball_package(urls, **kwargs):
     varz = ''
     for flag in flagnames:
         if flag in kwargs:
-            varz += " %s='%s'" % (flag, kwargs[flag])
+            if kwargs[flag] is None:
+                del kwargs[flag]
+            else:
+                varz += " %s='%s'" % (flag, kwargs[flag])
     if xflags is not None:
         for flag in 'CFLAGS CXXFLAGS LDFLAGS':
             if flag not in kwargs:
@@ -267,11 +274,15 @@ def make_tarball_package(urls, **kwargs):
     if varz != '':
         varz = 'export' + varz
 
+    cd_workdir = None
+    if workdir != '.':
+        cd_workdir = "cd '%s'" % workdir
+
     script = [
         '#!/usr/bin/env bash\nset -e -o pipefail -x',
         varz,
         unpack,
-        ("cd '%s'" % workdir) if workdir != '.' else None,
+        cd_workdir,
         preconf,
         conf,
         postconf,
@@ -282,7 +293,7 @@ def make_tarball_package(urls, **kwargs):
     ]
     script = '\n'.join([ c for c in script if c is not None and c != '' ]) + '\n'
 
-    return Package(name, version=version, deps=deps, downloads=downloads, script=script)
+    return Package(name, version=version, deps=deps, downloads=downloads, script=script, skippable=skippable)
 
 def package_list():
     results = []
@@ -310,7 +321,7 @@ def package_list():
     tarball('http://tukaani.org/xz/xz-5.0.2.tar.bz2')
     gnu('diffutils-3.0.tar.gz')
     gnu('findutils-4.4.2.tar.gz')
-    gnu('patch-2.6.tar.bz2')   # 2.6.1 build fails: gl/lib/strnlen.o: No such file or directory
+    gnu('patch-2.6.tar.bz2', skippable=1)   # 2.6.1 build fails: gl/lib/strnlen.o: No such file or directory
     gnu('grep-2.7.tar.gz')
     gnu('groff-1.20.1.tar.gz', conf=' --x-includes=$LOCAL/include --x-libraries=$LOCAL/lib')  # 1.21 breaks some x11 builds
     gnu('m4-1.4.16.tar.bz2')
@@ -336,21 +347,33 @@ def package_list():
 
     tarball(
         'http://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2',
+        preconf=(
+            '''cd hints; chmod u+w freebsd.sh; echo -e '223c223\\n< \t\t exit 1\n---\n> \t\t ldflags="-pthread $ldflags"\\n' | patch freebsd.sh; cd ..; ''' +
+            'sed -i -e "s/<command line>/<command-line>/" makedepend.SH;'
+        ),
         conf=(
-            r'''set -x; cd hints; chmod u+rw *; echo -e '223c223\n< 		 exit 1\n---\n> 		 ldflags="-pthread $ldflags"\n' | patch freebsd.sh; cd ..; ''' +
-            'sed -i -e "s/<command line>/<command-line>/" makedepend.SH; '
-            './Configure -sde -Dprefix=$LOCAL -Dvendorprefix=$LOCAL ' +
-            '-Dman1dir=$LOCAL/share/man/man1 -Dman3dir=$LOCAL/share/man/man3 ' +
-            '-Dsiteman1dir=$LOCAL/share/man/man1 -Dsiteman3dir=$LOCAL/share/man/man3 ' +
-            '"-Dpager=$LOCAL/bin/less -isR"'
-            '-Darchlib=$LOCAL/lib/perl5/5.8.9/mach ' +
-            '-Dprivlib=$LOCAL/lib/perl5/5.8.9 ' +
-            '-Dsitearchlib=$LOCAL/lib/perl5/site_perl/5.8.9/mach ' +
-            '-Dsitelib=$LOCAL/lib/perl5/site_perl/5.8.9 ' +
-            '-Ui_malloc -Ui_iconv -Dcc=cc -Duseshrplib ' +  # gcc 4.2.1 ?
-            '"-Doptimize=-O2 -fno-strict-aliasing -pipe -mtune=native" -Ud_dosuid -Ui_gdbm -Dusethreads=y -Dusemymalloc=n -Duse64bitint'
-            # -Dinc_version_list=none -Uinstallusrbinperl -Dscriptdir=/usr/local/bin
-            #'-Dccflags=-DAPPLLIB_EXP="/usr/local/lib/perl5/5.8.9/BSDPAN" '
+            './Configure -sde '
+            '-Dprefix=$LOCAL '
+            '-Dsiteprefix=$LOCAL '
+            '-Dvendorprefix=$LOCAL '
+            '-Dman1dir=$LOCAL/share/man/man1 '
+            '-Dman3dir=$LOCAL/share/man/man3 '
+            '-Dsiteman1dir=$LOCAL/share/man/man1 '
+            '-Dsiteman3dir=$LOCAL/share/man/man3 '
+            '-Darchlib=$LOCAL/lib/perl5/5.8.9/mach '
+            '-Dprivlib=$LOCAL/lib/perl5/5.8.9 '
+            '-Dsitearchlib=$LOCAL/lib/perl5/site_perl/5.8.9/mach '
+            '-Dsitelib=$LOCAL/lib/perl5/site_perl/5.8.9 '
+            '"-Dpager=$LOCAL/bin/less -isR" '
+            '-Dcc=$CC '
+            '"-Doptimize=-O2 -fno-strict-aliasing -pipe -march=native -mtune=native" '
+            '-Dusethreads=y '
+            '-Dusemymalloc=n '
+            '-Duse64bitall'
+            '-Duseshrplib '
+            '-Ui_malloc -Ui_iconv -Ud_dosuid -Ui_gdbm '
+            # -Dinc_version_list=none
+            #'-Accflags=-DAPPLLIB_EXP="/usr/local/lib/perl5/5.8.9/BSDPAN" '
         )
     )
 
@@ -375,7 +398,9 @@ def package_list():
     tarball('http://xmlsoft.org/sources/libxml2-2.7.8.tar.gz')
     tarball('http://xmlsoft.org/sources/libxslt-1.1.26.tar.gz')
     tarball('http://pkgconfig.freedesktop.org/releases/pkg-config-0.25.tar.gz')
-    tarball('http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.6.tar.bz2', conf=' --disable-dtrace')
+    tarball('http://ftp.gnome.org/pub/gnome/sources/glib/2.28/glib-2.28.6.tar.bz2',
+            preconf=r"echo -e '611a612,614\n> #ifdef HAVE_SYS_PARAM_H\n> # include <sys/param.h>\n> #endif' | patch configure",  # sys/param.h is required for sys/mount.h on freebsd 6.3
+            conf=' --disable-dtrace')
     tarball('http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz')
     sourceforge('freetype-2.4.4.tar.bz2')
     sourceforge('libpng-1.4.7.tar.bz2')
@@ -521,7 +546,7 @@ def package_list():
     X11R76 = [ s if s.startswith('http://') else ('http://www.x.org/releases/X11R7.6/src/' + s) for s in X11R76 ]
 
     for url in X11R76:
-        tarball(url)
+        tarball(url, LDFLAGS=('-lpthread' if 'xcb.freedesktop.org' in url else None))
 
     # X11 apps
     tarball('http://www.x.org/releases/individual/app/xclock-1.0.4.tar.bz2')
@@ -559,7 +584,7 @@ def package_list():
     results.append(vim_pkg)
 
     if is_command_available('gfortran44'):
-        tarball('http://cran.r-project.org/src/base/R-2/R-2.13.0.tar.gz', conf=' --with-x --disable-nls')
+        tarball('http://cran.r-project.org/src/base/R-2/R-2.13.0.tar.gz', conf=' --with-x --disable-nls', skippable=1)
     else:
         print 'Skipping R because fortran is not available.\n'
 
@@ -577,7 +602,14 @@ def main():
     (options, args) = parser.parse_args()
 
     for pkg in package_list():
-        install_package(pkg)
+        try:
+            install_package(pkg)
+        except:
+            sys.stderr.write('Failed to build package "%s"\n' % pkg.name)
+            if not pkg.skippable:
+                raise
+            else:
+                sys.stderr.write('Skipping %s\n' % pkg.name)
 
     if not os.path.exists(os.path.join(os.environ['HOME'], '.fonts')):
         print 'Manual action needed: install some fonts into ~/.fonts'
