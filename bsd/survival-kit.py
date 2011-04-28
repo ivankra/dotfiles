@@ -345,10 +345,13 @@ def package_list():
     gnu('gdbm-1.8.3.tar.gz', postconf='sed -i -e "s/-o .(BINOWN.*BINGRP)//" Makefile')
     tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}', LDFLAGS='-liconv', deps=['gdbm', 'less'])
     sourceforge('flex-2.5.35.tar.bz2')
+
+    openssl_patch = 'sed -i -e "s/ *if (.stddev...outdev .. .stdino...outino);//" crypto/perlasm/x86_64-xlate.pl'
     tarball('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-static', version='0.9.8r',
-       make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL')
+        preconf=openssl_patch, make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL')
     tarball('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-shared', version='0.9.8r',
-       make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL shared')
+        preconf=openssl_patch, make='$PMAKE || $MAKE', conf='./config --openssldir=$LOCAL/etc/ssl --prefix=$LOCAL shared')
+
     gnu('wget-1.12.tar.bz2')
     sourceforge('expat-2.0.1.tar.gz')
     tarball('http://curl.haxx.se/download/curl-7.21.6.tar.bz2', conf=' --enable-static --enable-shared --with-openssl=$LOCAL')
