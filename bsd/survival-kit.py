@@ -18,6 +18,7 @@ def is_command_available(name):
 
 def sh(cmd):
     print cmd
+    sys.stdout.flush()
     n = os.system(cmd)
     if n != 0:
         raise Exception('Command "%s" terminated with exit code %d' % (cmd, n))
@@ -92,6 +93,7 @@ def install_package(pkg):
     print
     print '=== Installing %s v. %s ===' % (pkg.name, pkg.version)
     print pkg.script
+    sys.stdout.flush()
 
     fill_build_environment(os.environ)
 
