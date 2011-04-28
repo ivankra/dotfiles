@@ -594,7 +594,7 @@ def package_list():
             'git checkout 4cb303909d07e95a8450dfac5d12fc06b6225162\n'
             './configure --prefix=$LOCAL --with-features=huge --with-x --enable-gui=gtk2 --enable-cscope --enable-multibyte --disable-pythoninterp --disable-nls\n'
             '$PMAKE\n'
-            '$MAKE test\n'
+            #'$MAKE test\n'  -- hangs up during batch installs
             '$MAKE install\n'
         )
     )
