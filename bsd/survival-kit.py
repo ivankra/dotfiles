@@ -87,7 +87,7 @@ def install_package(pkg):
         return
 
     for dep in pkg.deps:
-        if dep not in db or db[dep].installed != 1:
+        if dep not in db or db[dep]['installed'] != 1:
             raise Exception("Can't install %s: unsatisfied dependency %s" % (pkg.name, dep))
 
     print
