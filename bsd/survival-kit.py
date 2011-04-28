@@ -91,7 +91,7 @@ def install_package(pkg):
             raise Exception("Can't install %s: unsatisfied dependency %s" % (pkg.name, dep))
 
     print
-    print '=== Installing %s v. %s ===' % (pkg.name, pkg.version)
+    print '=== Installing %s %s ===' % (pkg.name, pkg.version)
     print pkg.script
     sys.stdout.flush()
 
@@ -141,7 +141,10 @@ def install_package(pkg):
 
     download_end = time.time()
 
-    file('install.sh', 'w').write(pkg.script)
+    script = pkg.script
+    if not script.startswith('#!'):
+        script = '#!/usr/bin/env bash\nset -e -o pipefail -x\n' + script
+    file('install.sh', 'w').write(script)
     os.chmod('install.sh', 0766)
 
     sh("./install.sh")
@@ -290,7 +293,6 @@ def make_tarball_package(urls, **kwargs):
         cd_workdir = "cd '%s'" % workdir
 
     script = [
-        '#!/usr/bin/env bash\nset -e -o pipefail -x',
         varz,
         unpack,
         cd_workdir,
@@ -587,8 +589,6 @@ def package_list():
         version='7.3.169',
         deps=['gtk+', 'cscope'],
         script=(
-            '#!/usr/bin/env bash\n'
-            'set -e -x -o pipefail\n'
             'git clone git://github.com/b4winckler/vim.git\n'
             'cd vim\n'
             'git checkout 4cb303909d07e95a8450dfac5d12fc06b6225162\n'
