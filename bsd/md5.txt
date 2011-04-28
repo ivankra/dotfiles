@@ -25,6 +25,7 @@ bdb58ecc313b509247036d5c11fa99df  fixesproto-4.1.2.tar.bz2
 e974a82e5939be8e05ee65f07275d7c5  freetype-2.3.12.tar.bz2
 b3e2b6e2f1c3e0dffa1fd2a0f848b671  freetype-2.4.4.tar.bz2
 52b41c6c4418b3226dfb8f82076193bb  gawk-3.1.8.tar.bz2
+1d1b1d5c0245b1c00aff92da751e9aa1  gdbm-1.8.3.tar.gz
 5d50c5311b4ce460d33983938d92109e  gdk-pixbuf-2.23.3.tar.bz2
 3dd55b952826d2b32f51308f2f91aa89  gettext-0.18.1.1.tar.gz
 1313f71d62fa100b32fa313769a85f2a  git-1.7.4.4.tar.bz2
@@ -142,3 +143,4 @@ a8aadcb281b9c11a91303e24cdea45f5  xineramaproto-1.2.tar.bz2
 c66f9ffd2da4fb012220c6c40ebc7609  xtrans-1.2.6.tar.bz2
 cc4044fcc073b8bcf3164d1d0df82161  xz-4.999.9beta.tar.bz2
 ee05b17a4062bb55cba099ef46eca007  xz-5.0.2.tar.bz2
+be1e89810e66150f5b0327984d8625a0  zlib-1.2.5.tar.bz2
