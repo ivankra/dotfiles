@@ -134,7 +134,6 @@ python-setuptools
 qbittorrent
 qemu
 rar
-r-base
 rdesktop
 rrdtool
 ruby
@@ -175,9 +174,7 @@ libncurses5 libncurses5-dev libelf-dev asciidoc binutils-dev
 
 easy-install:gitserve
 
-cran:gbm
-cran:ggplot2
-cran:randomForest
+gfortran r-base cran:gbm cran:ggplot2 cran:randomForest [r]
 
 -f-spot
 -gwibber -gwibber-service

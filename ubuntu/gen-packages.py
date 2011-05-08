@@ -60,12 +60,12 @@ def main():
             sys.stderr.write('Available tags: %s\n' % ', '.join(tag for tag in known_tags if not is_release_tag(tag) and not is_release_tag(tag[:-1])))
             sys.exit(1)
 
-    sys.stderr.write('Install script is written to ./packages.sh\n')
+    sys.stderr.write('Install script is written to ./packages.sh\nSelected tag(s): %s\n' % ' '.join(user_tags))
     outf = file('packages.sh', 'w')
 
     outf.write('#!/bin/bash\n')
     outf.write('if [ "`whoami`" != "root" ]; then\n  echo You must run this script under root.\n  exit 1\nfi\n\n')
-    outf.write('echo Selected tags: %s\n\n' % ' '.join(user_tags))
+    outf.write('echo "Selected tag(s): %s"\n\n' % ' '.join(user_tags))
     outf.write('set -e -x\n\n')
 
     install_packages = set()
