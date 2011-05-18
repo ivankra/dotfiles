@@ -50,6 +50,7 @@ else
   alias la='ls -A'
 fi
 
+alias l='ls -l'
 alias ll='ls -l'
 alias mv='mv -i'
 alias rm='rm -i'
