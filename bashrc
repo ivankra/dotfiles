@@ -64,8 +64,6 @@ alias gdb='gdb --quiet'
 alias ssh='ssh -AX'
 alias R='R --no-save --no-restore --quiet'
 
-alias httpserve='python -m SimpleHTTPServer'  # httpserve [port]   -- serves current directory via http
-
 alias rod='/usr/bin/ssh -Axt stv ssh -Ax -p 50005 yoda@localhost'
 alias stv='/usr/bin/ssh -Ax stv'
 alias tatooine='/usr/bin/ssh -Axt stv ssh -Axt -p 50005 yoda@localhost ssh -Ax -p 50000 localhost'
