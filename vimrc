@@ -50,7 +50,12 @@ if has("autocmd")
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
 
-  autocmd BufNewFile *.py 0r ~/.vim/skeleton/skeleton.py | normal G"_ddkkk
+  autocmd BufNewFile *.py 0r ~/.vim/skeleton/python.py | normal G"_ddkkk
+  if filereadable("/bin/bash")
+    autocmd BufNewFile *.sh 0r ~/.vim/skeleton/bash1.sh | normal G"_dd
+  else
+    autocmd BufNewFile *.sh 0r ~/.vim/skeleton/bash2.sh | normal G"_dd
+  endif
 endif
 
 " Key map: F2 = save
