@@ -173,6 +173,7 @@ fakeroot build-essential crash kexec-tools makedumpfile kernel-wedge build-dep:l
 libncurses5 libncurses5-dev libelf-dev asciidoc binutils-dev
 
 easy-install:gitserve
+easy-install:gitpython
 
 gfortran r-base cran:gbm cran:ggplot2 cran:randomForest [r]
 
