@@ -9,18 +9,8 @@ set -e -x
 
 cd .git
 
-if [ -e index ]; then
-  mv index index.PREV.make-empty-branch
-fi
-
-git read-tree
-tree=`git write-tree`
+tree=`git mktree </dev/null`
 commit=`echo Empty branch | git commit-tree $tree`
-
-if [ -e index.PREV.make-empty-branch ]; then
-  mv index.PREV.make-empty-branch index
-fi
-
 echo $commit >refs/heads/$BRANCH
 
 echo Created branch "$BRANCH"
