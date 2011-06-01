@@ -40,11 +40,13 @@ if has("autocmd")
   " Load large files faster
   autocmd BufReadPre * if getfsize(expand("<afile>")) > 10485760 | setlocal syntax=OFF fdm=manual | endif
 
-  autocmd BufReadPre SConstruct set filetype=python
-  autocmd BufReadPre SConscript set filetype=python
+  autocmd BufNewFile,BufRead SConstruct set ft=python
+  autocmd BufNewFile,BufRead SConscript set ft=python
+  autocmd BufNewFile,BufRead *.rl       set ft=ragel
+  autocmd BufNewFile,BufRead *.inc      set ft=cpp
 
-  autocmd FileType c,cpp,java set sts=4 sw=4 et cindent
-  autocmd FileType asm,python,perl,lua set sts=4 sw=4 et autoindent
+  autocmd FileType c,cpp,java,ragel     set sts=4 sw=4 et ai cin
+  autocmd FileType asm,python,perl,lua  set sts=4 sw=4 et ai
   autocmd FileType make       set sts=0 sw=8 noet nowrap
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
