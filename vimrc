@@ -39,9 +39,9 @@ python <<ENDPYTHON
 
 import os, vim
 
-SKELETONS = {
-  'py': 'python.py',
-  'sh': 'bash1.sh' if os.path.exists('/bin/bash') else 'bash2.sh',
+SKELETON_GLOBAL_VARS = {
+  'BASH_SHEBANG': '#!/bin/bash' if os.path.exists('/bin/bash') else '#!/usr/bin/env bash',
+  'CURSOR': '',
 }
 
 # loads a skeleton file into buffer, positions cursor at the position marked by %CURSOR%
@@ -56,14 +56,16 @@ def OnBufNewFile():
   ext = filename.rsplit('.', 1)[-1]
 
   def get_skeleton():
-    s = os.path.join(dirname, '.template.' + ext)
-    if os.path.exists(s) and not filename.startswith('.template'):
+    s = os.path.join(dirname, '.skeleton.' + ext)
+    if os.path.exists(s) and not filename.startswith('.skel'):
       return s
 
-    if ext in SKELETONS and 'HOME' in os.environ:
-      s = os.path.join(os.environ['HOME'], '.vim/skeleton/' + SKELETONS[ext])
-      if os.path.exists(s):
-        return s
+    if 'HOME' not in os.environ:
+      return
+
+    s = os.path.join(os.environ['HOME'], '.vim/skeleton/skeleton.' + ext)
+    if os.path.exists(s):
+      return s
 
   skel = get_skeleton()
   if skel is None:
@@ -71,6 +73,7 @@ def OnBufNewFile():
 
   del vim.current.buffer[:]
 
+  varz = SKELETON_GLOBAL_VARS
   num_rows = 0
   cursor = None
 
@@ -78,7 +81,9 @@ def OnBufNewFile():
     num_rows += 1
     if '%CURSOR%' in line:
       cursor = (num_rows, 1 + line.index('%CURSOR%'))
-      line = line.replace('%CURSOR%', '')
+    for key in varz.iterkeys():
+      if '%' + key + '%' in line:
+        line = line.replace('%' + key + '%', varz[key])
     vim.current.buffer.append(line)
 
   del vim.current.buffer[0]
@@ -123,6 +128,7 @@ if has("autocmd")
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
 
   if has("python")
+    " Skeletons
     autocmd BufNewFile *    python OnBufNewFile()
 
     " Automatically set executable permission for newly created files with shebangs
