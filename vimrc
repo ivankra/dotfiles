@@ -39,6 +39,53 @@ python <<ENDPYTHON
 
 import os, vim
 
+SKELETONS = {
+  'py': 'python.py',
+  'sh': 'bash1.sh' if os.path.exists('/bin/bash') else 'bash2.sh',
+}
+
+# loads a skeleton file into buffer, positions cursor at the position marked by %CURSOR%
+def OnBufNewFile():
+  path = vim.eval('expand("<afile>:p")')
+  dirname = os.path.dirname(path)
+  filename = os.path.basename(path)
+
+  if '.' not in filename:
+    return
+
+  ext = filename.rsplit('.', 1)[-1]
+
+  def get_skeleton():
+    s = os.path.join(dirname, '.template.' + ext)
+    if os.path.exists(s) and not filename.startswith('.template'):
+      return s
+
+    if ext in SKELETONS and 'HOME' in os.environ:
+      s = os.path.join(os.environ['HOME'], '.vim/skeleton/' + SKELETONS[ext])
+      if os.path.exists(s):
+        return s
+
+  skel = get_skeleton()
+  if skel is None:
+    return
+
+  del vim.current.buffer[:]
+
+  num_rows = 0
+  cursor = None
+
+  for line in file(skel):
+    num_rows += 1
+    if '%CURSOR%' in line:
+      cursor = (num_rows, 1 + line.index('%CURSOR%'))
+      line = line.replace('%CURSOR%', '')
+    vim.current.buffer.append(line)
+
+  del vim.current.buffer[0]
+
+  if cursor is not None:
+    vim.command('call cursor(%d, %d)' % cursor)
+
 def OnBufWritePost():
   path = vim.eval('expand("<afile>")')
   file_is_new = vim.eval('b:bufwritepre_file_is_new')
@@ -75,14 +122,9 @@ if has("autocmd")
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
 
-  autocmd BufNewFile *.py 0r ~/.vim/skeleton/python.py | normal G"_ddkkk
-  if filereadable("/bin/bash")
-    autocmd BufNewFile *.sh 0r ~/.vim/skeleton/bash1.sh | normal G"_dd
-  else
-    autocmd BufNewFile *.sh 0r ~/.vim/skeleton/bash2.sh | normal G"_dd
-  endif
-
   if has("python")
+    autocmd BufNewFile *    python OnBufNewFile()
+
     " Automatically set executable permission for newly created files with shebangs
     autocmd BufWritePre *   let b:bufwritepre_file_is_new = !filereadable(expand("<afile>"))
     autocmd BufWritePost *  python OnBufWritePost()
