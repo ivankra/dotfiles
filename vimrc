@@ -34,6 +34,29 @@ if has("syntax")
   syntax on
 endif
 
+if has("python")
+python <<ENDPYTHON
+
+import os, vim
+
+def OnBufWritePost():
+  path = vim.eval('expand("<afile>")')
+  file_is_new = vim.eval('b:bufwritepre_file_is_new')
+  vim.command('unlet b:bufwritepre_file_is_new')
+
+  # If file was just created and has a valid shebang, do chmod a+x on it
+  if os.path.exists(path) and file_is_new == '1':
+    try:
+      stat = os.stat(path)
+      head = file(path, 'r').readline()
+      if head.startswith('#!/') and os.path.exists(head.split()[0][2:]):
+        os.chmod(path, stat.st_mode | 0111)
+    except:
+      pass
+
+ENDPYTHON
+endif
+
 if has("autocmd")
   filetype plugin indent on
 
@@ -57,6 +80,12 @@ if has("autocmd")
     autocmd BufNewFile *.sh 0r ~/.vim/skeleton/bash1.sh | normal G"_dd
   else
     autocmd BufNewFile *.sh 0r ~/.vim/skeleton/bash2.sh | normal G"_dd
+  endif
+
+  if has("python")
+    " Automatically set executable permission for newly created files with shebangs
+    autocmd BufWritePre *   let b:bufwritepre_file_is_new = !filereadable(expand("<afile>"))
+    autocmd BufWritePost *  python OnBufWritePost()
   endif
 endif
 
