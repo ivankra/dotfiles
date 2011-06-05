@@ -10,6 +10,7 @@ KIT_DIR = os.path.join(LOCAL, 'kit')
 DOWNLOADS_DIR = '/home/yoda/.tarballs' #os.path.join(KIT_DIR,'downloads')
 INSTALL_DB_FILE = os.path.join(KIT_DIR, 'installed.txt')
 BUILD_DIR = os.path.join(KIT_DIR,'builds')
+IGNORE_MISSING_MD5 = 0
 
 # TODO: installation tree monitoring, create .tar packages with all modified files; discover dependencies with ldd
 
@@ -208,6 +209,8 @@ def get_database_md5s(urls):
         filename = os.path.basename(url)
         if filename not in db:
             sys.stderr.write('md5 hash for file %s (%s) is missing from the database.\n' % (filename, url))
+            if IGNORE_MISSING_MD5:
+                res.append(None)
         else:
             res.append(db[filename])
     if len(res) != len(urls):
@@ -334,6 +337,10 @@ def package_list():
     gnu('gmp-5.0.1.tar.bz2', deps=['m4'])
     gnu('tar-1.26.tar.bz2')
     gnu('coreutils-8.9.tar.gz', postinst='mv -f $LOCAL/bin/{wc,wc.gnu}')  # native BSD wc is so much faster without multibyte support
+    gnu('readline-6.2.tar.gz')
+    gnu('bash-4.2.tar.gz')
+    gnu('autoconf-2.68.tar.bz2')
+    gnu('automake-1.11.1.tar.bz2')
     tarball('http://tukaani.org/xz/xz-5.0.2.tar.bz2')
     gnu('diffutils-3.0.tar.gz')
     gnu('findutils-4.4.2.tar.gz')
@@ -609,6 +616,25 @@ def package_list():
             conf='',
             make='./setup.py build -v',
             install='./setup.py install -v --prefix $LOCAL')
+
+    tarball('http://mercurial.selenic.com/release/mercurial-1.8.4.tar.gz',
+        script='tar xf mercurial-1.8.4.tar.gz && cd mercurial-1.8.4 && $MAKE build && python ./setup.py install  --home=$LOCAL --force')
+
+    valgrind = Package(
+        name='valgrind-freebsd',
+        version='20110427',
+        deps=['mercurial', 'autoconf'],
+        script=(
+            'hg clone https://bitbucket.org/stass/valgrind-freebsd\n'
+            'cd valgrind-freebsd\n'
+            'hg checkout c5f26602ead4\n'
+            './autogen.sh\n'
+            './configure --prefix=$LOCAL --enable-only64bit\n'
+            '$PMAKE\n'
+            '$MAKE install\n'
+        )
+    )
+    results.append(valgrind)
 
     return results
 

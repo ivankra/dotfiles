@@ -3,6 +3,9 @@ ecfb928067cfd932e75135f8b8bba3e7  R-2.13.0.tar.gz
 4b00e8f70c067893d075577962656b35  apr-1.4.2.tar.bz2
 6a6f501a1b2a45166b8ffd6df29204bb  apr-util-1.3.10.tar.bz2
 7bdb825055f377e6a2f6df7d809e70fb  atk-1.33.6.tar.bz2
+864d785215aa60d627c91fcb21b05b07  autoconf-2.68.tar.bz2
+c2972c4d9b3e29c03d5f2af86249876f  automake-1.11.1.tar.bz2
+3fb927c7c33022f1c327f14a81c0d4b0  bash-4.2.tar.gz
 6f6c24436c2b3ab235eb14a85b9aaacf  bigreqsproto-1.1.1.tar.bz2
 c1d3ea81bc370dbd43b6f0b2cd21287e  bison-2.4.3.tar.bz2
 f101a9e88b783337b20b2e26dfd26d5f  cairo-1.10.2.tar.gz
@@ -93,6 +96,7 @@ e61d0364a30146aaa3001296f853b2b9  libxslt-1.1.26.tar.gz
 ca382dd934fc8b9e9a64d13354be48cf  man-db-2.5.5.tar.gz
 9841394f5c5fe7e2dd2e0c5fb4766d0f  man-db-2.5.9.tar.gz
 2b41c96efec032d2b74ccbf2e401f93e  man-db-2.6.0.2.tar.gz
+b3dcc3de473e003dd1cc0500dcd9de47  mercurial-1.8.4.tar.gz
 8cb9c412e5f2d96bc6f459aa8c6282a1  ncurses-5.9.tar.gz
 ff369e69ef0f0143beb5626164e87ae2  neon-0.29.5.tar.gz
 0a29eff1736ddb5effd0b1ec1f6fe0ef  netcat-0.7.1.tar.bz2
@@ -107,6 +111,7 @@ a923c20af88e469ac29ba42cfedb88c2  pixman-0.20.2.tar.gz
 d922a88782b64441d06547632fd85744  pkg-config-0.23.tar.gz
 a3270bab3f4b69b7dc6dbdacbcae9745  pkg-config-0.25.tar.gz
 597491c0d8055e2a66f11350c4985775  randrproto-1.3.2.tar.bz2
+67948acb2ca081f23359d0256e9a271c  readline-6.2.tar.gz
 24541a30b399213def35f48efd926c63  recordproto-1.14.1.tar.bz2
 a914ccc1de66ddeb4b611c6b0686e274  renderproto-0.11.1.tar.bz2
 8ff0525ae7502b48597b78d00bc22284  resourceproto-1.1.1.tar.bz2
