@@ -1,7 +1,10 @@
+d40ef58ed88438a870bbeb0ac5d4217b  Python-2.6.7.tar.bz2
 ecfb928067cfd932e75135f8b8bba3e7  R-2.13.0.tar.gz
 76ca1c6e1d8904d2d885f81f7332eba6  applewmproto-1.4.1.tar.bz2
 4b00e8f70c067893d075577962656b35  apr-1.4.2.tar.bz2
+8b53f5a5669d0597f2da889a2f576eb6  apr-1.4.5.tar.bz2
 6a6f501a1b2a45166b8ffd6df29204bb  apr-util-1.3.10.tar.bz2
+0f671b037ca62751a8a7005578085560  apr-util-1.3.12.tar.bz2
 7bdb825055f377e6a2f6df7d809e70fb  atk-1.33.6.tar.bz2
 864d785215aa60d627c91fcb21b05b07  autoconf-2.68.tar.bz2
 c2972c4d9b3e29c03d5f2af86249876f  automake-1.11.1.tar.bz2
@@ -32,8 +35,10 @@ b3e2b6e2f1c3e0dffa1fd2a0f848b671  freetype-2.4.4.tar.bz2
 5d50c5311b4ce460d33983938d92109e  gdk-pixbuf-2.23.3.tar.bz2
 3dd55b952826d2b32f51308f2f91aa89  gettext-0.18.1.1.tar.gz
 1313f71d62fa100b32fa313769a85f2a  git-1.7.4.4.tar.bz2
+4985b774db84d3bbcc2b8d90952552a3  git-1.7.5.4.tar.bz2
 7f0bc26a6e87d251c9b09fa05a186ed3  git-1.7.5.tar.bz2
 5812f4fca4afc6c81e06f485111ec8ab  git-manpages-1.7.4.4.tar.bz2
+7a74ef1c64395a07301359a8707c828a  git-manpages-1.7.5.4.tar.bz2
 94cf18c292f0db30046092ef306bf57c  git-manpages-1.7.5.tar.bz2
 45a8bc697d07f859566c0b64c40382a8  glib-2.24.0.tar.bz2
 7d8fc15ae70d5111c0cf2a79d50ef717  glib-2.28.6.tar.bz2
@@ -121,6 +126,7 @@ a914ccc1de66ddeb4b611c6b0686e274  renderproto-0.11.1.tar.bz2
 9c0c5e83ce665f38d4d3aababad275eb  socat-1.7.1.2.tar.bz2
 681722e7cdc6d9ab3be836736ed50641  sqlite-amalgamation-3.6.13.tar.gz
 32f25a6724559fe8691d1f57a63f636e  subversion-1.6.16.tar.bz2
+81e5dc5beee4b3fc025ac70c0b6caa14  subversion-1.6.17.tar.bz2
 e548ea3882b994c4907d6be86bef90f2  swig-2.0.3.tar.gz
 2cee42a2ff4f1cd4f9298eeeb2264519  tar-1.26.tar.bz2
 93e56e421679c591de7552db13384cb8  tiff-3.9.2.tar.gz

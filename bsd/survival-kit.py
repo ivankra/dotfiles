@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# Compiles gnu tools, x11 libraries, gvim and more, installs into home directory. For FreeBSD.
+# Assumes that a working gcc compiler is present.
 
 import os, sys, optparse, time, hashlib
 
@@ -25,6 +26,7 @@ def sh(cmd):
         raise Exception('Command "%s" terminated with exit code %d' % (cmd, n))
 
 def fill_build_environment(env):
+    env['HOME'] = HOME
     env['LOCAL'] = LOCAL
     env['PATH'] = LOCAL + '/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
     env['PKG_CONFIG_PATH'] = '%s/lib/pkgconfig:%s/share/pkgconfig' % (LOCAL, LOCAL)
@@ -32,13 +34,14 @@ def fill_build_environment(env):
     env['LIBRARY_PATH'] = LOCAL + '/lib'
     env['LD_LIBRARY_PATH'] = LOCAL + '/lib'
     env['CFLAGS'] = '-pipe -O2 -mtune=native -march=native'
-    for flag in ('CXXFLAGS', 'LDFLAGS', 'LIBS', 'LIB'):
+    env['LDFLAGS'] = '-Wl,-rpath=' + LOCAL + '/lib'
+    for flag in ('CXXFLAGS',  'LIBS', 'LIB'):
         if flag in env:
-            del env['FLAG']
+            del env[flag]
     env['LANG'] = 'en_US.UTF-8'
     env['TMPDIR'] = '/var/tmp'
-    env['MAKE'] = 'make'
 
+    env['MAKE'] = 'make'
     local_make = os.path.join(LOCAL, 'bin/make')
     if os.path.exists(local_make):
         env['MAKE'] = local_make
@@ -46,6 +49,7 @@ def fill_build_environment(env):
         env['MAKE'] = 'gmake'
     else:
         env['MAKE'] = 'make'
+
     env['PMAKE'] = env['MAKE'] + ' -j 10'
 
     for gcc, gxx in (('gcc44', 'g++44'), ('gcc', 'g++')):
@@ -95,8 +99,6 @@ def install_package(pkg):
     print '=== Installing %s %s ===' % (pkg.name, pkg.version)
     print pkg.script
     sys.stdout.flush()
-
-    fill_build_environment(os.environ)
 
     for dir in (LOCAL, DOWNLOADS_DIR, BUILD_DIR):
         if not os.path.exists(dir):
@@ -219,10 +221,11 @@ def get_database_md5s(urls):
 
 def make_tarball_package(urls, **kwargs):
     flagnames = 'CFLAGS CXXFLAGS LDFLAGS CC CXX CPATH'.split(' ')
-    argnames = 'name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags, skippable'.split(', ')
-    name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, xflags, skippable = [kwargs.get(s, None) for s in argnames]
+    argnames = 'name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, skippable'.split(', ')
+    name, version, md5, deps, unpack, workdir, preconf, conf, postconf, make, postmake, install, postinst, script, skippable = [kwargs.get(s, None) for s in argnames]
 
-    bad_keys = [key for key in kwargs.keys() if key not in argnames + flagnames]
+    valid_keys = argnames + flagnames + ['EXTRA_' + flag for flag in flagnames]
+    bad_keys = [key for key in kwargs.keys() if key not in valid_keys]
     if len(bad_keys) > 0:
         raise Exception('Unknown parameter(s): %s' % ', '.join(bad_keys))
 
@@ -284,10 +287,10 @@ def make_tarball_package(urls, **kwargs):
                 del kwargs[flag]
             else:
                 varz += " %s='%s'" % (flag, kwargs[flag])
-    if xflags is not None:
-        for flag in 'CFLAGS CXXFLAGS LDFLAGS':
-            if flag not in kwargs:
-                varz += " %s='%s'" % (flag, xflags)
+        if 'EXTRA_' + flag in kwargs:
+            value = kwargs['EXTRA_' + flag]
+            if value is not None:
+                varz += ' %s="$%s %s"' % (flag, flag, value)
     if varz != '':
         varz = 'export' + varz
 
@@ -328,10 +331,10 @@ def package_list():
             filename = filename[:filename.rindex('-')] + '/' + filename
         tarball('http://downloads.sourceforge.net/%s' % filename, **kwargs)
 
-    gnu('make-3.82.tar.bz2')
+    gnu('make-3.82.tar.bz2', make='./build.sh', install='./make install')
     sourceforge('libpng/zlib-1.2.5.tar.bz2')
-    gnu('libiconv-1.13.1.tar.gz', CFLAGS='-fPIC')
-    gnu('ncurses-5.9.tar.gz', CFLAGS='-fPIC')
+    gnu('libiconv-1.13.1.tar.gz', EXTRA_CFLAGS='-fPIC')
+    gnu('ncurses-5.9.tar.gz', EXTRA_CFLAGS='-fPIC')
     gnu('gettext-0.18.1.1.tar.gz')
     gnu('m4-1.4.16.tar.bz2')
     gnu('gmp-5.0.1.tar.bz2', deps=['m4'])
@@ -345,14 +348,14 @@ def package_list():
     gnu('diffutils-3.0.tar.gz')
     gnu('findutils-4.4.2.tar.gz')
     gnu('patch-2.6.tar.bz2', skippable=1)   # 2.6.1 build fails: gl/lib/strnlen.o: No such file or directory
-    gnu('grep-2.7.tar.gz', LDFLAGS='-liconv')
+    gnu('grep-2.7.tar.gz', EXTRA_LDFLAGS='-liconv')
     gnu('groff-1.20.1.tar.gz', conf=' --without-x')  # 1.21 breaks some x11 builds
     gnu('sed-4.2.1.tar.bz2')
     gnu('gawk-3.1.8.tar.bz2')
     gnu('bison-2.4.3.tar.bz2')
     gnu('less-443.tar.gz')
     gnu('gdbm-1.8.3.tar.gz', postconf='sed -i -e "s/-o .(BINOWN.*BINGRP)//" Makefile')
-    tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}', LDFLAGS='-liconv', deps=['gdbm', 'less'])
+    tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}', EXTRA_LDFLAGS='-liconv', deps=['gdbm', 'less'])
     sourceforge('flex-2.5.35.tar.bz2')
 
     openssl_patch = 'sed -i -e "s/ *if (.stddev...outdev .. .stdino...outino);//" crypto/perlasm/x86_64-xlate.pl'
@@ -366,10 +369,17 @@ def package_list():
     tarball('http://curl.haxx.se/download/curl-7.21.6.tar.bz2', conf=' --enable-static --enable-shared --with-openssl=$LOCAL')
     gnu('gperf-3.0.4.tar.gz')
     #gnu('gdb-7.2.tar.bz2', CC='gcc', CXX='g++')  # gcc44 produced a binary that crashed with "Bad system call: 12"
-    sourceforge('netcat-0.7.1.tar.bz2', CFLAGS='-O2 -static', LDFLAGS='-O2 -static')
+    sourceforge('netcat-0.7.1.tar.bz2', EXTRA_CFLAGS='-static', EXTRA_LDFLAGS='-static')
     tarball('http://www.dest-unreach.org/socat/download/socat-1.7.1.2.tar.bz2')
     sourceforge('ctags-5.8.tar.gz')
     sourceforge('cscope-15.7a.tar.bz2', preconf='export CPATH=$CPATH:$LOCAL/include/ncurses', conf=' --with-ncurses=$LOCAL')
+
+    tarball('http://www.python.org/ftp/python/2.6.7/Python-2.6.7.tar.bz2', name='python', deps=['gdbm'], conf=' --enable-shared')  # 2.7.1 has a bug in distutils preventing mercual build
+    tarball('http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2.tar.gz',
+            conf='', make='./setup.py build -v', install='./setup.py install -v --prefix $LOCAL', deps=['python'])
+    tarball('http://mercurial.selenic.com/release/mercurial-1.8.4.tar.gz',
+        script='tar xf mercurial-1.?.?.tar.gz && cd mercurial-1.?.? && $MAKE build && python ./setup.py install  --home=$LOCAL --force',
+        deps=['python'])
 
     tarball(
         'http://www.cpan.org/src/5.0/perl-5.8.9.tar.bz2',
@@ -404,21 +414,21 @@ def package_list():
     )
 
     sourceforge('pcre-8.12.tar.bz2', conf=' --enable-utf8 --enable-unicode-properties')
-    sourceforge('swig-2.0.3.tar.gz', conf=' --with-pcre-prefix=$LOCAL', LDFLAGS='-lpcre')
+    sourceforge('swig-2.0.3.tar.gz', conf=' --with-pcre-prefix=$LOCAL', EXTRA_LDFLAGS='-lpcre')
     tarball('http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz', workdir='sqlite-3.6.13')
     tarball('http://www.webdav.org/neon/neon-0.29.5.tar.gz', conf=' --with-ssl=openssl', postinst='rm -rf $LOCAL/share/doc/neon-0.29.5')
-    tarball(['http://subversion.tigris.org/downloads/subversion-1.6.16.tar.bz2',
-        'http://www.apache.org/dist/apr/apr-1.4.2.tar.bz2',
-        'http://www.apache.org/dist/apr/apr-util-1.3.10.tar.bz2'],
-        preconf='tar -jxf ../apr-1.4.2.tar.bz2 && mv apr-1.4.2 apr && tar -jxf ../apr-util-1.3.10.tar.bz2 && mv apr-util-1.3.10 apr-util',
+    tarball(['http://subversion.tigris.org/downloads/subversion-1.6.17.tar.bz2',
+        'http://www.apache.org/dist/apr/apr-1.4.5.tar.bz2',
+        'http://www.apache.org/dist/apr/apr-util-1.3.12.tar.bz2'],
+        preconf='tar -jxf ../apr-1.?.?.tar.bz2 && mv apr-1.?.? apr && tar -jxf ../apr-util-1.?.??.tar.bz2 && mv apr-util-1.?.?? apr-util',
         conf=' --with-ssl --enable-swig-bindings=perl --with-neon=$LOCAL',
-        postinst='$MAKE swig-pl && $MAKE check-swig-pl && $MAKE install-swig-pl')
+        postinst='$MAKE swig-pl && $MAKE check-swig-pl && $MAKE install-swig-pl; rm -rf $LOCAL/build-1')
 
-    tarball('http://www.kernel.org/pub/software/scm/git/git-1.7.5.tar.bz2',
+    tarball('http://www.kernel.org/pub/software/scm/git/git-1.7.5.4.tar.bz2',
         preconf='export PYTHON_PATH=$(which python)',
         conf=' --with-openssl --with-expat --with-curl',
         postinst=r"sed -i -e 's/^#![/]usr[/]bin[/]perl/#!\/usr\/bin\/env perl/' $LOCAL/libexec/git-core/git-*")
-    tarball('http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.5.tar.bz2',
+    tarball('http://www.kernel.org/pub/software/scm/git/git-manpages-1.7.5.4.tar.bz2',
         script='cat git-manpages-*.tar.bz2 | (cd $LOCAL/man && tar -jx)')
 
     tarball('http://xmlsoft.org/sources/libxml2-2.7.8.tar.gz')
@@ -572,7 +582,7 @@ def package_list():
     X11R76 = [ s if s.startswith('http://') else ('http://www.x.org/releases/X11R7.6/src/' + s) for s in X11R76 ]
 
     for url in X11R76:
-        tarball(url, LDFLAGS=('-lpthread' if 'xcb.freedesktop.org' in url else None))
+        tarball(url, EXTRA_LDFLAGS=('-lpthread' if 'xcb.freedesktop.org' in url else None))
 
     # X11 apps
     tarball('http://www.x.org/releases/individual/app/xclock-1.0.4.tar.bz2')
@@ -593,13 +603,13 @@ def package_list():
 
     vim_pkg = Package(
         name='vim',
-        version='7.3.169',
+        version='7.3.206',
         deps=['gtk+', 'cscope'],
         script=(
             'git clone git://github.com/b4winckler/vim.git\n'
             'cd vim\n'
-            'git checkout 4cb303909d07e95a8450dfac5d12fc06b6225162\n'
-            './configure --prefix=$LOCAL --with-features=huge --with-x --enable-gui=gtk2 --enable-cscope --enable-multibyte --disable-pythoninterp --disable-nls\n'
+            'git checkout 2bdcd40dc142484d235980f28c68def6da43251e\n'
+            './configure --prefix=$LOCAL --with-features=huge --with-x --enable-gui=gtk2 --enable-cscope --enable-multibyte --enable-pythoninterp --disable-nls\n'
             '$PMAKE\n'
             #'$MAKE test\n'  -- hangs up during batch installs
             '$MAKE install\n'
@@ -611,14 +621,6 @@ def package_list():
         tarball('http://cran.r-project.org/src/base/R-2/R-2.13.0.tar.gz', conf=' --with-x --disable-nls', skippable=1)
     else:
         print 'Skipping R because fortran is not available.\n'
-
-    tarball('http://ipython.scipy.org/dist/0.10.2/ipython-0.10.2.tar.gz',
-            conf='',
-            make='./setup.py build -v',
-            install='./setup.py install -v --prefix $LOCAL')
-
-    tarball('http://mercurial.selenic.com/release/mercurial-1.8.4.tar.gz',
-        script='tar xf mercurial-1.8.4.tar.gz && cd mercurial-1.8.4 && $MAKE build && python ./setup.py install  --home=$LOCAL --force')
 
     valgrind = Package(
         name='valgrind-freebsd',
@@ -644,6 +646,9 @@ def main():
     parser.add_option('-q', dest='quiet')
     (options, args) = parser.parse_args()
 
+    os.environ.clear()
+    fill_build_environment(os.environ)
+
     bad_packages = []
     for pkg in package_list():
         try:
@@ -656,7 +661,7 @@ def main():
                 sys.stderr.write('Skipping %s\n' % pkg.name)
                 bad_packages.append(pkg.name)
 
-    if not os.path.exists(os.path.join(os.environ['HOME'], '.fonts')):
+    if not os.path.exists(os.path.join(HOME, '.fonts')):
         print 'Manual action needed: install some fonts into ~/.fonts'
 
     print 'Finished.'
