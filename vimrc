@@ -119,6 +119,7 @@ if has("autocmd")
   autocmd BufNewFile,BufRead SConscript set ft=python
   autocmd BufNewFile,BufRead *.rl       set ft=ragel
   autocmd BufNewFile,BufRead *.inc      set ft=cpp
+  autocmd BufNewFile,BufRead CMakeLists.lib set ft=cmake
 
   autocmd FileType c,cpp,java,ragel     set sts=4 sw=4 et ai cin
   autocmd FileType asm,python,perl,lua  set sts=4 sw=4 et ai
