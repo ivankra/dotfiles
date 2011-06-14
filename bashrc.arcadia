@@ -52,7 +52,10 @@ fi
 
 function up() {
   local CMD;
+  local PREVHEAD;
+  PREVHEAD="";
   if [[ -r .git/config ]] && grep svn-remote .git/config >/dev/null 2>&1; then
+    PREVHEAD=`git rev-parse HEAD`
     CMD='git svn fetch svn && git svn rebase'
   elif [[ -d .git ]]; then
     CMD='git pull'
@@ -62,10 +65,12 @@ function up() {
     echo 'Not in a repository'
     return 1
   fi
-  if [[ "$(basename $PWD)" == "arcadia" ]] && which maketags >/dev/null 2>/dev/null; then
-    CMD+=' && maketags';
-  fi
   bash -x -c "$CMD"
+  if [[ "$(basename $PWD)" == "arcadia" ]] && which maketags >/dev/null 2>/dev/null; then
+    if [[ -z "$PREVHEAD" ]] || [[ "$PREVHEAD" != "`git rev-parse HEAD`" ]]; then
+      bash -x -c maketags
+    fi
+  fi
 }
 export -f up
 
