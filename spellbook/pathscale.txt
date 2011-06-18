@@ -1,0 +1,5 @@
+Build:
+$ mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DPATH64_ENABLE_TARGETS=x86_64 -DPATH64_ENABLE_MATHLIBS=ON -DPATH64_ENABLE_FORTRAN=OFF -DPSC_CRT_PATH_x86_64=/usr/lib64 -DPSC_DYNAMIC_LINKER_x86_64=/lib/ld-linux-x86-64.so.2 -DPSC_LIBSUPCPP_PATH_x86_64=/usr/lib/gcc/x86_64-linux-gnu/4.4 -DPSC_LIBSTDCPP_PATH_x86_64=/usr/lib/gcc/x86_64-linux-gnu/4.4 -DPSC_LIBGCC_PATH_x86_64=/usr/lib/gcc/x86_64-linux-gnu/4.4 -DPSC_LIBGCC_EH_PATH_x86_64=/usr/lib/gcc/x86_64-linux-gnu/4.4 -DPSC_LIBGCC_S_PATH_x86_64=/usr/lib/gcc/x86_64-linux-gnu/4.4 ../
+
+Save back-end's input and log intermediate representation after each back-end phase:
+$ pathCC -v -keep -Wb,-tra source.cc
