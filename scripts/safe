@@ -1,12 +1,16 @@
 #!/usr/bin/env python
-import os, sys
+import os, sys, tempfile, time, socket
 
 STORAGE_DIR = os.path.join(os.environ['HOME'], '.safe')
 MOUNT_DIR = '/tmp/%s-safe' % os.environ['USER']
+REMOTE_HOST, REMOTE_DIR = 'ivank@stv', 'safe-exchange'
+VERBOSE = 0
 
-def sh(command):
+def sh(command, check=1):
+    if VERBOSE:
+        print command
     ret = os.system(command)
-    if ret != 0:
+    if ret != 0 and check:
         die('Command "%s" failed with exit code %d' % (command, ret))
 
 def die(message):
@@ -23,12 +27,62 @@ def mounted():
             die("Error: can't handle line '%s' in mount\'s output" % line)
     return res
 
+def do_pull():
+    global VERBOSE
+    VERBOSE = 1
+
+    if not mounted() or os.getcwd() != MOUNT_DIR:
+        die('Please mount encrypted directory and run this command from %s' % MOUNT_DIR)
+
+    os.umask(0077)
+
+    tmpd = tempfile.mkdtemp()
+
+    os.chdir(tmpd)
+    print 'cd %s' % tmpd
+
+    try:
+        sh('scp %s:%s/HEAD.tar ./' % (REMOTE_HOST, REMOTE_DIR))
+        sh('mkdir .safe; cd .safe; tar xf ../HEAD.tar')
+        assert os.path.exists('.safe')
+        sh('mkdir safe')
+        sh('encfs %s/.safe %s/safe' % (tmpd, tmpd))
+        sh('cd %s; git pull %s/safe' % (MOUNT_DIR, tmpd))
+    finally:
+        os.chdir('/')
+        if os.path.exists('%s/safe' % tmpd):
+            sh('fusermount -u -z %s/safe' % tmpd, check=0)
+        sh('rm -rf %s' % tmpd, check=0)
+
+def do_push():
+    global VERBOSE
+    VERBOSE = 1
+
+    if mounted():
+        die('Please unmount first')
+
+    tmpd = os.path.abspath(tempfile.mkdtemp())
+    tar = '%s-%s.tar' % (int(time.time()), socket.gethostname())
+    sh('cd %s; tar -cf %s/%s .' % (STORAGE_DIR, tmpd, tar))
+    sh('scp %s/%s %s:%s/%s' % (tmpd, tar, REMOTE_HOST, REMOTE_DIR, tar))
+    sh('ssh %s "cd %s; ln -sf %s HEAD.tar"' % (REMOTE_HOST, REMOTE_DIR, tar))
+    sh('rm -rf %s' % tmpd)
+    print 'Success'
+
 def main():
     if os.path.basename(sys.argv[0]) == 'gsafe' and len(sys.argv) == 1:
         sys.exit(os.system("gnome-terminal -e 'bash -c \"%s -; echo Press Enter to close the window.; read\"'" % sys.argv[0]))
 
     if not os.path.exists(STORAGE_DIR):
         die('Storage directory %s does not exist' % STORAGE_DIR)
+
+    if len(sys.argv) >= 2 and sys.argv[1] in ('pull', 'push'):
+        assert len(sys.argv) == 2
+        if sys.argv[1] == 'pull':
+            do_pull()
+        else:
+            do_push()
+        sys.exit(0)
 
     if mounted():
         print 'Already mounted'
@@ -45,6 +99,11 @@ def main():
 
     os.chdir(MOUNT_DIR)
     os.umask(0077)
+    if os.path.exists('.git'):
+        ret = os.system('git fsck')
+        if ret != 0:
+            print 'git fsck failed'
+
     os.system('bash -i')
     os.chdir('/')
 
