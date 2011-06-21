@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+import os, sys
+
+STORAGE_DIR = os.path.join(os.environ['HOME'], '.safe')
+MOUNT_DIR = '/tmp/%s-safe' % os.environ['USER']
+
+def sh(command):
+    ret = os.system(command)
+    if ret != 0:
+        die('Command "%s" failed with exit code %d' % (command, ret))
+
+def die(message):
+    sys.stderr.write(message + '\n')
+    sys.exit(1)
+
+def mounted():
+    res = 0
+    for line in os.popen('mount', 'r'):
+        if line.startswith('encfs on %s ' % MOUNT_DIR):
+            assert os.path.exists(MOUNT_DIR)
+            res = 1
+        elif MOUNT_DIR in line:
+            die("Error: can't handle line '%s' in mount\'s output" % line)
+    return res
+
+def main():
+    if os.path.basename(sys.argv[0]) == 'gsafe' and len(sys.argv) == 1:
+        sys.exit(os.system("gnome-terminal -e 'bash -c \"%s -; echo Press Enter to close the window.; read\"'" % sys.argv[0]))
+
+    if not os.path.exists(STORAGE_DIR):
+        die('Storage directory %s does not exist' % STORAGE_DIR)
+
+    if mounted():
+        print 'Already mounted'
+    else:
+        if os.path.exists(MOUNT_DIR):
+            if len(os.listdir(MOUNT_DIR)) != 0:
+                die('%s is not empty' % MOUNT_DIR)
+            else:
+                sh('rmdir %s' % MOUNT_DIR)
+
+        print 'Mounting %s on %s' % (STORAGE_DIR, MOUNT_DIR)
+        os.mkdir(MOUNT_DIR, 0700)
+        sh('encfs %s %s' % (STORAGE_DIR, MOUNT_DIR))
+
+    os.chdir(MOUNT_DIR)
+    os.umask(0077)
+    os.system('bash -i')
+    os.chdir('/')
+
+    if mounted():
+        ret = os.system('fusermount -u %s' % MOUNT_DIR)
+        if ret == 0:
+            print 'Unmounted'
+        else:
+            while True:
+                sys.stdout.write('Unmounting failed. Try lazy unmount (y/n)? ')
+                sys.stdout.flush()
+                line = sys.stdin.readline().strip().lower()
+                if line.startswith('y'):
+                    sh('fusermount -u -z %s' % MOUNT_DIR)
+                elif line.startswith('n') or line == '':
+                    break
+    else:
+        print 'Already unmounted'
+
+    sh('sync')
+
+if __name__ == '__main__':
+    main()
