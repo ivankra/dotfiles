@@ -1,17 +1,20 @@
 # Line format: package1 package2 ... [tag1 tag2 ...] [tag3 tag4 ...] ...  # comment
 
+asciidoc
 adblock-plus
 amule
 aptitude
 autoconf
 automake
 avidemux
+binutils-dev
 bison
 bochs
 build-essential
 bum
 byobu
 calibre
+ccache
 cgdb
 checkinstall
 chromium-browser [10.10+]
@@ -25,10 +28,12 @@ cscope
 curl
 cvs
 ddd
+distcc
 dosbox
 doxygen
 ecryptfs-utils
 elinks
+encfs
 exif
 expat
 exuberant-ctags
@@ -72,27 +77,7 @@ irussian
 ispell
 kcachegrind
 language-support-ru
-latex-beamer
-libatk1.0-dev
-libbonoboui2-dev
-libcairo2-dev
-libgmp3-dev
-libgmp3-doc
-libgnome2-dev
-libgnomeui-dev
-libgsl0-dev
-libgtk2.0-dev
-libncurses5-dev
-libnotify-bin
-libpcap-dev
-libprotobuf-dev
-libssl-dev
 libsvm-tools
-libusb-1.0-0
-libusb-1.0-0-dev
-libx11-dev
-libxpm-dev
-libxt-dev
 lm-sensors
 mailutils
 manpages-dev
@@ -133,6 +118,7 @@ python-scipy
 python-setuptools
 qbittorrent
 qemu
+ragel
 rar
 rdesktop
 rrdtool
@@ -149,8 +135,6 @@ subversion
 swig
 sysfsutils
 tcpdump
-texlive texlive-generic-extra texlive-lang-cyrillic texlive-latex-extra texlive-science scalable-cyrfonts-tex [tex]
-texmaker [tex]
 thunderbird
 tkdiff
 tofrodos
@@ -168,14 +152,35 @@ weka
 wine
 wireshark
 xsel
+xz-utils [10.10+]
 
+libncurses5-dev
+libelf-dev
+libatk1.0-dev
+libbonoboui2-dev
+libcairo2-dev
+libgmp3-dev
+libgmp3-doc
+libgnome2-dev
+libgnomeui-dev
+libgsl0-dev
+libgtk2.0-dev
+libncurses5-dev
+libnotify-bin
+libpcap-dev
+libprotobuf-dev
+libssl-dev
+libusb-1.0-0-dev
+libx11-dev
+libxpm-dev
+libxt-dev
+
+texlive texlive-generic-extra texlive-lang-cyrillic texlive-latex-extra texlive-science scalable-cyrfonts-tex texmaker latex-beamer [tex]
 fakeroot build-essential crash kexec-tools makedumpfile kernel-wedge build-dep:linux [kernel]
-libncurses5 libncurses5-dev libelf-dev asciidoc binutils-dev
+gfortran r-base cran:gbm cran:ggplot2 cran:randomForest [r]
 
 easy-install:gitserve
 easy-install:gitpython
-
-gfortran r-base cran:gbm cran:ggplot2 cran:randomForest [r]
 
 -f-spot
 -gwibber -gwibber-service
