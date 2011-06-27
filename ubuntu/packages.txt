@@ -59,7 +59,7 @@ gmp-doc
 g++-multilib
 gnome-mplayer
 gnuplot
-google-perftools
+google-perftools [10.10+]
 gparted
 gperf
 graphviz
@@ -154,6 +154,7 @@ wireshark
 xsel
 xz-utils [10.10+]
 
+libboost-all-dev
 libncurses5-dev
 libelf-dev
 libatk1.0-dev
