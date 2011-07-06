@@ -357,6 +357,7 @@ def package_list():
     gnu('gdbm-1.8.3.tar.gz', postconf='sed -i -e "s/-o .(BINOWN.*BINGRP)//" Makefile')
     tarball('http://ftp.twaren.net/Unix/NonGNU/man-db/man-db-2.5.5.tar.gz', postinst='chmod u-s $LOCAL/bin/{man,mandb}', EXTRA_LDFLAGS='-liconv', deps=['gdbm', 'less'])
     sourceforge('flex-2.5.35.tar.bz2')
+    tarball('http://samba.org/ftp/ccache/ccache-3.1.5.tar.bz2')
 
     openssl_patch = 'sed -i -e "s/ *if (.stddev...outdev .. .stdino...outino);//" crypto/perlasm/x86_64-xlate.pl'
     tarball('http://www.openssl.org/source/openssl-0.9.8r.tar.gz', name='openssl-static', version='0.9.8r',
