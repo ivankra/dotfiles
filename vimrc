@@ -279,7 +279,7 @@ if has("gui_running")
   set guioptions-=t   " disable tear-off menu items
 else
   " console vim settings
-  if ($TERM == "xterm")
+  if $TERM == "xterm" || $TERM == "screen"
     set background=light
     set t_Co=256
   else
