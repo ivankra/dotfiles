@@ -12,6 +12,7 @@ c2972c4d9b3e29c03d5f2af86249876f  automake-1.11.1.tar.bz2
 6f6c24436c2b3ab235eb14a85b9aaacf  bigreqsproto-1.1.1.tar.bz2
 c1d3ea81bc370dbd43b6f0b2cd21287e  bison-2.4.3.tar.bz2
 f101a9e88b783337b20b2e26dfd26d5f  cairo-1.10.2.tar.gz
+f652bd20253bb4aa1440ae50bea3c9e3  ccache-3.1.5.tar.bz2
 98482f65ba1e74a08bf5b056a4031ef0  compositeproto-0.4.2.tar.bz2
 36909ae68840d73a800120cf74af794a  coreutils-8.9.tar.gz
 da43987622ace8c36bbf14c15a350ec1  cscope-15.7a.tar.bz2
