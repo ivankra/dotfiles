@@ -42,7 +42,6 @@ fi
 
 if [[ "`hostname`" = "tatooine" ]]; then
   PS1COL=32
-  alias sky="/usr/bin/ssh -t rod sky"
   export TMPDIR=/tmp
 elif [[ "`uname`" = "FreeBSD" ]]; then
   PS1COL=31
@@ -56,7 +55,7 @@ function up() {
   PREVHEAD="";
   if [[ -r .git/config ]] && grep svn-remote .git/config >/dev/null 2>&1; then
     PREVHEAD=`git rev-parse HEAD`
-    CMD='git svn rebase'
+    CMD='git svn rebase --fetch-all'
   elif [[ -d .git ]]; then
     CMD='git pull'
   elif [[ -d .svn ]]; then
