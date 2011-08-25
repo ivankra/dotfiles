@@ -31,23 +31,10 @@ HISTSIZE=1000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# set variable identifying the chroot you work in (used in the prompt below)
-if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
-  debian_chroot=$(cat /etc/debian_chroot)
-fi
-
-if [[ "$(uname)" = "FreeBSD" ]]; then
-  alias ls='/bin/ls -G'
-  alias free='vmstat'
-  alias strace='truss'
-else
-  # enable color support of ls
-  if [[ -x /usr/bin/dircolors ]]; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls --color=auto'
-  fi
-  alias l='ls -CF'
-  alias la='ls -A'
+# enable color support of ls
+if [[ -x /usr/bin/dircolors ]]; then
+  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+  alias ls='ls --color=auto'
 fi
 
 alias l='ls -l'
@@ -66,10 +53,24 @@ alias ssh='ssh -AX'
 alias R='R --no-save --no-restore --quiet'
 alias cd3='cd ./$(scm-root.py)'
 
-alias rod='/usr/bin/ssh -Axt stv ssh -Ax -p 50005 yoda@localhost'
-alias stv='/usr/bin/ssh -Ax stv'
-alias tatooine='/usr/bin/ssh -Axt stv ssh -Axt -p 50005 yoda@localhost ssh -Ax -p 50000 localhost'
-alias tatooinep='/usr/bin/ssh -L 50000:127.0.0.1:50000 -Axt stv ssh -L 50000:127.0.0.1:50000 -Axt -p 50005 yoda@localhost ssh -Ax -p 50000 localhost'
+function up() {
+  local CMD;
+  local PREVHEAD;
+  PREVHEAD="";
+  if [[ -r .git/config ]] && grep svn-remote .git/config >/dev/null 2>&1; then
+    PREVHEAD=`git rev-parse HEAD`
+    CMD='git svn rebase --fetch-all'
+  elif [[ -d .git ]]; then
+    CMD='git pull'
+  elif [[ -d .svn ]]; then
+    CMD='svn update'
+  else
+    echo 'Not in a repository'
+    return 1
+  fi
+  bash -x -c "$CMD"
+}
+export -f up
 
 if [[ -f ~/.gdb_history ]]; then
   chmod 0600 ~/.gdb_history
@@ -80,13 +81,13 @@ if [[ ! -d /cygdrive ]]; then
   source $CONFIGS/bash-completion-git
 fi
 
-# work environment
-if [[ -d /Berkanavt ]] || [[ -d /hol ]]; then
-  source $CONFIGS/bashrc.arcadia
-fi
-
 if [[ -f ~/.bashrc.local ]]; then
   source ~/.bashrc.local
+fi
+
+# set variable identifying the chroot you work in (used in the prompt below)
+if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
+  debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 if [[ "$TERM" != "dumb" ]]; then
