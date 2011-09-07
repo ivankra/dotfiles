@@ -19,7 +19,7 @@ def main():
     home = os.environ['HOME']
     assert home.startswith('/')
 
-    base = home + '/src/configs'
+    base = os.path.dirname(os.path.abspath(sys.argv[0]))
     if not os.path.exists(os.path.join(base, 'setup-symlinks.py')):
         sys.stderr.write(
             "This script assumes that it and all config files " +

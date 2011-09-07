@@ -5,9 +5,9 @@ if [[ -z "$HOME" ]]; then
   export HOME=/home/$(whoami)
 fi
 
-CONFIGS=$HOME/src/configs
+CONFIGS=$(dirname $(readlink ~/.bashrc))
 if [[ ! -d $CONFIGS ]]; then
-  CONFIGS=$HOME/git/configs
+  CONFIGS=$HOME/src/configs
 fi
 
 export PATH=$CONFIGS/scripts:$PATH
