@@ -91,6 +91,9 @@ if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
 fi
 
 if [[ "$TERM" != "dumb" ]]; then
+  if [[ -d /usr/local/google ]]; then
+    PS1COL=31
+  fi
   if [[ -z "$PS1COL" ]]; then
     PS1COL=32
   fi
