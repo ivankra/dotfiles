@@ -46,6 +46,10 @@ SKELETON_GLOBAL_VARS = {
 
 # loads a skeleton file into buffer, positions cursor at the position marked by %CURSOR%
 def OnBufNewFile():
+  # quit if something else has already put a skeleton into the buffer
+  if len(vim.current.buffer) != 0:
+    return
+
   path = vim.eval('expand("<afile>:p")')
   dirname = os.path.dirname(path)
   filename = os.path.basename(path)
@@ -258,10 +262,6 @@ if has("gui_running")
   if has("win32")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
-  else
-    if hostname() == "tatooine"
-      set lines=50 columns=120
-    endif
   endif
 
   colorscheme fruidle  "summerfruit256
