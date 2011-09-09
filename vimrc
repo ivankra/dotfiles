@@ -354,3 +354,6 @@ map Б <
 map Ю >
 " }}}
 
+if filereadable(expand("~/.vimrc.local"))
+  source ~/.vimrc.local
+endif
