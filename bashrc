@@ -1,24 +1,12 @@
 # If not running interactively, don't do anything
-[[ -z "$PS1" ]] && return
-
-if [[ -z "$HOME" ]]; then
-  export HOME=/home/$(whoami)
-fi
+[[ -z "$PS1" || -z "$HOME" ]] && return
 
 CONFIGS=$(dirname $(readlink ~/.bashrc))
-if [[ ! -d $CONFIGS ]]; then
-  CONFIGS=$HOME/src/configs
-fi
 
-export PATH=$CONFIGS/scripts:$PATH
-if [[ -d $HOME/bin ]]; then
-  export PATH=$HOME/bin:$PATH
-fi
-
+export PATH=$HOME/bin:$CONFIGS/bin:$PATH
 export EDITOR=vim
 export PAGER=less
 export LESSHISTFILE=-
-
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 

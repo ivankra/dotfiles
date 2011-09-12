@@ -20,11 +20,11 @@ def main():
     assert home.startswith('/')
 
     base = os.path.dirname(os.path.abspath(sys.argv[0]))
-    if not os.path.exists(os.path.join(base, 'setup-symlinks.py')):
+    if not os.path.exists(os.path.join(base, 'setup.py')):
         sys.stderr.write(
-            "This script assumes that it and all config files " +
-            "are located in %s, but this directory does not exist " +
-            "or doesn't contain what we expect.\n" % base)
+            ("This script assumes that it and all config files "
+            "are located in %s, but this directory does not exist "
+            "or doesn't contain what we expect.\n") % base)
         sys.exit(1)
 
     actions = [ (os.path.join(home, '.' + filename), os.path.join(base, filename)) for filename in DOT_FILES ]
