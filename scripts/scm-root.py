@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys, os
 
+STOPDIRS = [ '.git', '.hg', '../google3' ]
+
 def main():
     path = './'
     svn = None
@@ -13,7 +15,7 @@ def main():
             result = svn
             break
 
-        if svn is None and any(os.path.exists(path + s) for s in [ '.git', '.hg' ]):
+        if svn is None and any(os.path.exists(path + s) for s in STOPDIRS):
             result = path
             break
 
