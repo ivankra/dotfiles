@@ -209,18 +209,28 @@ function! s:gotoline()
   let file = bufname("%")
   let newfile = ""
 
-  let matches = matchlist(file, '\(.*\):\(\d\+\):*')
+  " filename:row[:]
+  let matches = matchlist(file, '\(.*\):\(\d\+\):\?')
   if len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
     let newfile = matches[1]
     let row = matches[2]
     let col = ""
   endif
 
-  let matches = matchlist(file, '\(.*\):\(\d\+\):\(\d\+\):*$')
-  if len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
+  " filename:row:col[:]
+  let matches = matchlist(file, '\(.*\):\(\d\+\):\(\d\+\):\?$')
+  if len(newfile) == 0 && len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
     let newfile = matches[1]
     let row = matches[2]
     let col = matches[3]
+  endif
+
+  " filename:
+  let matches = matchlist(file, '\(.*\):')
+  if len(newfile) == 0 && len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
+    let newfile = matches[1]
+    let row = matches[2]
+    let col = ""
   endif
 
   if len(newfile) > 0
