@@ -20,6 +20,9 @@ def main():
     assert home.startswith('/')
 
     base = os.path.dirname(os.path.abspath(sys.argv[0]))
+    if 'PWD' in os.environ and os.path.samefile(os.environ['PWD'], base):
+      base = os.environ['PWD']
+
     if not os.path.exists(os.path.join(base, 'setup.py')):
         sys.stderr.write(
             ("This script assumes that it and all config files "

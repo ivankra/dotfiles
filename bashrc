@@ -69,29 +69,28 @@ if [[ ! -d /cygdrive ]]; then
   source $CONFIGS/bash-completion-git
 fi
 
-if [[ -f ~/.bashrc.local ]]; then
-  source ~/.bashrc.local
-fi
-
 # set variable identifying the chroot you work in (used in the prompt below)
 if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
   debian_chroot=$(cat /etc/debian_chroot)
 fi
 
-if [[ "$TERM" != "dumb" ]]; then
-  if [[ -d /usr/local/google ]]; then
-    PS1COL=31
+unset PS1
+
+if [[ -f ~/.bashrc.local ]]; then
+  source ~/.bashrc.local
+fi
+
+
+if [[ -z "$PS1" ]]; then
+  if [[ "$TERM" != "dumb" ]]; then
+    PS1='${debian_chroot:+($debian_chroot)}'
+    #PS1+='\[\033[36m\]\A '  # time
+    PS1+='\[\033[01;${PS1_COLORR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+    PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
+    PS1+='\$ '
+  else
+    PS1='\u@\h:\w\$ '
   fi
-  if [[ -z "$PS1COL" ]]; then
-    PS1COL=32
-  fi
-  PS1='${debian_chroot:+($debian_chroot)}'
-  #PS1+='\[\033[36m\]\A '  # time
-  PS1+='\[\033[01;${PS1COL}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
-  PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
-  PS1+='\$ '
-else
-  PS1='\u@\h:\w\$ '
 fi
 
 # If this is an xterm set the title to user@host:dir
