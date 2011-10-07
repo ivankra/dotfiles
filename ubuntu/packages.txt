@@ -1,7 +1,6 @@
 # Line format: package1 package2 ... [tag1 tag2 ...] [tag3 tag4 ...] ...  # comment
 
 asciidoc
-adblock-plus
 amule
 aptitude
 autoconf
@@ -9,11 +8,7 @@ automake
 avidemux
 binutils-dev
 bison
-bochs
 build-essential
-bum
-byobu
-calibre
 ccache
 cgdb
 checkinstall
@@ -44,8 +39,6 @@ fortune-mod
 g++
 g++-4.5 [10.10+]
 gawk
-gcc-doc
-gdb-doc
 geany
 gimp
 git-core
@@ -55,7 +48,6 @@ gitweb
 global
 glpk
 gltron
-gmp-doc
 g++-multilib
 gnome-mplayer
 gnuplot
@@ -95,7 +87,6 @@ nmap
 ntp
 octave3.2
 octave3.2-info
-openjdk-6-jdk
 openoffice.org-thesaurus-ru
 openssh-server
 openvpn
@@ -116,7 +107,6 @@ python-pyparsing
 python-rpy2
 python-scipy
 python-setuptools
-qbittorrent
 qemu
 ragel
 rar
@@ -149,7 +139,6 @@ vinagre
 vlc
 wamerican-huge
 weka
-wine
 wireshark
 xsel
 xz-utils [10.10+]
