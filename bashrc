@@ -21,7 +21,7 @@ shopt -s checkwinsize
 
 # enable color support of ls
 if [[ -x /usr/bin/dircolors ]]; then
-  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+  eval "$(dircolors -b)"
   alias ls='ls --color=auto'
 fi
 
@@ -42,23 +42,23 @@ alias R='R --no-save --no-restore --quiet'
 alias cd3='cd ./$(scm-root.py)'
 
 function up() {
-  local CMD;
-  local PREVHEAD;
-  PREVHEAD="";
-  if [[ -r .git/config ]] && grep svn-remote .git/config >/dev/null 2>&1; then
-    PREVHEAD=`git rev-parse HEAD`
-    CMD='git svn rebase --fetch-all'
-  elif [[ -d .git ]]; then
-    CMD='git pull'
-  elif [[ -d .svn ]]; then
-    CMD='svn update'
+  local root="$(scm-root.py)"
+  if [[ -z "$root" ]]; then
+    return 1
+  fi
+  if [[ -r $root/.git/config ]] && grep svn-remote $root/.git/config >/dev/null 2>&1; then
+    local cmd='git svn rebase --fetch-all'
+  elif [[ -d "$root/.git" ]]; then
+    local cmd='git pull'
+  elif [[ -d $root/.svn ]]; then
+    local cmd="cd $root; svn update"
   else
     echo 'Not in a repository'
     return 1
   fi
-  bash -x -c "$CMD"
+  bash -c -x "$cmd"
+  return $?
 }
-export -f up
 
 if [[ -f ~/.gdb_history ]]; then
   chmod 0600 ~/.gdb_history
@@ -80,12 +80,11 @@ if [[ -f ~/.bashrc.local ]]; then
   source ~/.bashrc.local
 fi
 
-
 if [[ -z "$PS1" ]]; then
   if [[ "$TERM" != "dumb" ]]; then
     PS1='${debian_chroot:+($debian_chroot)}'
     #PS1+='\[\033[36m\]\A '  # time
-    PS1+='\[\033[01;${PS1_COLORR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+    PS1+='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
     PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
     PS1+='\$ '
   else
@@ -94,10 +93,6 @@ if [[ -z "$PS1" ]]; then
 fi
 
 # If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
+if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
+  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+fi
