@@ -15,7 +15,7 @@ def assoc_reader(filename):
 def main():
     targets = set()
     for key, val in assoc_reader(DEFAULTS_LIST):
-        if val == 'totem.desktop' and key != 'x-totem-stream':
+        if val in ('totem.desktop', 'banshee.desktop') and key != 'x-totem-stream':
             targets.add(key)
 
     if not os.path.exists(LOCAL_LIST):

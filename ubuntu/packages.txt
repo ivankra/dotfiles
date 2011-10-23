@@ -5,7 +5,6 @@ amule
 aptitude
 autoconf
 automake
-avidemux
 binutils-dev
 bison
 build-essential
@@ -68,7 +67,6 @@ ipython
 irussian
 ispell
 kcachegrind
-language-support-ru
 libsvm-tools
 lm-sensors
 mailutils
@@ -150,7 +148,6 @@ libatk1.0-dev
 libbonoboui2-dev
 libcairo2-dev
 libgmp3-dev
-libgmp3-doc
 libgnome2-dev
 libgnomeui-dev
 libgsl0-dev
