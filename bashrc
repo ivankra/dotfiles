@@ -39,6 +39,7 @@ alias bc='bc -q'
 alias gdb='gdb --quiet'
 alias ssh='ssh -AX'
 alias R='R --no-save --no-restore --quiet'
+alias octave='octave -q'
 alias cd3='cd ./$(scm-root.py)'
 
 function up() {
