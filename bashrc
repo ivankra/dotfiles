@@ -63,14 +63,7 @@ function up() {
   return $?
 }
 
-if [[ -f ~/.gdb_history ]]; then
-  chmod 0600 ~/.gdb_history
-fi
-
-if [[ ! -d /cygdrive ]]; then
-  #if [[ -f /etc/bash_completion ]]; then source /etc/bash_completion; fi
-  source $CONFIGS/bash-completion-git
-fi
+source $CONFIGS/bash-completion-git
 
 # set variable identifying the chroot you work in (used in the prompt below)
 if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
@@ -86,7 +79,6 @@ fi
 if [[ -z "$PS1" ]]; then
   if [[ "$TERM" != "dumb" ]]; then
     PS1='${debian_chroot:+($debian_chroot)}'
-    #PS1+='\[\033[36m\]\A '  # time
     PS1+='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
     PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
     PS1+='\$ '
