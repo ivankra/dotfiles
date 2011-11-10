@@ -43,6 +43,7 @@ alias octave='octave -q'
 alias ipython='ipython --nobanner'
 alias cd3='cd ./$(scm-root.py)'
 alias susl='sort | uniq -c | sort -nr | less'
+alias dico='dico -a --host localhost'
 
 function up() {
   local root="$(scm-root.py)"
