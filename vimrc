@@ -47,7 +47,9 @@ SKELETON_GLOBAL_VARS = {
 # loads a skeleton file into buffer, positions cursor at the position marked by %CURSOR%
 def OnBufNewFile():
   # quit if something else has already put a skeleton into the buffer
-  if len(vim.current.buffer) != 0:
+  if len(vim.current.buffer) > 1:
+    return
+  if len(vim.current.buffer) == 1 and vim.current.buffer[0] != '':
     return
 
   path = vim.eval('expand("<afile>:p")')
