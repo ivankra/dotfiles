@@ -163,8 +163,8 @@ classic 0
 # in light background terminals.
 
 # keep uncommented only the one you want:
-colors Linux
-#colors LightBG
+#colors Linux
+colors LightBG
 #colors NoColor
 
 ########################
@@ -193,7 +193,7 @@ color_info 1
 # the magic functions %Exit or %Quit you can force a direct exit, bypassing
 # any confirmation.
 
-confirm_exit 1
+confirm_exit 0
 
 # Use deep_reload() as a substitute for reload() by default. deep_reload() is
 # still available as dreload() and appears as a builtin.
@@ -219,7 +219,7 @@ log 0
 logfile ''
 
 # banner 0 -> same as ipython -nobanner
-banner 1
+banner 0
 
 # messages 0 -> same as ipython -nomessages
 messages 1
@@ -243,13 +243,13 @@ pprint 1
 
 # Use \# to represent the current prompt number, and quote them to protect
 # spaces.
-prompt_in1 'In [\#]: '
+prompt_in1 '>>> '
 
 # \D is replaced by as many dots as there are digits in the
 # current value of \#.
 prompt_in2 '   .\D.: '
 
-prompt_out 'Out[\#]: '
+prompt_out ''
 
 # Select whether to left-pad the output prompts to match the length of the
 # input ones.  This allows you for example to use a simple '>' as an output
@@ -298,7 +298,7 @@ screen_length 0
 # (SeparateOut2),   # that is, no newline is printed after Out2
 # By choosing these you can organize your output any way you want.
 
-separate_in \n
+separate_in ''
 separate_out 0
 separate_out2 0
 
