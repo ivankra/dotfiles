@@ -39,11 +39,6 @@ python <<ENDPYTHON
 
 import os, vim
 
-SKELETON_GLOBAL_VARS = {
-  'BASH_SHEBANG': '#!/bin/bash' if os.path.exists('/bin/bash') else '#!/usr/bin/env bash',
-  'CURSOR': '',
-}
-
 # loads a skeleton file into buffer, positions cursor at the position marked by %CURSOR%
 def OnBufNewFile():
   # quit if something else has already put a skeleton into the buffer
@@ -79,7 +74,11 @@ def OnBufNewFile():
 
   del vim.current.buffer[:]
 
-  varz = SKELETON_GLOBAL_VARS
+  varz =  {
+    'BASH_SHEBANG': '#!/bin/bash' if os.path.exists('/bin/bash') else '#!/usr/bin/env bash',
+    'CURSOR': '',
+  }
+
   num_rows = 0
   cursor = None
 
