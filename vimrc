@@ -142,6 +142,8 @@ if has("autocmd")
     autocmd BufWritePre *   let b:bufwritepre_file_is_new = !filereadable(expand("<afile>"))
     autocmd BufWritePost *  python OnBufWritePost()
   endif
+
+  autocmd BufReadPost * redraw
 endif
 
 " Key map: F2 = save
