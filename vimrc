@@ -202,9 +202,9 @@ com! CD cd %:p:h
 " Enable fswitch plugin.  Ctrl-A switches between .h and .cc
 runtime fswitch.vim
 nmap <C-A> :FSHere<CR>
-autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
-autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.'
-autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.'
+autocmd BufEnter *.cpp let b:fswitchdst='h,hpp' | let b:fswitchlocs='.,..,public,../public'
+autocmd BufEnter *.cc  let b:fswitchdst='h,hpp' | let b:fswitchlocs='.,..,public,../public'
+autocmd BufEnter *.h   let b:fswitchdst='cc,cpp,c' | let b:fswitchlocs='.,..,internal,../internal'
 
 " Interpret filenames of the form <filename>:<line>[:<col>] as the instruction
 " to open <filename> (if it exists) and position the cursor at a given line number.
