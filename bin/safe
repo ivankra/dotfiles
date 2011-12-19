@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import os, sys, tempfile, time, socket
+import os, sys, tempfile, time, socket, pipes
 
-STORAGE_DIR = os.path.join(os.environ['HOME'], '.safe')
+STORAGE_DIR = os.path.join('/home', os.environ['USER'], '.safe')
 MOUNT_DIR = '/tmp/%s-safe' % os.environ['USER']
 REMOTE_HOST, REMOTE_PORT, REMOTE_DIR = 'ivank@stv', 22, 'safe-exchange'
 VERBOSE = 0
@@ -76,6 +76,10 @@ def main():
         sys.exit(os.system("gnome-terminal -e 'bash -c \"%s -; echo Press Enter to close this window; read\"'" % sys.argv[0]))
 
     if not os.path.exists(STORAGE_DIR):
+        if os.path.exists('/home/safe/.safe') and os.environ.get('USER', '') != 'safe':
+            cmd = 'sudo sudo -u safe ' + ' '.join(pipes.quote(s) for s in sys.argv)
+            sys.stderr.write(cmd + '\n')
+            return os.system(cmd)
         die('Storage directory %s does not exist' % STORAGE_DIR)
 
     if len(sys.argv) >= 2 and sys.argv[1] in ('pull', 'push'):
