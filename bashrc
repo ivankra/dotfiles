@@ -45,6 +45,8 @@ alias cd3='cd ./$(scm-root.py)'
 alias susl='sort | uniq -c | sort -nr | less'
 alias dico='dico -a --host localhost'
 
+alias got=git
+
 function up() {
   local root="$(scm-root.py)"
   if [[ -z "$root" ]]; then
