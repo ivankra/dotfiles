@@ -67,8 +67,8 @@ def main():
         assert "'" not in src and "'" not in dst
         if os.path.lexists(src):
             sh("rm -rf '%s'" % src)
-        if not os.path.isdir(os.path.dirname(dst)):
-            os.path.makedirs(os.path.dirname(dst))
+        if not os.path.isdir(os.path.dirname(src)):
+            os.makedirs(os.path.dirname(src))
         sh("ln -s '%s' '%s'" % (os.path.abspath(dst), src))
 
     sys.stdout.write('Finished successfully.\n')
