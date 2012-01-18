@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [[ "$@" == "" ]]; then
+  echo "Usage: qr <text>"
+  exit 1
+fi
+
+tmp=$(mktemp)
+echo "$@" | qrencode -o "$tmp"
+nohup bash -c "eog $tmp; rm -f $tmp" </dev/null >/dev/null 2>&1 &
