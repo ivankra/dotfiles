@@ -21,7 +21,7 @@ shopt -s checkwinsize
 
 # enable color support of ls
 if [[ -x /usr/bin/dircolors ]]; then
-  eval "$(dircolors -b)"
+  eval "$(dircolors -b | sed -e 's/;42:/;47:/g')"
   alias ls='ls --color=auto'
 fi
 
