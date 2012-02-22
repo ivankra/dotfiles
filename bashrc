@@ -44,16 +44,22 @@ alias py='ipython'
 alias cd3='cd ./$(scm-root.py)'
 alias susl='sort | uniq -c | sort -nr | less'
 alias dico='dico -a --host localhost'
-
+alias g=git
 alias got=git
 
 function up() {
-  local root="$(scm-root.py)"
+  local root="$(SCM_MAINDIR= scm-root.py)"
   if [[ -z "$root" ]]; then
     return 1
   fi
   if [[ -r $root/.git/config ]] && grep svn-remote $root/.git/config >/dev/null 2>&1; then
     local cmd='git svn rebase --fetch-all'
+  elif [[ -d $root/.git5_specs ]] && [[ -d $root/.git ]]; then
+    if [[ "$(git symbolic-ref HEAD)" != "refs/heads/work" ]]; then
+      echo 'You are not on the "work" branch'
+      return 1
+    fi
+    local cmd="git5 sync"
   elif [[ -d "$root/.git" ]]; then
     local cmd='git pull'
   elif [[ -d $root/.svn ]]; then

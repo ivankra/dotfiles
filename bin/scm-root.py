@@ -48,7 +48,7 @@ def main():
         sys.stderr.write('Error: not in a repository\n')
         sys.exit(1)
 
-    if result.startswith('./'):
+    if result.startswith('./') and len(result) > 2:
         result = result[2:]
     result = result.rstrip('/')
 
