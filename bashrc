@@ -73,6 +73,7 @@ if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
   debian_chroot=$(cat /etc/debian_chroot)
 fi
 
+unset PROMPT_COMMAND
 unset PS1
 
 if [[ -f ~/.bashrc.local ]]; then
@@ -81,16 +82,28 @@ fi
 
 if [[ -z "$PS1" ]]; then
   if [[ "$TERM" != "dumb" ]]; then
-    PS1='${debian_chroot:+($debian_chroot)}'
+    function __ps1_set_status() {
+      local __status=$?
+      unset __prompt_status1
+      unset __prompt_status2
+      if [[ $__status -ne 0 ]]; then
+        __prompt_status1="$__status"
+        __prompt_status2=" "
+      fi
+    }
+    PROMPT_COMMAND="__ps1_set_status;$PROMPT_COMMAND"
+
+    PS1='\[\033[01;41;37m\]${__prompt_status1}\[\033[m\]${__prompt_status2}'             # $?
+    PS1+='${debian_chroot:+($debian_chroot)}'                                            # (`cat /etc/debian_chroot`)
     PS1+='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
-    PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'  # git branch
+    PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                          # git branch
     PS1+='\$ '
+
+    # If this is an xterm set the title to user@host:dir
+    if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
+      PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    fi
   else
     PS1='\u@\h:\w\$ '
   fi
-fi
-
-# If this is an xterm set the title to user@host:dir
-if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
-  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
 fi
