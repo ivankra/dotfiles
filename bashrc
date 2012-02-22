@@ -88,19 +88,15 @@ fi
 
 if [[ -z "$PS1" ]]; then
   if [[ "$TERM" != "dumb" ]]; then
-    function __ps1_set_status() {
+    function __ps1_print_status() {
       local __status=$?
-      unset __prompt_status1
-      unset __prompt_status2
       if [[ $__status -ne 0 ]]; then
-        __prompt_status1="$__status"
-        __prompt_status2=" "
+        echo -e "\033[31m\$? = ${__status}\033[m"
       fi
     }
-    PROMPT_COMMAND="__ps1_set_status;$PROMPT_COMMAND"
+    PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
 
-    PS1='\[\033[01;41;37m\]${__prompt_status1}\[\033[m\]${__prompt_status2}'             # $?
-    PS1+='${debian_chroot:+($debian_chroot)}'                                            # (`cat /etc/debian_chroot`)
+    PS1='${debian_chroot:+($debian_chroot)}'                                             # (`cat /etc/debian_chroot`)
     PS1+='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
     PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                          # git branch
     PS1+='\$ '
