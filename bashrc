@@ -88,24 +88,24 @@ fi
 
 if [[ -z "$PS1" ]]; then
   if [[ "$TERM" != "dumb" ]]; then
-    function __ps1_print_status() {
-      local __status=$?
-      if [[ $__status -ne 0 ]]; then
-        echo -e "\033[31m\$? = ${__status}\033[m"
-      fi
-    }
-    PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
-
-    PS1='${debian_chroot:+($debian_chroot)}'                                             # (`cat /etc/debian_chroot`)
-    PS1+='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
-    PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                          # git branch
+    PS1='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+    PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                         # git branch
     PS1+='\$ '
-
-    # If this is an xterm set the title to user@host:dir
-    if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
-      PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    fi
   else
     PS1='\u@\h:\w\$ '
   fi
 fi
+
+# If this is an xterm set the title to user@host:dir
+if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
+  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+fi
+
+# Print last command's exit code before the prompt if not zero
+function __ps1_print_status() {
+  local __status=$?
+  if [[ $__status -ne 0 ]]; then
+    echo -e "\033[31m\$? = ${__status}\033[m"
+  fi
+}
+PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
