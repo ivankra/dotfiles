@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os, sys, pwd
 
-DOT_FILES = 'bashrc vimrc vim gdbinit inputrc gitconfig hgrc Rprofile tkdiffrc xinitrc'.split()
+DOT_FILES = 'bashrc vimrc vim gdbinit inputrc gitconfig hgrc Rprofile tkdiffrc xinitrc gdb'.split()
 
 def check_symlink(src, dst):
     try:
