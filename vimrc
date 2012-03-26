@@ -299,22 +299,32 @@ if has("gui_running")
       match ExtraWhitespace /\s\+$/
     endfunction
 
-    function! LightTheme()
+    function! LightTheme(scheme)
       set background=light
-      colorscheme fruidle  "summerfruit256
+      echo a:scheme
+      if a:scheme == ""
+        colorscheme fruidle
+      else
+        execute("colorscheme " . a:scheme)
+      endif
       hi ColorColumn guibg=#fafafa
       call HighlightExtraWhitespace("#ffcccc")
     endfunction
-    com! Light call LightTheme()
+    com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
 
-    function! DarkTheme()
-      colorscheme xoria256
+    function! DarkTheme(scheme)
+      echo a:scheme
+      if a:scheme == ""
+        colorscheme ir_black
+      else
+        execute("colorscheme " . a:scheme)
+      endif
       hi ColorColumn guibg=#282828
       call HighlightExtraWhitespace("#663333")
     endfunction
-    com! Dark call DarkTheme()
+    com! -nargs=? -complete=color Dark call DarkTheme(expand("<args>"))
 
-    call LightTheme()
+    call LightTheme("")
   endif
 else
   " console vim settings
