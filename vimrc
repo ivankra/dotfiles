@@ -277,19 +277,36 @@ if has("gui_running")
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   endif
 
-  colorscheme fruidle  "summerfruit256
-
-  " Highlight trailing whitespace and spaces before tabs
-  if has("autocmd")
-    hi ExtraWhitespace guibg=#ffcccc
-    autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
-    autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
-    autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
-    match ExtraWhitespace /\s\+$/
-  endif
-
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
+
+  if has("user_commands") && has("autocmd")
+    " Enables highlight of trailing whitespace and spaces before tabs
+    function HighlightExtraWhitespace(color)
+      execute("hi ExtraWhitespace guibg=" . a:color)
+      autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
+      autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
+      autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
+      match ExtraWhitespace /\s\+$/
+    endfunction
+
+    function LightTheme()
+      set background=light
+      colorscheme fruidle  "summerfruit256
+      hi ColorColumn guibg=#fafafa
+      call HighlightExtraWhitespace("#ffcccc")
+    endfunction
+    com! Light call LightTheme()
+
+    function DarkTheme()
+      colorscheme xoria256
+      hi ColorColumn guibg=#282828
+      call HighlightExtraWhitespace("#663333")
+    endfunction
+    com! Dark call DarkTheme()
+
+    call LightTheme()
+  endif
 else
   " console vim settings
   if $TERM == "xterm" || $TERM == "screen"
@@ -297,6 +314,10 @@ else
     set t_Co=256
   else
     set background=dark
+  endif
+  if has("user_commands")
+    com! Dark set background=dark
+    com! Light set background=light
   endif
 endif
 
