@@ -28,12 +28,6 @@ set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
 set noautoindent
 
-if has("syntax")
-  let g:is_bash=1
-  let g:tex_flavor="latex"
-  syntax on
-endif
-
 if has("python")
 python <<ENDPYTHON
 
@@ -97,9 +91,11 @@ def OnBufNewFile():
     vim.command('call cursor(%d, %d)' % cursor)
 
 def OnBufWritePost():
-  path = vim.eval('expand("<afile>")')
+  if vim.eval('exists("b:bufwritepre_file_is_new")') != '1':
+    return
   file_is_new = vim.eval('b:bufwritepre_file_is_new')
   vim.command('unlet b:bufwritepre_file_is_new')
+  path = vim.eval('expand("<afile>")')
 
   # If file was just created and has a valid shebang, do chmod a+x on it
   if os.path.exists(path) and file_is_new == '1':
@@ -112,6 +108,16 @@ def OnBufWritePost():
       pass
 
 ENDPYTHON
+endif
+
+if has("autocmd")
+  autocmd!
+endif
+
+if has("syntax")
+  let g:is_bash=1
+  let g:tex_flavor="latex"
+  syntax on
 endif
 
 if has("autocmd")
@@ -149,14 +155,8 @@ endif
 noremap <F2> :w<CR>
 inoremap <F2> <C-O>:w<CR>
 
-" Make yank/put operations by default work with system's clipboard.
-if has("win32")
-  set clipboard=unnamed
-endif
-if has("unnamedplus")  " for Vim 7.3.074 and above on X11
-  " Makes 'yank' copy into + and * registers, and 'put' copy from + register.
-  set clipboard=unnamed,unnamedplus
-endif
+" Make Ctrl-L clear search highlight in addition to redraw
+noremap <silent> <C-L> :nohls<CR><C-L>
 
 " Ctrl-V in command mode pastes from system clipboard, but only in GUI
 " as Ctrl-V alternative (Ctrl-Q) isn't available in terminal.
@@ -167,11 +167,20 @@ endif
 " Typing %% in vim command line expands to current file's directory
 cabbr <expr> %% expand('%:p:h')
 
+" Make yank/put operations by default work with system's clipboard.
+if has("win32")
+  set clipboard=unnamed
+endif
+if has("unnamedplus")  " for Vim 7.3.074 and above on X11
+  " Makes 'yank' copy into + and * registers, and 'put' copy from + register.
+  set clipboard=unnamed,unnamedplus
+endif
+
 if has("autocmd") && has("user_commands")
 
 " :ToggleWrap command - toggles wrap/nowrap, enables cursor motion by display lines when wrap is on.
 com! ToggleWrap call ToggleWrap()
-function ToggleWrap()
+function! ToggleWrap()
   if &wrap
     setlocal nowrap
     silent! nunmap <buffer> <Up>
@@ -282,7 +291,7 @@ if has("gui_running")
 
   if has("user_commands") && has("autocmd")
     " Enables highlight of trailing whitespace and spaces before tabs
-    function HighlightExtraWhitespace(color)
+    function! HighlightExtraWhitespace(color)
       execute("hi ExtraWhitespace guibg=" . a:color)
       autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
       autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
@@ -290,7 +299,7 @@ if has("gui_running")
       match ExtraWhitespace /\s\+$/
     endfunction
 
-    function LightTheme()
+    function! LightTheme()
       set background=light
       colorscheme fruidle  "summerfruit256
       hi ColorColumn guibg=#fafafa
@@ -298,7 +307,7 @@ if has("gui_running")
     endfunction
     com! Light call LightTheme()
 
-    function DarkTheme()
+    function! DarkTheme()
       colorscheme xoria256
       hi ColorColumn guibg=#282828
       call HighlightExtraWhitespace("#663333")
