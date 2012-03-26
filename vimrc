@@ -22,7 +22,7 @@ set incsearch ignorecase smartcase hlsearch  " Search options
 if has("folding")
   set foldmethod=marker                 " Folds are defined by lines with {{{ and }}} markers
 endif
-set statusline=%<%f%h%m%r%=%{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
+set statusline=%<%f%h%m%r%=\ %{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
 set lazyredraw
 set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
@@ -313,6 +313,7 @@ if has("gui_running")
     com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
 
     function! DarkTheme(scheme)
+      set background=dark
       echo a:scheme
       if a:scheme == ""
         colorscheme ir_black
