@@ -280,53 +280,13 @@ endif
 
 if has("gui_running")
   " gvim settings
-
   if has("win32")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   endif
-
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
-
-  if has("user_commands") && has("autocmd")
-    " Enables highlight of trailing whitespace and spaces before tabs
-    function! HighlightExtraWhitespace(color)
-      execute("hi ExtraWhitespace guibg=" . a:color)
-      autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
-      autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
-      autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
-      match ExtraWhitespace /\s\+$/
-    endfunction
-
-    function! LightTheme(scheme)
-      set background=light
-      echo a:scheme
-      if a:scheme == ""
-        colorscheme fruidle
-      else
-        execute("colorscheme " . a:scheme)
-      endif
-      hi ColorColumn guibg=#fafafa
-      call HighlightExtraWhitespace("#ffcccc")
-    endfunction
-    com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
-
-    function! DarkTheme(scheme)
-      set background=dark
-      echo a:scheme
-      if a:scheme == ""
-        colorscheme ir_black
-      else
-        execute("colorscheme " . a:scheme)
-      endif
-      hi ColorColumn guibg=#282828
-      call HighlightExtraWhitespace("#663333")
-    endfunction
-    com! -nargs=? -complete=color Dark call DarkTheme(expand("<args>"))
-
-    call LightTheme("")
-  endif
+  set background=light
 else
   " console vim settings
   if $TERM == "xterm" || $TERM == "screen"
@@ -335,9 +295,72 @@ else
   else
     set background=dark
   endif
-  if has("user_commands")
-    com! Dark set background=dark
-    com! Light set background=light
+endif
+
+" Color themes
+if has("user_commands") && has("autocmd")
+  " Enables highlight of trailing whitespace and spaces before tabs
+  function! MatchExtraWhitespace()
+    autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
+    autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
+    autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
+    match ExtraWhitespace /\s\+$/
+  endfunction
+
+  function! LightTheme(scheme)
+    set background=light
+    if a:scheme == ""
+      if has("gui_running")
+        colorscheme fruidle
+      else
+        colorscheme default
+      endif
+    else
+      exe "colorscheme " . a:scheme
+    endif
+    if &background == "dark"
+      set background=light
+    endif
+    if has("gui_running") || &t_Co == 256
+      hi ColorColumn guibg=#fafafa ctermbg=LightGray
+      hi ExtraWhitespace guibg=#ffcccc ctermbg=LightRed
+      call MatchExtraWhitespace()
+    endif
+  endfunction
+
+  function! DarkTheme(scheme)
+    set background=dark
+    if a:scheme == ""
+      if has("gui_running")
+        colorscheme ir_black
+      else
+        colorscheme default
+      endif
+    else
+      exe "colorscheme " . a:scheme
+    endif
+    if &background == "light"
+      set background=dark
+    endif
+    if has("gui_running") || &t_Co == 256
+      hi ColorColumn guibg=#282828 ctermbg=DarkGrey
+      hi ExtraWhitespace guibg=#663333 ctermbg=DarkGrey
+      call MatchExtraWhitespace()
+    endif
+  endfunction
+
+  if v:version > 703 || v:version == 703 && has("patch257")
+    com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
+    com! -nargs=? -complete=color Dark call DarkTheme(expand("<args>"))
+  else
+    com! -nargs=? Light call LightTheme(expand("<args>"))
+    com! -nargs=? Dark call DarkTheme(expand("<args>"))
+  endif
+
+  if &background == "light"
+    call LightTheme("")
+  else
+    call DarkTheme("")
   endif
 endif
 
