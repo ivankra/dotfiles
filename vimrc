@@ -158,6 +158,8 @@ inoremap <F2> <C-O>:w<CR>
 " Make Ctrl-L clear search highlight in addition to redraw
 noremap <silent> <C-L> :nohls<CR><C-L>
 
+noremap ; :
+
 " Ctrl-V in command mode pastes from system clipboard, but only in GUI
 " as Ctrl-V alternative (Ctrl-Q) isn't available in terminal.
 if has("gui_running")
