@@ -31,7 +31,10 @@ def main():
         sys.exit(1)
 
     actions = [ (os.path.join(home, '.' + filename), os.path.join(base, filename)) for filename in DOT_FILES ]
-    actions.append((os.path.join(home, '.ipython/ipythonrc'), os.path.join(base, 'ipythonrc')))
+    if os.path.exists(os.path.join(home, '.ipython')):
+        actions.append((os.path.join(home, '.ipython/ipythonrc'), os.path.join(base, 'ipythonrc')))
+    else:
+        sys.stderr.write('Warning: skipping ipythonrc because ~/.ipython does not exist.\n')
 
     items_str = []
     for src, dst in actions:
