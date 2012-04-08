@@ -46,6 +46,7 @@ alias susl='sort | uniq -c | sort -nr | less'
 alias dico='dico -a --host localhost'
 alias g=git
 alias got=git
+alias fp='firefox -P -no-remote &'
 
 function up() {
   local root="$(SCM_MAINDIR= scm-root.py)"
