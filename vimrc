@@ -299,15 +299,38 @@ else
   endif
 endif
 
-" Color themes
+" Colors
 if has("user_commands") && has("autocmd")
-  " Enables highlight of trailing whitespace and spaces before tabs
-  function! MatchExtraWhitespace()
-    autocmd BufEnter *    match ExtraWhitespace /\s\+$\| \+\ze\t/
-    autocmd InsertLeave * match ExtraWhiteSpace /\s\+$\| \+\ze\t/
-    autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
-    match ExtraWhitespace /\s\+$/
+  " Highlight of trailing whitespace and spaces before tabs.
+  function! MatchExtraWhitespace(op)
+    let id = -1
+    for m in getmatches()
+      if m.group == "ExtraWhitespace"
+        let id = m.id
+      endif
+    endfor
+
+    if a:op == "setup"
+      augroup MEW
+      autocmd! MEW
+      autocmd MEW BufEnter *    call MatchExtraWhitespace("normal")
+      autocmd MEW InsertLeave * call MatchExtraWhitespace("normal")
+      autocmd MEW InsertEnter * call MatchExtraWhitespace("insert")
+    elseif id == -1
+      return
+    endif
+
+    if a:op == "remove"
+      call matchdelete(id)
+    elseif a:op == "insert"
+      match ExtraWhitespace /\s\+\%#\@<!$\| \+\ze\t/
+    else
+      match ExtraWhiteSpace /\s\+$\| \+\ze\t/
+    endif
   endfunction
+
+  com! HighlightExtraWhitespace call MatchExtraWhitespace("setup")
+  com! UnhighlightExtraWhitespace call MatchExtraWhitespace("remove")
 
   function! LightTheme(scheme)
     set background=light
@@ -326,7 +349,7 @@ if has("user_commands") && has("autocmd")
     if has("gui_running") || &t_Co == 256
       hi ColorColumn guibg=#fafafa ctermbg=LightGray
       hi ExtraWhitespace guibg=#ffcccc ctermbg=LightRed
-      call MatchExtraWhitespace()
+      call MatchExtraWhitespace("setup")
     endif
   endfunction
 
@@ -347,7 +370,7 @@ if has("user_commands") && has("autocmd")
     if has("gui_running") || &t_Co == 256
       hi ColorColumn guibg=#282828 ctermbg=DarkGrey
       hi ExtraWhitespace guibg=#663333 ctermbg=DarkGrey
-      call MatchExtraWhitespace()
+      call MatchExtraWhitespace("setup")
     endif
   endfunction
 
