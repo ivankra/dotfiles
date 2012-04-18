@@ -206,8 +206,8 @@ function! ToggleWrap()
   endif
 endfunction
 
-" :CD switches to current file's directory
-com! CD cd %:p:h
+" :CD [subdir] - switches to current file's directory, and then optionally into subdir.
+com! -nargs=? CD cd %:p:h | if "<args>" != "" | cd <args> | endif
 
 " Enable fswitch plugin.  Ctrl-A switches between .h and .cc
 runtime fswitch.vim
