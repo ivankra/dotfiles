@@ -301,7 +301,7 @@ endif
 
 " Colors
 if has("user_commands") && has("autocmd")
-  " Highlight of trailing whitespace and spaces before tabs.
+  " Highlight trailing whitespace and spaces before tabs.
   function! MatchExtraWhitespace(op)
     let id = -1
     for m in getmatches()
@@ -309,17 +309,16 @@ if has("user_commands") && has("autocmd")
         let id = m.id
       endif
     endfor
-
     if a:op == "setup"
       augroup MEW
-      autocmd! MEW
-      autocmd MEW BufEnter *    call MatchExtraWhitespace("normal")
-      autocmd MEW InsertLeave * call MatchExtraWhitespace("normal")
-      autocmd MEW InsertEnter * call MatchExtraWhitespace("insert")
+        autocmd!
+        autocmd BufEnter *    call MatchExtraWhitespace("normal")
+        autocmd InsertLeave * call MatchExtraWhitespace("normal")
+        autocmd InsertEnter * call MatchExtraWhitespace("insert")
+      augroup END
     elseif id == -1
       return
     endif
-
     if a:op == "remove"
       call matchdelete(id)
     elseif a:op == "insert"
