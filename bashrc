@@ -47,6 +47,7 @@ alias dico='dico -a --host localhost'
 alias g=git
 alias got=git
 alias fp='firefox -P -no-remote &'
+alias m='/google/data/ro/projects/menu/menu.par milliways,fork'
 
 function up() {
   local root="$(SCM_MAINDIR= scm-root.py)"
