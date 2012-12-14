@@ -291,7 +291,8 @@ if has("gui_running")
   set background=light
 else
   " console vim settings
-  if $TERM == "xterm" || $TERM == "screen"
+  if $TERM == "xterm"
+    "|| $TERM == "screen"
     set background=light
     set t_Co=256
   else
