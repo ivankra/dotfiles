@@ -46,6 +46,7 @@ alias susl='sort | uniq -c | sort -nr | less'
 alias dico='dico -a --host localhost'
 alias g=git
 alias got=git
+alias c=chromium-browser
 alias fp='firefox -P -no-remote &'
 alias m='/google/data/ro/projects/menu/menu.par milliways,fork'
 
