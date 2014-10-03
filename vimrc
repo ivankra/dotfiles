@@ -131,6 +131,8 @@ if has("autocmd")
   autocmd BufNewFile,BufRead *.rl       set ft=ragel
   autocmd BufNewFile,BufRead *.inc      set ft=cpp
   autocmd BufNewFile,BufRead CMakeLists.lib set ft=cmake
+  autocmd BufNewFile,BufRead *.ledger set ft=ledger
+  autocmd BufNewFile,BufRead ledger.txt set ft=ledger
 
   autocmd FileType c,cpp,java,ragel,proto set sts=4 sw=4 et ai cin
   autocmd FileType asm,python,perl,lua    set sts=4 sw=4 et ai
@@ -138,6 +140,7 @@ if has("autocmd")
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
+  autocmd FileType ledger     source ~/src/configs/vim/ledger.vim
 
   if has("python")
     " Skeletons
@@ -455,6 +458,12 @@ map Ь M
 map Б <
 map Ю >
 " }}}
+
+" Pathogen
+if has("user_commands") && has("autocmd")
+  execute pathogen#infect()
+  call pathogen#helptags() " generate helptags for everything in 'runtimepath'
+endif
 
 if filereadable(expand("~/.vimrc.local"))
   source ~/.vimrc.local
