@@ -3,7 +3,8 @@
 
 import sys
 
-def main():%CURSOR%
+def main():
+  %CURSOR%
 
 if __name__ == '__main__':
-    main()
+  main()

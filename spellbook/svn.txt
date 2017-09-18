@@ -1,2 +1,0 @@
-== Edit svn commit message ==
-$ svn propedit svn:log  --revprop -r 123456 svn+ssh://svn.example.org/project/

@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+# Usage: scm-root [subdir]
+
+import sys, os
+
+STOPFILES = [ '.git', '.hg', '.p4config' ]
+
+def main():
+  project_subdirs = sys.argv[1:]
+
+  path = './'
+  svn = None
+  result = None
+
+  while True:
+    # stop at the top directory with .svn
+    if os.path.exists(path + '.svn'):
+      svn = path
+    elif svn is not None:
+      result = svn
+      break
+
+    # stop at the first directory with .git, etc
+    if svn is None and any(os.path.exists(path + s) for s in STOPFILES):
+      result = path
+      break
+
+    if os.path.abspath(path + '../') == os.path.abspath(path):
+      break
+    path += '../'
+
+  if result is None and any(os.path.exists(s) for s in project_subdirs):
+    result = './'
+
+  if result is not None:
+    for s in project_subdirs:
+      if os.path.exists(result + s):
+        result += s
+        break
+  elif len(project_subdirs) != 0:
+    path = './'
+    while True:
+      if any(os.path.samefile(path, path + '../' + s) for s in project_subdirs):
+        result = path
+        break
+      if os.path.abspath(path + '../') == os.path.abspath(path):
+        break
+      path += '../'
+
+  if result is None:
+    sys.stderr.write('Error: not in a repository\n')
+    sys.exit(1)
+
+  if result.startswith('./') and len(result) > 2:
+    result = result[2:]
+  result = result.rstrip('/')
+
+  sys.stdout.write('%s\n' % result)
+
+if __name__ == '__main__':
+  main()
