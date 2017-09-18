@@ -1,4 +1,5 @@
 #!/bin/bash
+# Displays text given in command line arguments or stdin as QR code in image viewer.
 
 tmp=$(mktemp)
 

@@ -1,0 +1,21 @@
+#!/bin/bash
+# Updates scaling governor to performance (or specified arg) for all CPUs.
+
+GOVERNOR=${1:-performance}
+
+for x in $(ls /sys/devices/system/cpu/cpufreq/policy*/scaling_governor | sort -V); do
+  if [[ "$(cat $x)" == "$GOVERNOR" ]]; then
+    echo "$x: $(cat $x)"
+  else
+    echo "$x: $(cat $x) -> $GOVERNOR"
+    echo $GOVERNOR >$x
+    if [[ $? != 0 ]]; then
+      if [[ "$(whoami)" != "root" ]]; then
+        echo Root access needed, re-running under sudo
+        sudo $0 $*
+        exit $?
+      fi
+      exit 1
+    fi
+  fi
+done

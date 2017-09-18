@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+# Installes/reinstall dotfiles. Can be rerun multiple times.
+
+import os, sys, shutil, subprocess
+
+HOME = os.environ['HOME']
+
+def sh(cmd):
+  sys.stdout.write('+ %s\n' % cmd)
+  p = subprocess.run(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE, check=True)
+  return p.stdout.decode('utf-8')
+
+# Checks installation path and chdirs to the root of it.
+def check_and_chdir():
+  if (not os.path.exists(os.path.join(HOME, '.dotfiles/setup')) or
+      not os.path.samefile(os.path.join(HOME, '.dotfiles/setup'), sys.argv[0])):
+    sys.stderr.write("Error: must be installed in ~/.dotfiles\n\n")
+    sys.exit(1)
+  os.chdir(os.path.join(HOME, '.dotfiles'))
+
+# Installs symlink
+def install(repo_path):
+  src = '.dotfiles/' + repo_path
+  dst = '.' + os.path.basename(repo_path)
+  src_path = os.path.join(HOME, src)
+  dst_path = os.path.join(HOME, dst)
+
+  if not os.path.exists(src_path):
+    sys.stderr.write("Error: %s doesn't exist\n" % src_path)
+    sys.exit(1)
+
+  if os.path.exists(dst_path):
+    if os.path.samefile(src_path, dst_path):
+      sys.stdout.write('Exists: ~/%s -> %s\n' % (dst, src))
+      return
+    elif os.path.isdir(dst_path):
+      shutil.rmtree(dst_path)
+      os.symlink(src, dst_path)
+      sys.stdout.write('Replaced directory: ~/%s -> %s\n' % (dst, src))
+    else:
+      os.unlink(dst_path)
+      os.symlink(src, dst_path)
+      sys.stdout.write('Replaced: ~/%s -> %s\n' % (dst, src))
+  elif os.path.lexists(dst_path):
+    os.unlink(dst_path)
+    os.symlink(src, dst_path)
+    sys.stdout.write('Fixed broken link: ~/%s -> %s\n' % (dst, src))
+  else:
+    os.symlink(src, dst_path)
+    sys.stdout.write('Linked: ~/%s -> %s\n' % (dst, src))
+
+def gen_env():
+  if not os.path.exists('setup.env'):
+    sys.stdout.write('Generating setup.env\n')
+    sh('echo "export GITCONFIG_EMAIL=$(whoami)@$(hostname)" >setup.env')
+
+def gen_gitconfig():
+  if os.path.exists('gitconfig'):
+    header = open('gitconfig', 'r').readline()
+    if 'generated' not in header.lower():
+      sys.stdout.write('Warning: found modified gitconfig, skipping\n')
+      return
+  sys.stdout.write('Generating gitconfig\n')
+  sh('source setup.env; envsubst <gitconfig.template >gitconfig')
+
+check_and_chdir()
+gen_env()
+gen_gitconfig()
+install('Rprofile')
+install('bash_logout')
+install('bashrc')
+install('fonts')
+install('gdb')
+install('gdbinit')
+install('gitconfig')
+install('inputrc')
+install('profile')
+install('tkdiffrc')
+install('vim')
+install('vimrc')
+install('xinitrc')

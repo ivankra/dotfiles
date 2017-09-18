@@ -2,7 +2,7 @@
 import sys, SimpleHTTPServer, SocketServer
 
 def usage():
-    print 'Usage: httpserver [port]'
+    print 'Usage: httpserve [port]'
     print 'Serves currect working directory on specified port (default, 8080) via http.'
     sys.exit(1)
 

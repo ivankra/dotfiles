@@ -1,2 +1,0 @@
-http://git.gnome.org/browse/libgnome/plain/gnome-data/background-default.jpg
-http://upload.wikimedia.org/wikipedia/commons/c/ca/Columbia_Icefields_and_blue_sky.jpg

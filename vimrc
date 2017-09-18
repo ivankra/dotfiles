@@ -1,4 +1,9 @@
 set nocompatible
+if has("autocmd")
+  " Clear previously defined autocmds if sourcing vimrc twice
+  autocmd!
+endif
+
 set noerrorbells                        " Be quiet
 set wildmenu                            " Enhanced command line completion mode
 set autoread                            " Automatically re-read files changed outside of vim
@@ -28,92 +33,6 @@ set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
 set noautoindent
 
-if has("python")
-python <<ENDPYTHON
-
-import os, vim
-
-# loads a skeleton file into buffer, positions cursor at the position marked by %CURSOR%
-def OnBufNewFile():
-  # quit if something else has already put a skeleton into the buffer
-  if len(vim.current.buffer) > 1:
-    return
-  if len(vim.current.buffer) == 1 and vim.current.buffer[0] != '':
-    return
-
-  path = vim.eval('expand("<afile>:p")')
-  dirname = os.path.dirname(path)
-  filename = os.path.basename(path)
-
-  if '.' not in filename:
-    return
-
-  ext = filename.rsplit('.', 1)[-1]
-
-  def get_skeleton():
-    s = os.path.join(dirname, '.skeleton.' + ext)
-    if os.path.exists(s) and not filename.startswith('.skel'):
-      return s
-
-    if 'HOME' not in os.environ:
-      return
-
-    s = os.path.join(os.environ['HOME'], '.vim/skeleton/skeleton.' + ext)
-    if os.path.exists(s):
-      return s
-
-  skel = get_skeleton()
-  if skel is None:
-    return
-
-  del vim.current.buffer[:]
-
-  varz =  {
-    'BASH_SHEBANG': '#!/bin/bash' if os.path.exists('/bin/bash') else '#!/usr/bin/env bash',
-    'CURSOR': '',
-  }
-
-  num_rows = 0
-  cursor = None
-
-  for line in file(skel):
-    num_rows += 1
-    if '%CURSOR%' in line:
-      cursor = (num_rows, 1 + line.index('%CURSOR%'))
-    for key in varz.iterkeys():
-      if '%' + key + '%' in line:
-        line = line.replace('%' + key + '%', varz[key])
-    vim.current.buffer.append(line)
-
-  del vim.current.buffer[0]
-
-  if cursor is not None:
-    vim.command('call cursor(%d, %d)' % cursor)
-
-def OnBufWritePost():
-  if vim.eval('exists("b:bufwritepre_file_is_new")') != '1':
-    return
-  file_is_new = vim.eval('b:bufwritepre_file_is_new')
-  vim.command('unlet b:bufwritepre_file_is_new')
-  path = vim.eval('expand("<afile>")')
-
-  # If file was just created and has a valid shebang, do chmod a+x on it
-  if os.path.exists(path) and file_is_new == '1':
-    try:
-      stat = os.stat(path)
-      head = file(path, 'r').readline()
-      if head.startswith('#!/') and os.path.exists(head.split()[0][2:]):
-        os.chmod(path, stat.st_mode | 0111)
-    except:
-      pass
-
-ENDPYTHON
-endif
-
-if has("autocmd")
-  autocmd!
-endif
-
 if has("syntax")
   let g:is_bash=1
   let g:tex_flavor="latex"
@@ -134,34 +53,111 @@ if has("autocmd")
   autocmd BufNewFile,BufRead *.ledger set ft=ledger
   autocmd BufNewFile,BufRead ledger.txt set ft=ledger
 
-  autocmd FileType c,cpp,java,ragel,proto set sts=4 sw=4 et ai cin
-  autocmd FileType asm,python,perl,lua    set sts=4 sw=4 et ai
+  autocmd FileType c,cpp,java,ragel,proto set sts=2 sw=2 et ai cin
+  autocmd FileType asm,python,perl,lua    set sts=2 sw=2 et ai
   autocmd FileType make       set sts=0 sw=8 noet nowrap
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
-  autocmd FileType ledger     source ~/src/configs/vim/ledger.vim
-
-  if has("python")
-    " Skeletons
-    autocmd BufNewFile *    python OnBufNewFile()
-
-    " Automatically set executable permission for newly created files with shebangs
-    autocmd BufWritePre *   let b:bufwritepre_file_is_new = !filereadable(expand("<afile>"))
-    autocmd BufWritePost *  python OnBufWritePost()
-  endif
+  autocmd FileType ledger     source ~/.vim/ledger.vim
 
   autocmd BufReadPost * redraw
 endif
 
-" Key map: F2 = save
-noremap <F2> :w<CR>
-inoremap <F2> <C-O>:w<CR>
+" Template files support {{{
+if has("python3") && has("autocmd")
 
-" Make Ctrl-L clear search highlight in addition to redraw
-noremap <silent> <C-L> :nohls<CR><C-L>
+python3 <<ENDPYTHON
+import os, vim
+
+# loads a template file into buffer, positions cursor at the position marked by %CURSOR%
+def OnBufNewFile():
+  # quit if something else has already put a template into the buffer
+  if len(vim.current.buffer) > 1:
+    return
+  if len(vim.current.buffer) == 1 and vim.current.buffer[0] != '':
+    return
+
+  path = vim.eval('expand("<afile>:p")')
+  dirname = os.path.dirname(path)
+  filename = os.path.basename(path)
+
+  if '.' not in filename:
+    return
+
+  ext = filename.rsplit('.', 1)[-1]
+
+  def get_template():
+    if not filename.startswith('.template.'):
+      s = os.path.join(dirname, '.template.' + ext)
+      if os.path.exists(s): return s
+
+    if 'HOME' not in os.environ: return
+
+    s = os.path.join(os.environ['HOME'], '.dotfiles/templates/vim.' + ext)
+    if os.path.exists(s): return s
+
+  tmpl = get_template()
+  if tmpl is None:
+    return
+
+  del vim.current.buffer[:]
+
+  varz =  {
+    'BASH_SHEBANG': '#!/bin/bash' if os.path.exists('/bin/bash') else '#!/usr/bin/env bash',
+    'CURSOR': '',
+  }
+
+  num_rows = 0
+  cursor = None
+
+  for line in open(tmpl):
+    num_rows += 1
+    if '%CURSOR%' in line:
+      cursor = (num_rows, 1 + line.index('%CURSOR%'))
+    for key in varz.keys():
+      if '%' + key + '%' in line:
+        line = line.replace('%' + key + '%', varz[key])
+    vim.current.buffer.append(line)
+
+  del vim.current.buffer[0]
+
+  if cursor is not None:
+    vim.command('call cursor(%d, %d)' % cursor)
+
+def OnBufWritePost():
+  if vim.eval('exists("b:bufwritepre_file_is_new")') != '1':
+    return
+  file_is_new = vim.eval('b:bufwritepre_file_is_new')
+  vim.command('unlet b:bufwritepre_file_is_new')
+  path = vim.eval('expand("<afile>")')
+
+  # If file was just created and has a valid shebang, do chmod a+x on it
+  if os.path.exists(path) and file_is_new == '1':
+    try:
+      stat = os.stat(path)
+      head = open(path, 'r').readline()
+      if head.startswith('#!/') and os.path.exists(head.split()[0][2:]):
+        os.chmod(path, stat.st_mode | 73)  # 0111
+    except:
+      pass
+ENDPYTHON
+
+  " Templates for new files
+  autocmd BufNewFile *    python3 OnBufNewFile()
+
+  " Automatically set executable permission for newly created files with shebangs
+  autocmd BufWritePre *   let b:bufwritepre_file_is_new = !filereadable(expand("<afile>"))
+  autocmd BufWritePost *  python3 OnBufWritePost()
+endif
+" }}}
 
 noremap ; :
+" F2=save
+noremap <F2> :w<CR>
+inoremap <F2> <C-O>:w<CR>
+" Ctrl-L clears search highlight in addition to redraw
+noremap <silent> <C-L> :nohls<CR><C-L>
 
 " Ctrl-V in command mode pastes from system clipboard, but only in GUI
 " as Ctrl-V alternative (Ctrl-Q) isn't available in terminal.
@@ -289,13 +285,14 @@ if has("gui_running")
     set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   endif
+  "set guifont=Fira\ Mono\ Medium\ 13
+  set guifont=M+\ 1m\ Medium\ 13
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
   set background=light
 else
   " console vim settings
-  if $TERM == "xterm"
-    "|| $TERM == "screen"
+  if $TERM == "xterm" || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "screen"
     set background=light
     set t_Co=256
   else
@@ -460,10 +457,10 @@ map Ю >
 " }}}
 
 " Pathogen
-if has("user_commands") && has("autocmd")
-  execute pathogen#infect()
-  call pathogen#helptags() " generate helptags for everything in 'runtimepath'
-endif
+"if has("user_commands") && has("autocmd")
+"  execute pathogen#infect()
+"  call pathogen#helptags() " generate helptags for everything in 'runtimepath'
+"endif
 
 if filereadable(expand("~/.vimrc.local"))
   source ~/.vimrc.local

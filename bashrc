@@ -1,15 +1,12 @@
-# If not running interactively, don't do anything
-[[ -z "$PS1" || -z "$HOME" ]] && return
+[[ -z "$PS1" || -z "$HOME" ]] && return  # quit if not running interactively
 
-CONFIGS=$(dirname $(readlink ~/.bashrc))
-
-export PATH=$HOME/bin:$CONFIGS/bin:$PATH
+export PATH="$HOME/bin:$HOME/.bin:$HOME/.dotfiles/bin:$PATH"
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US:en
 export EDITOR=vim
 export PAGER=less
 export LESS=-r
 export LESSHISTFILE=-
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US:en
 
 # History control: do not write to disk, ignore all duplicates and commands starting with space
 HISTFILE=
@@ -20,12 +17,7 @@ HISTSIZE=1000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# enable color support of ls
-if [[ -x /usr/bin/dircolors ]]; then
-  eval "$(dircolors -b | sed -e 's/;42:/;47:/g')"
-  alias ls='ls --color=auto'
-fi
-
+alias ls='ls --color=auto'
 alias l='ls -l'
 alias ll='ls -l'
 alias mv='mv -i'
@@ -36,81 +28,57 @@ alias du='du -h'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
+alias cd3='cd ./$(scm-root)'
+alias susl='sort | uniq -c | sort -nr | less'
+alias py='ipython --no-banner --no-confirm-exit'
+alias py3='ipython3 --no-banner --no-confirm-exit'
+alias ipython='ipython --no-banner --no-confirm-exit'
+alias ipython3='ipython --no-banner --no-confirm-exit'
 alias bc='bc -q'
 alias gdb='gdb --quiet'
-alias ssh='ssh -AX'
 alias R='R --no-save --no-restore --quiet'
 alias octave='octave -q'
-alias ipython='ipython --no-banner --no-confirm-exit'
-alias py='ipython'
-alias cd3='cd ./$(scm-root.py)'
-alias susl='sort | uniq -c | sort -nr | less'
-alias dico='dico -a --host localhost'
+alias parallel="parallel --will-cite"
 alias g=git
 alias got=git
-alias c=chromium-browser
-alias fp='firefox -P -no-remote &'
-alias m='/google/data/ro/projects/menu/menu.par milliways,fork'
 
-function up() {
-  local root="$(SCM_MAINDIR= scm-root.py)"
-  if [[ -z "$root" ]]; then
-    return 1
-  fi
-  if [[ -r $root/.git/config ]] && grep svn-remote $root/.git/config >/dev/null 2>&1; then
-    local cmd='git svn rebase --fetch-all'
-  elif [[ -d $root/.git5_specs ]] && [[ -d $root/.git ]]; then
-    if [[ "$(git symbolic-ref HEAD)" != "refs/heads/work" ]]; then
-      echo 'You are not on the "work" branch'
-      return 1
-    fi
-    local cmd="git5 sync"
-  elif [[ -d "$root/.git" ]]; then
-    local cmd='git pull'
-  elif [[ -d $root/.svn ]]; then
-    local cmd="cd $root; svn update"
-  else
-    echo 'Not in a repository'
-    return 1
-  fi
-  bash -c -x "$cmd"
-  return $?
-}
-
-source $CONFIGS/bash-completion-git
-
-# set variable identifying the chroot you work in (used in the prompt below)
-if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
-  debian_chroot=$(cat /etc/debian_chroot)
-fi
-
-unset PROMPT_COMMAND
-unset PS1
-
-if [[ -f ~/.bashrc.local ]]; then
-  source ~/.bashrc.local
-fi
-
-if [[ -z "$PS1" ]]; then
-  if [[ "$TERM" != "dumb" ]]; then
-    PS1='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
-    PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                         # git branch
-    PS1+='\$ '
-  else
-    PS1='\u@\h:\w\$ '
-  fi
-fi
-
-# If this is an xterm set the title to user@host:dir
-if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
-  PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-fi
-
-# Print last command's exit code before the prompt if not zero
-function __ps1_print_status() {
+# For use in PROMPT_COMMAND: print last command's exit code if non zero.
+__ps1_print_status() {
   local __status=$?
   if [[ $__status -ne 0 ]]; then
     echo -e "\033[31m\$? = ${__status}\033[m"
   fi
 }
-PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
+
+# Set up PS1, PROMPT_COMMAND. Parameters: PS1_COLOR.
+__setup_prompt() {
+  # set variable identifying the chroot you work in (used in the prompt below)
+  if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+  fi
+
+  if [[ "$TERM" == "dumb" ]]; then
+    PS1='\u@\h:\w\$ '
+  else
+    PS1='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+    if declare -f -F __git_ps1 >/dev/null; then
+      PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                       # git branch
+    fi
+    PS1+='\$ '
+  fi
+
+  # If this is an xterm set the title to user@host:dir
+  if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+  fi
+
+  PROMPT_COMMAND="__ps1_print_status;"
+}
+
+[[ -f /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion
+
+# Local overrides
+[[ -f ~/.bashrc.local ]] && . ~/.bashrc.local
+[[ -f ~/.dotfiles/bashrc.local ]] && . ~/.dotfiles/bashrc.local
+
+__setup_prompt

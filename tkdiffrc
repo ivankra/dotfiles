@@ -91,7 +91,7 @@ define tagtext {1}
 define textopt {-background white -foreground black -font {Courier -12} -wrap none}
 
 # Directory for scratch files
-define tmpdir {/var/tmp}
+define tmpdir {/tmp}
 
 # Use icons instead of labels in the toolbar
 define toolbarIcons {1}
