@@ -4,6 +4,7 @@ if has("autocmd")
   autocmd!
 endif
 
+
 set noerrorbells                        " Be quiet
 set wildmenu                            " Enhanced command line completion mode
 set autoread                            " Automatically re-read files changed outside of vim
@@ -28,7 +29,7 @@ if has("folding")
   set foldmethod=marker                 " Folds are defined by lines with {{{ and }}} markers
 endif
 set statusline=%<%f%h%m%r%=\ %{&fileencoding}\ \ 0x%B\ (%b)\ \ %l,%c%V\ %P
-set lazyredraw
+set nolazyredraw
 set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
 set noautoindent
@@ -61,7 +62,7 @@ if has("autocmd")
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
   autocmd FileType ledger     source ~/.vim/ledger.vim
 
-  autocmd BufReadPost * redraw
+  "autocmd BufReadPost * redraw
 endif
 
 " Template files support {{{
