@@ -3,6 +3,7 @@
 export PATH="$HOME/bin:$HOME/.bin:$HOME/.dotfiles/bin:$PATH"
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
+export LC_COLLATE=C
 export EDITOR=vim
 export PAGER=less
 export LESS=-r
@@ -38,7 +39,7 @@ alias bc='bc -q'
 alias gdb='gdb --quiet'
 alias R='R --no-save --no-restore --quiet'
 alias octave='octave -q'
-alias parallel="parallel --will-cite"
+alias parallel='parallel --will-cite'
 alias g=git
 alias got=git
 
@@ -72,13 +73,25 @@ __setup_prompt() {
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
   fi
 
-  PROMPT_COMMAND="__ps1_print_status;"
+  [[ "$PROMPT_COMMAND" =~ .*__ps1_print_status.* ]] && return
+
+  # Has to be the first thing in PROMPT_COMMAND to get correct $?
+  PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
 }
 
-[[ -f /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion
+if [[ -n "$VTE_VERSION" ]]; then
+  if [[ -f /etc/profile.d/vte.sh ]]; then
+    source /etc/profile.d/vte.sh
+  elif [[ -f /etc/profile.d/vte-2.91.sh ]]; then
+    source /etc/profile.d/vte-2.91.sh
+  fi
+fi
 
-# Local overrides
-[[ -f ~/.bashrc.local ]] && . ~/.bashrc.local
-[[ -f ~/.dotfiles/bashrc.local ]] && . ~/.dotfiles/bashrc.local
+[[ -f /usr/share/bash-completion/bash_completion ]] &&
+  source /usr/share/bash-completion/bash_completion
+
+# Local per-machine configuration
+[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
+[[ -f ~/.dotfiles/bashrc.local ]] && source ~/.dotfiles/bashrc.local
 
 __setup_prompt
