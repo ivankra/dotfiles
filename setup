@@ -50,9 +50,9 @@ def install(repo_path):
     sys.stdout.write('Linked: ~/%s -> %s\n' % (dst, src))
 
 def gen_env():
-  if not os.path.exists('setup.env'):
-    sys.stdout.write('Generating setup.env\n')
-    sh('echo "export GITCONFIG_EMAIL=$(whoami)@$(hostname)" >setup.env')
+  if not os.path.exists('local-env'):
+    sys.stdout.write('Generating default local-env\n')
+    sh('echo "export GITCONFIG_EMAIL=$(whoami)@$(hostname)" >local-env')
 
 def gen_gitconfig():
   if os.path.exists('gitconfig'):
@@ -61,7 +61,7 @@ def gen_gitconfig():
       sys.stdout.write('Warning: found modified gitconfig, skipping\n')
       return
   sys.stdout.write('Generating gitconfig\n')
-  sh('source setup.env; envsubst <gitconfig.template >gitconfig')
+  sh('source local-env; envsubst <gitconfig.template >gitconfig')
 
 check_and_chdir()
 gen_env()
