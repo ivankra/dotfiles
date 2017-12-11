@@ -290,7 +290,7 @@ if has("gui_running")
     autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
   endif
   "set guifont=Fira\ Mono\ Medium\ 13
-  set guifont=M+\ 1m\ Medium\ 12
+  set guifont=M+\ 1mn\ Medium\ 12
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
   set background=light
