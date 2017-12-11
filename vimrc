@@ -34,6 +34,8 @@ set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
 set noautoindent
 
+let g:netrw_dirhistmax=0
+
 if has("syntax")
   let g:is_bash=1
   let g:tex_flavor="latex"
@@ -61,6 +63,7 @@ if has("autocmd")
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
   autocmd FileType ledger     source ~/.vim/ledger.vim
+  autocmd FileType markdown   syn sync minlines=1000
 
   "autocmd BufReadPost * redraw
 endif
