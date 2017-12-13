@@ -16,11 +16,11 @@
 *.color10:      #4CAF50
 
 ! yellow
-*.color3:       #909020
-*.color11:      #ee6640
+*.color3:       #ee6640
+*.color11:      #eab700
 
 ! blue
-*.color4:       #407bb5 
+*.color4:       #407bb5
 *.color12:      #0070e6
 
 ! magenta
@@ -34,4 +34,3 @@
 ! white
 *.color7:       #cccccc
 *.color15:      #ffffff
-
