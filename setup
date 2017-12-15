@@ -5,10 +5,10 @@ import os, sys, shutil, subprocess
 
 HOME = os.environ['HOME']
 
-def sh(cmd):
+def sh(cmd, stdout=subprocess.PIPE):
   sys.stdout.write('+ %s\n' % cmd)
-  p = subprocess.run(['/bin/bash', '-c', cmd], stdout=subprocess.PIPE, check=True)
-  return p.stdout.decode('utf-8')
+  p = subprocess.run(['/bin/bash', '-c', cmd], stdout=stdout, check=True)
+  if stdout: return p.stdout.decode('utf-8')
 
 # Checks installation path and chdirs to the root of it.
 def check_and_chdir():
@@ -49,23 +49,8 @@ def install(repo_path):
     os.symlink(src, dst_path)
     sys.stdout.write('Linked: ~/%s -> %s\n' % (dst, src))
 
-def gen_env():
-  if not os.path.exists('local-env'):
-    sys.stdout.write('Generating default local-env\n')
-    sh('echo "export GITCONFIG_EMAIL=$(whoami)@$(hostname)" >local-env')
-
-def gen_gitconfig():
-  if os.path.exists('gitconfig'):
-    header = open('gitconfig', 'r').readline()
-    if 'generated' not in header.lower():
-      sys.stdout.write('Warning: found modified gitconfig, skipping\n')
-      return
-  sys.stdout.write('Generating gitconfig\n')
-  sh('source local-env; envsubst <gitconfig.template >gitconfig')
-
 check_and_chdir()
-gen_env()
-gen_gitconfig()
+sh('./setup-gen', stdout=None)
 install('Rprofile')
 install('bash_logout')
 install('bashrc')
