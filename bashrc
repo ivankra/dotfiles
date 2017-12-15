@@ -1,4 +1,4 @@
-[[ -z "$PS1" || -z "$HOME" ]] && return  # quit if not running interactively
+[[ -z "$PS1" || -z "$HOME" ]] && return
 
 export PATH="$HOME/bin:$HOME/.bin:$HOME/.dotfiles/bin:$PATH"
 export LANG=en_US.UTF-8
@@ -9,14 +9,20 @@ export PAGER=less
 export LESS=-r
 export LESSHISTFILE=-
 
-# History control: do not write to disk, ignore all duplicates and commands starting with space
-HISTFILE=
-HISTCONTROL=ignoreboth
-HISTSIZE=1000
+if [[ -f "$HOME/.history" ]]; then
+  HISTFILE=
+  HISTCONTROL=ignoreboth
+  HISTSIZE=100000
+else
+  [[ -d "$HOME/.history" ]] || mkdir -m 0700 -p "$HOME/.history"
+  shopt -s histappend
+  HISTFILE="$HOME/.history/bash.$(date +%Y%m)"
+  HISTCONTROL=ignoreboth
+  HISTSIZE=100000
+  HISTFILESIZE=-1
+fi
 
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
+shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
 
 alias ls='ls --color=auto'
 alias l='ls -l'
@@ -29,7 +35,9 @@ alias du='du -h'
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
-alias cd3='cd ./$(scm-root)'
+alias cd3='cd "$(scm-root)"'
+alias cd..='cd ..'
+alias ..='cd ..'
 alias susl='sort | uniq -c | sort -nr | less'
 alias py='ipython --no-banner --no-confirm-exit'
 alias py3='ipython3 --no-banner --no-confirm-exit'
@@ -75,9 +83,13 @@ __setup_prompt() {
 
   [[ "$PROMPT_COMMAND" =~ .*__ps1_print_status.* ]] && return
 
+  [[ -n "$HISTFILE" ]] && PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+
   # Has to be the first thing in PROMPT_COMMAND to get correct $?
   PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
 }
+
+unset PROMPT_COMMAND
 
 if [[ -n "$VTE_VERSION" ]]; then
   if [[ -f /etc/profile.d/vte.sh ]]; then
@@ -95,3 +107,4 @@ fi
 [[ -f ~/.dotfiles/bashrc.local ]] && source ~/.dotfiles/bashrc.local
 
 __setup_prompt
+unset __setup_prompt
