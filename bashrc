@@ -48,6 +48,7 @@ alias gdb='gdb --quiet'
 alias R='R --no-save --no-restore --quiet'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
+alias b=byobu-tmux
 alias g=git
 alias got=git
 
