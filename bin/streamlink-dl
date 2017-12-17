@@ -1,0 +1,50 @@
+#!/bin/bash
+
+URL="$1"
+shift
+
+if [[ -z "$URL" ]]; then
+  echo "Usage: $0 <url>"
+  exit 1
+fi
+
+if ! which streamlink >/dev/null 2>&1; then
+  echo "Streamlink not installed."
+  echo "Advice: sudo apt install python-pip && pip install streamlink"
+  exit 1
+fi
+
+BASENAME=streamlink
+if [[ "$URL" =~ .*/([-a-zA-Z0-9_]+)/*$ ]]; then
+  BASENAME="${BASH_REMATCH[1]}"
+fi
+
+NUM=1
+
+while :; do
+  FILENAME="$BASENAME.$(date +%Y%m%d)"
+  ((NUM > 1)) && FILENAME+=".$NUM"
+  FILENAME+=".flv"
+
+  if [[ -f "$FILENAME" && "$(stat -c '%s' "$FILENAME" 2>/dev/null)" -le 1000 ]]; then
+    echo "Removing empty $FILENAME"
+    rm -f "$FILENAME"
+  fi
+
+  if [[ -f "$FILENAME" ]]; then
+    NUM=$((NUM + 1))
+    continue
+  fi
+
+  echo "$(date): Recording $URL to $FILENAME"
+
+  set -x
+  streamlink \
+    --default-stream=best \
+    --retry-streams=30 \
+    --retry-open=999 \
+    -o "$FILENAME" \
+    "$URL" "$@"
+
+  sleep 5
+done
