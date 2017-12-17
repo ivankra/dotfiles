@@ -26,7 +26,12 @@ else
   HISTSIZE=100000
   HISTFILESIZE=-1
   HISTTIMEFORMAT='[%F %T] '
-  __prompt_history() { history -a; history -c; history -r; }
+
+  if [[ -x "$HOME/.dotfiles/bin/erasedups.py" ]]; then
+    __prompt_history() { history -a; "$HOME/.dotfiles/bin/erasedups.py" "$HISTFILE"; history -c; history -r; }
+  else
+    __prompt_history() { history -a; history -c; history -r; }
+  fi
 fi
 
 shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
@@ -124,7 +129,7 @@ fi
 
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
 
-declare -f -F __setup_prompt >/dev/null 2>&1 && __setup_prompt
+declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
 declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
-unset __setup_prompt
+unset __setup_prompt_command
 unset __setup_ps1
