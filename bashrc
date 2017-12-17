@@ -67,19 +67,25 @@ __prompt_print_status() {
   fi
 }
 
-# Set up PS1, PROMPT_COMMAND. Parameters: PS1_COLOR.
-__setup_prompt() {
+# Parameter: PS1_COLOR.
+__setup_ps1() {
   # set variable identifying the chroot you work in (used in the prompt below)
   if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
     debian_chroot=$(cat /etc/debian_chroot)
   fi
 
+  if [[ -z "$PS1_COLOR" ]]; then
+    PS1_COLOR=32
+    [[ "$USER" == "root" ]] && PS1_COLOR=31
+    [[ "$USER" == "vm" ]] && PS1_COLOR=36
+  fi
+
   if [[ "$TERM" == "dumb" ]]; then
     PS1='\u@\h:\w\$ '
   else
-    PS1='\[\033[01;${PS1_COLOR:-32}m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]'  # user@host:workdir
+    PS1="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]"  # user@host:workdir
     if declare -f -F __git_ps1 >/dev/null; then
-      PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'                                       # git branch
+      PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'
     fi
     PS1+='\$ '
   fi
@@ -89,9 +95,14 @@ __setup_prompt() {
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
   fi
 
+  unset PS1_COLOR
+  unset PS1_HOST
+}
+
+__setup_prompt_command() {
   [[ ";$PROMPT_COMMAND;" == *__prompt_print_status* ]] && return
 
-  declare -f __prompt_history >/dev/null 2>&1 &&
+  declare -f -F __prompt_history >/dev/null 2>&1 &&
     PROMPT_COMMAND="__prompt_history;$PROMPT_COMMAND"
 
   # Has to be the first thing in PROMPT_COMMAND to get correct $?
@@ -113,7 +124,7 @@ fi
 
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
 
-if declare -f __setup_prompt >/dev/null 2>&1; then
-  __setup_prompt
-  unset __setup_prompt
-fi
+declare -f -F __setup_prompt >/dev/null 2>&1 && __setup_prompt
+declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
+unset __setup_prompt
+unset __setup_ps1
