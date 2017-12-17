@@ -1,6 +1,9 @@
 [[ -z "$PS1" || -z "$HOME" ]] && return
 
-export PATH="$HOME/bin:$HOME/.bin:$HOME/.dotfiles/bin:$PATH"
+[[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && PATH="$HOME/.local/bin:$PATH"
+[[ ":$PATH:" != *":$HOME/bin:"* ]] && PATH="$HOME/bin:$PATH"
+[[ ":$PATH:" != *":$HOME/.dotfiles/bin:"* ]] && PATH="$HOME/.dotfiles/bin:$PATH"
+
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 export LC_COLLATE=C
@@ -17,9 +20,10 @@ else
   [[ -d "$HOME/.history" ]] || mkdir -m 0700 -p "$HOME/.history"
   shopt -s histappend
   HISTFILE="$HOME/.history/bash.$(date +%Y%m)"
-  HISTCONTROL=ignoreboth
+  HISTCONTROL=ignoreboth:erasedups
   HISTSIZE=100000
   HISTFILESIZE=-1
+  __prompt_history() { history -n; history -w; history -c; history -r; }
 fi
 
 shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
@@ -53,7 +57,7 @@ alias g=git
 alias got=git
 
 # For use in PROMPT_COMMAND: print last command's exit code if non zero.
-__ps1_print_status() {
+__prompt_print_status() {
   local __status=$?
   if [[ $__status -ne 0 ]]; then
     echo -e "\033[31m\$? = ${__status}\033[m"
@@ -82,12 +86,13 @@ __setup_prompt() {
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
   fi
 
-  [[ "$PROMPT_COMMAND" =~ .*__ps1_print_status.* ]] && return
+  [[ ";$PROMPT_COMMAND;" == *__prompt_print_status* ]] && return
 
-  [[ -n "$HISTFILE" ]] && PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+  declare -f __prompt_history >/dev/null 2>&1 &&
+    PROMPT_COMMAND="__prompt_history;$PROMPT_COMMAND"
 
   # Has to be the first thing in PROMPT_COMMAND to get correct $?
-  PROMPT_COMMAND="__ps1_print_status;$PROMPT_COMMAND"
+  PROMPT_COMMAND="__prompt_print_status;$PROMPT_COMMAND"
 }
 
 unset PROMPT_COMMAND
@@ -103,9 +108,9 @@ fi
 [[ -f /usr/share/bash-completion/bash_completion ]] &&
   source /usr/share/bash-completion/bash_completion
 
-# Local per-machine configuration
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
-[[ -f ~/.dotfiles/bashrc.local ]] && source ~/.dotfiles/bashrc.local
 
-__setup_prompt
-unset __setup_prompt
+if declare -f __setup_prompt >/dev/null 2>&1; then
+  __setup_prompt
+  unset __setup_prompt
+fi
