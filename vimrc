@@ -391,6 +391,9 @@ if has("user_commands") && has("autocmd")
   else
     call DarkTheme("")
   endif
+
+  com! -nargs=? T tabedit <args>
+  com! -nargs=? Tabe tabedit <args>
 endif
 
 " йцукен->qwerty translations for normal mode {{{
