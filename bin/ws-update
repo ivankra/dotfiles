@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+if [[ -d ~/.dotfiles/.git ]]; then
+  cd ~/.dotfiles
+  git pull
+  [[ -x ./setup ]] && ./setup
+  [[ -x ./gnome-terminal/load.sh && -n "$DISPLAY" ]] && ./gnome-terminal/load.sh
+fi
+
+sudo apt update
+sudo apt dist-upgrade
+sudo apt autoremove
+sudo apt autoclean
