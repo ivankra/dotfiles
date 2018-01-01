@@ -4,18 +4,26 @@
 GOVERNOR=${1:-performance}
 
 for x in $(ls /sys/devices/system/cpu/cpufreq/policy*/scaling_governor | sort -V); do
-  if [[ "$(cat $x)" == "$GOVERNOR" ]]; then
-    echo "$x: $(cat $x)"
+  OLD_GOVERNOR="$(cat $x)"
+  N=$(echo $x | egrep -o "[0-9]+")
+  if [[ "$OLD_GOVERNOR" == "$GOVERNOR" ]]; then
+    echo -n "$B$N "
+    A=$": $GOVERNOR
+"
+    B=
   else
-    echo "$x: $(cat $x) -> $GOVERNOR"
-    echo $GOVERNOR >$x
-    if [[ $? != 0 ]]; then
-      if [[ "$(whoami)" != "root" ]]; then
-        echo Root access needed, re-running under sudo
-        sudo $0 $*
-        exit $?
-      fi
-      exit 1
+    echo -n "$A"
+    A=
+    if [[ $UID != 0 ]]; then
+      echo Root access needed to modify state, re-running under sudo
+      sudo $0 $*
+      exit $?
     fi
+    echo $GOVERNOR >$x
+    echo -n "$N "
+    B=": $OLD_GOVERNOR -> $GOVERNOR
+"
   fi
 done
+
+echo -n "$A$B"
