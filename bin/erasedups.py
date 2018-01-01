@@ -27,6 +27,8 @@ def Process(filename):
       history.append((ts, e))
 
   if filename:
+    if not os.path.exists(filename):
+      return
     if os.path.islink(filename):
       filename = os.readlink(filename)
     f = open(filename, 'r')
@@ -47,7 +49,13 @@ def Process(filename):
   if len(history) == len(hashmap) and filename:
     return
 
-  f = open(filename + '.tmp', 'w') if filename else sys.stdout
+  if filename:
+    try:
+      f = open(filename + '.tmp', 'w')
+    except IOError:
+      return
+  else:
+    f = sys.stdout
 
   for i, (ts, entry) in enumerate(history):
     if hashmap[entry] == i:
