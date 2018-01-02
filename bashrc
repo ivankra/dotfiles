@@ -20,8 +20,6 @@ else
   [[ -d "$HOME/.history" ]] || mkdir -m 0700 -p "$HOME/.history"
   shopt -s histappend
   HISTFILE="$HOME/.history/bash.$(date +%Y%m)"
-  [[ "$HISTFILE" -ef "$HOME/.bash_history" ]] || \
-    ln -s -f ".history/$(basename "$HISTFILE")" "$HOME/.bash_history"
   HISTCONTROL=ignoreboth
   HISTSIZE=100000
   HISTFILESIZE=-1
