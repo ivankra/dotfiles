@@ -28,7 +28,7 @@ else
   HISTTIMEFORMAT='[%F %T] '
 
   if [[ -x "$HOME/.dotfiles/bin/erasedups.py" ]]; then
-    __prompt_history() { history -a; "$HOME/.dotfiles/bin/erasedups.py" "$HISTFILE"; history -c; history -r; }
+    __prompt_history() { history -a; "$HOME/.dotfiles/bin/erasedups.py" -q "$HISTFILE"; history -c; history -r; }
   else
     __prompt_history() { history -a; history -c; history -r; }
   fi
