@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # Erases duplicates from command line history files with timestamps.
-# Usage:
-#   erasedups [<history files>]
-#   or: erasedups <input >output
 
+import argparse
 import os
 import re
 import sys
@@ -11,7 +9,7 @@ import sys
 TIMESTAMP_RE = re.compile('^# *[0-9]+$')
 
 
-def Process(filename):
+def Process(filename, quiet=False):
   hashmap = dict()
   history = []
   ts = None
@@ -20,6 +18,8 @@ def Process(filename):
   def add():
     if len(entry) > 0:
       if ts is None:
+        if quiet:
+          sys.exit(0)
         sys.stderr.write('Error: need history file with timestamps\n')
         sys.exit(1)
       e = tuple(entry)
@@ -50,10 +50,13 @@ def Process(filename):
     return
 
   if filename:
-    try:
+    if quiet:
+      try:
+        f = open(filename + '.tmp', 'w')
+      except IOError:
+        sys.exit(0)
+    else:
       f = open(filename + '.tmp', 'w')
-    except IOError:
-      return
   else:
     f = sys.stdout
 
@@ -68,8 +71,13 @@ def Process(filename):
     os.rename(filename + '.tmp', filename)
 
 
-if len(sys.argv) > 1:
-  for filename in sys.argv[1:]:
-    Process(filename)
-else:
-  Process(None)
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument('-q', '--quiet', help='be quiet', action='store_true')
+  parser.add_argument('filename', nargs='?')
+  args = parser.parse_args()
+  Process(args.filename, args.quiet)
+
+
+if __name__ == '__main__':
+  main()
