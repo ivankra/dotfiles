@@ -1,68 +1,75 @@
-#!/usr/bin/env python3
+#!/usr/bin/env bash
 # Installes/reinstall dotfiles. Can be rerun multiple times.
 
-import os, sys, shutil, subprocess
+install_link() {
+  local src=".dotfiles/$1"
+  local dst=".$(basename "$1")"
 
-HOME = os.environ['HOME']
+  local src_path="$HOME/$src"
+  local dst_path="$HOME/$dst"
 
-def sh(cmd, stdout=subprocess.PIPE):
-  sys.stdout.write('+ %s\n' % cmd)
-  p = subprocess.run(['/bin/bash', '-c', cmd], stdout=stdout, check=True)
-  if stdout: return p.stdout.decode('utf-8')
+  if ! [[ -e "$src_path" ]]; then
+    echo "Error: $src_path doesn't exist"
+    exit 1
+  fi
 
-# Checks installation path and chdirs to the root of it.
-def check_and_chdir():
-  if (not os.path.exists(os.path.join(HOME, '.dotfiles/setup')) or
-      not os.path.samefile(os.path.join(HOME, '.dotfiles/setup'), sys.argv[0])):
-    sys.stderr.write("Error: must be installed in ~/.dotfiles\n\n")
-    sys.exit(1)
-  os.chdir(os.path.join(HOME, '.dotfiles'))
+  if [[ -e "$dst_path" ]]; then
+    if [[ "$src_path" -ef "$dst_path" ]]; then
+      return 0
+    elif [[ -d "$dst_path" ]]; then
+      rm -rf "$dst_path"
+      ln -s "$src" "$dst_path"
+      echo "Replaced directory: ~/$dst -> $src";
+    else
+      rm -f "$dst_path"
+      ln -s "$src" "$dst_path"
+      echo "Replaced: ~/$dst -> $src"
+    fi
+  elif [[ -L "$dst_path" ]]; then
+    rm -f "$dst_path"
+    ln -s "$src" "$dst_path"
+    echo "Fixed broken link: ~/$dst -> $src"
+  else
+    ln -s "$src" "$dst_path"
+    echo "Linked: ~/$dst -> $src"
+  fi
+}
 
-# Installs symlink
-def install(repo_path):
-  src = '.dotfiles/' + repo_path
-  dst = '.' + os.path.basename(repo_path)
-  src_path = os.path.join(HOME, src)
-  dst_path = os.path.join(HOME, dst)
+if ! [[ -f "$HOME/.dotfiles/setup" && "$HOME/.dotfiles/setup" -ef "$0" ]]; then
+  echo "Error: dotfiles must be installed in ~/.dotfiles"
+  exit 1
+fi
 
-  if not os.path.exists(src_path):
-    sys.stderr.write("Error: %s doesn't exist\n" % src_path)
-    sys.exit(1)
+cd "$HOME/.dotfiles"
+bash ./setup-gen
 
-  if os.path.exists(dst_path):
-    if os.path.samefile(src_path, dst_path):
-      sys.stdout.write('Exists: ~/%s -> %s\n' % (dst, src))
-      return
-    elif os.path.isdir(dst_path):
-      shutil.rmtree(dst_path)
-      os.symlink(src, dst_path)
-      sys.stdout.write('Replaced directory: ~/%s -> %s\n' % (dst, src))
-    else:
-      os.unlink(dst_path)
-      os.symlink(src, dst_path)
-      sys.stdout.write('Replaced: ~/%s -> %s\n' % (dst, src))
-  elif os.path.lexists(dst_path):
-    os.unlink(dst_path)
-    os.symlink(src, dst_path)
-    sys.stdout.write('Fixed broken link: ~/%s -> %s\n' % (dst, src))
-  else:
-    os.symlink(src, dst_path)
-    sys.stdout.write('Linked: ~/%s -> %s\n' % (dst, src))
+FILES=(
+  Rprofile
+  bash_logout
+  bashrc
+  fonts
+  hgrc
+  gdb
+  gdbinit
+  gitconfig
+  inputrc
+  profile
+  tkdiffrc
+  tmux.conf
+  vim
+  vimrc
+  xinitrc
+)
+for f in "${FILES[@]}"; do
+  install_link "$f"
+done
 
-check_and_chdir()
-sh('./setup-gen', stdout=None)
-install('Rprofile')
-install('bash_logout')
-install('bashrc')
-install('fonts')
-install('hgrc')
-install('gdb')
-install('gdbinit')
-install('gitconfig')
-install('inputrc')
-install('profile')
-install('tkdiffrc')
-install('tmux.conf')
-install('vim')
-install('vimrc')
-install('xinitrc')
+if [[ -x /usr/bin/gnome-keyring-daemon &&
+      -x /usr/bin/keychain &&
+      -f ~/.ssh/id_ed25519 &&
+      fix/keychain-ssh.desktop -ef ~/.config/autostart/gnome-keyring-ssh.desktop ]]; then
+  mkdir -p ~/.config/autostart
+  ln -sf ../../.dotfiles/fix/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
+  ln -sf ../../.dotfiles/fix/keychain-gpg.desktop ~/.config/autostart/gnome-keyring-gpg.desktop
+  echo "Fixed up gnome keyring"
+fi

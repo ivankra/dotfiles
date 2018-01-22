@@ -36,7 +36,7 @@ shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
 
 alias ls='ls --color=auto'
 alias l='ls -l'
-alias ll='ls -l'
+alias ll='ls -l -h'
 alias mv='mv -i'
 alias rm='rm -i'
 alias cp='cp -i'
@@ -61,6 +61,11 @@ alias parallel='parallel --will-cite'
 alias b=byobu-tmux
 alias g=git
 alias got=git
+
+# Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
+if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
+  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh ~/.ssh/id_ed25519)
+fi
 
 # For use in PROMPT_COMMAND: print last command's exit code if non zero.
 __prompt_print_status() {

@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=GPG Key Agent (keychain)
+Exec=keychain –quiet –agents gpg
