@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=SSH Key Agent (keychain)
+Exec=keychain –quiet –agents ssh
