@@ -72,4 +72,9 @@ if [[ -x /usr/bin/gnome-keyring-daemon &&
   ln -sf ../../.dotfiles/fix/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
   ln -sf ../../.dotfiles/fix/keychain-gpg.desktop ~/.config/autostart/gnome-keyring-gpg.desktop
   echo "Fixed up gnome keyring"
+
+  if [[ -f /etc/xdg/autostart/gnome-keyring-ssh.desktop ]]; then
+    echo "Action required to complete keyring fix:"
+    echo "  sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
+  fi
 fi
