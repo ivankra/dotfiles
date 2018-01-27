@@ -9,7 +9,7 @@ if [[ -d ~/.dotfiles/.git ]]; then
   [[ -x ./gnome-terminal/load.sh && -n "$DISPLAY" ]] && ./gnome-terminal/load.sh
 fi
 
-sudo apt update
-sudo apt dist-upgrade
-sudo apt autoremove
-sudo apt autoclean
+sudo apt -y update
+sudo apt -y dist-upgrade
+sudo apt -y autoremove
+sudo apt -y autoclean
