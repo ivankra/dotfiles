@@ -75,6 +75,7 @@ if [[ -x /usr/bin/gnome-keyring-daemon &&
 
   if [[ -f /etc/xdg/autostart/gnome-keyring-ssh.desktop ]]; then
     echo "Action required to complete keyring fix:"
-    echo "  sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
+    echo "  1) sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
+    echo "  2) add 'Host *', 'AddKeysToAgent yes' to ~/.ssh/config"
   fi
 fi
