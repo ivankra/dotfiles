@@ -64,7 +64,7 @@ alias got=git
 
 # Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
 if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
-  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh ~/.ssh/id_ed25519)
+  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
 fi
 
 # For use in PROMPT_COMMAND: print last command's exit code if non zero.
