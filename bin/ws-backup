@@ -1,0 +1,84 @@
+#!/bin/bash
+set -e
+
+export RESTIC_REPOSITORY="sftp:zanthia:/tank/${USER}/restic3"   # to create: restic init -r $RESTIC_REPOSITORY
+export LC_ALL=C
+
+TAG="$(date +%Y%m%d)"
+
+ZFS_POOL="z"
+ZFS_SNAPSHOT="${ZFS_POOL}@${TAG}"
+ZFS_CLONE="${ZFS_POOL}/restic-clone-${TAG}"
+
+CLONE_WORKDIR="/restic"
+CHECKSUMS_DIR="/z/backup/ws-checksums"
+
+if [[ $UID == 0 ]]; then
+  echo "Cannot run under root"
+  exit 1
+fi
+
+cd /
+
+echo "Checking for ${ZFS_CLONE}"
+if [[ -d "${CLONE_WORKDIR}/vm" ]] && sudo zfs list "${ZFS_CLONE}"; then
+  echo "${ZFS_CLONE} already exists, reusing it"
+else
+  if sudo zfs list "${ZFS_SNAPSHOT}"; then
+    echo "${ZFS_SNAPSHOT} already exists, reusing it"
+  else
+    echo "Snapshotting ${ZFS_POOL} as ${ZFS_SNAPSHOT}"
+    sudo zfs snapshot "${ZFS_SNAPSHOT}"
+  fi
+
+  echo "Create clone ${ZFS_CLONE} of snapshot ${ZFS_SNAPSHOT}"
+  sudo zfs clone -o mountpoint="${CLONE_WORKDIR}" "${ZFS_SNAPSHOT}" "${ZFS_CLONE}"
+
+  echo "Clone created and mounted at ${CLONE_WORKDIR}"
+
+  for f in SHA256SUMS MTIME; do
+    if [[ -f "${CLONE_WORKDIR}/$f" ]]; then
+      echo "Error: preexisting file ${CLONE_WORKDIR}/SHA256SUMS"
+      exit 1
+    fi
+  done
+fi
+
+if ! [[ -f "${CLONE_WORKDIR}/SHA256SUMS" ]]; then
+  echo "Cleaning up snapshot clone before backup"
+  cd "${CLONE_WORKDIR}"
+  sudo chown -R "$(id -n -u):$(id -n -g)" "${CLONE_WORKDIR}"
+  chmod -R u+rwx backup/ws-root
+  rm -rf --one-file-system backup/ws-root "home/${USER}/.cache" "home/${USER}/.byobu" root/.byobu tmp vm/iso
+
+  read -p "Restic password: " -s RESTIC_PASSWORD
+  export RESTIC_PASSWORD
+  echo
+
+  ssh-add
+
+  echo "Checksumming files..."
+  TMP="$(mktemp)"
+  sync; sleep 1
+  sha256deep -j$((`nproc` / 2)) -r -l . | sort -t ' ' -k 2 >"$TMP.SHA256SUMS"
+  find -type f -print0 | xargs -0 stat -c '%Y  %n' | sort -t ' ' -k 2 >"${TMP}.MTIME"
+  mv -f "${TMP}.SHA256SUMS" SHA256SUMS
+  mv -f "${TMP}.MTIME" MTIME
+  sync; sleep 1
+  while ! stat SHA256SUMS >/dev/null 2>&1; do echo "stat workaround..."; sleep 1; done
+  while ! stat MTIME >/dev/null 2>&1; do echo "stat workaround..."; sleep 1; done
+
+  echo "Backing up checksum files to ${CHECKSUMS_DIR}"
+  mkdir -p "${CHECKSUMS_DIR}"
+  cp -f SHA256SUMS "${CHECKSUMS_DIR}/z.${TAG}.SHA256SUMS"
+  cp -f MTIME "${CHECKSUMS_DIR}/z.${TAG}.MTIME"
+fi
+
+cd /
+
+echo "Running restic backup"
+restic backup --tag="${TAG}" -x "${CLONE_WORKDIR}"
+
+echo "Backup finished, destroying ZFS clone ${ZFS_CLONE}"
+sudo zfs destroy "${ZFS_CLONE}"
+sudo rmdir "${CLONE_WORKDIR}"
