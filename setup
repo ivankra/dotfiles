@@ -69,8 +69,8 @@ if [[ -x /usr/bin/gnome-keyring-daemon &&
       -f ~/.ssh/id_ed25519 &&
       fix/keychain-ssh.desktop -ef ~/.config/autostart/gnome-keyring-ssh.desktop ]]; then
   mkdir -p ~/.config/autostart
-  ln -sf ../../.dotfiles/fix/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
-  ln -sf ../../.dotfiles/fix/keychain-gpg.desktop ~/.config/autostart/gnome-keyring-gpg.desktop
+  ln -sf ~/.dotfiles/fix/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
+  #ln -sf ~/.dotfiles/fix/keychain-gpg.desktop ~/.config/autostart/gnome-keyring-gpg.desktop
   echo "Fixed up gnome keyring"
 
   if [[ -f /etc/xdg/autostart/gnome-keyring-ssh.desktop ]]; then
