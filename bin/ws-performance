@@ -20,7 +20,8 @@ for i in $PROCS; do
   fi
 done
 
-if [[ "$OLD_GOVERNOR" == "$GOVERNOR" ]]; then
+if [[ "$OLD_GOVERNOR" == "$GOVERNOR" &&
+      "$(cat /tmp/ws-performance-state)" == "$GOVERNOR" ]]; then
   echo "Already at $GOVERNOR"
   exit 0
 fi
@@ -30,6 +31,8 @@ if [[ $UID != 0 ]]; then
   sudo "$0" "$@"
   exit $?
 fi
+
+rm -f "/tmp/ws-performance-state"
 
 echo -n "CPU governor $OLD_GOVERNOR -> $GOVERNOR "
 
@@ -77,3 +80,5 @@ for f in $(ls /sys/bus/usb/devices/*/power/control /sys/bus/pci/devices/*/power/
     echo auto >$f
   fi
 done
+
+echo "$GOVERNOR" >"/tmp/ws-performance-state"
