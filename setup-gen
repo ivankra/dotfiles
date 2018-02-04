@@ -19,6 +19,8 @@ gen_gitconfig() {
 	co = checkout
 	cp = cherry-pick
 	lg = log --pretty=oneline --abbrev-commit --decorate
+        cw = commit -m wip
+        caw = commit -a -m wip
 
 	amend = commit --amend
 	detach = !git checkout HEAD^0

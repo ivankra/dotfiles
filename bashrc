@@ -37,7 +37,7 @@ fi
 
 shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
 
-alias ls='ls --color=auto'
+alias ls='ls --color=auto --group-directories-first'
 alias l='ls -l'
 alias ll='ls -l -h'
 alias mv='mv -i'
