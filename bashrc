@@ -1,8 +1,12 @@
 [[ -z "$PS1" || -z "$HOME" ]] && return
 
-[[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && PATH="$HOME/.local/bin:$PATH"
-[[ ":$PATH:" != *":$HOME/bin:"* ]] && PATH="$HOME/bin:$PATH"
-[[ ":$PATH:" != *":$HOME/.dotfiles/bin:"* ]] && PATH="$HOME/.dotfiles/bin:$PATH"
+for __d in ~/{.,}anaconda{2,3}/bin ~/.dotfiles*/bin ~/.local/bin ~/.bin; do
+  if [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]]; then
+    PATH="$__d:$PATH"
+  fi
+done
+[[ -d ~/.bin && ":$PATH:" != *"$HOME/bin:"* ]] && PATH="$HOME/bin:$PATH"
+unset __d
 
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
