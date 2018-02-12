@@ -464,10 +464,10 @@ map Ю >
 " }}}
 
 " Pathogen
-"if has("user_commands") && has("autocmd")
-"  execute pathogen#infect()
-"  call pathogen#helptags() " generate helptags for everything in 'runtimepath'
-"endif
+if has("user_commands") && has("autocmd")
+  execute pathogen#infect()
+  call pathogen#helptags() " generate helptags for everything in 'runtimepath'
+endif
 
 if filereadable(expand("~/.vimrc.local"))
   source ~/.vimrc.local
