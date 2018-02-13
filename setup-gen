@@ -34,6 +34,9 @@ gen_gitconfig() {
                 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 \\
                 -c gc.pruneExpire=now gc --prune=now
 
+        # Creates an empty branch with no history.
+        make-empty-branch = !git commit-tree -m "\${1:-empty}" \$(git mktree </dev/null) >"\$GIT_DIR/refs/heads/\${1:-empty}"
+
 [push]
         default = matching
 EOF
@@ -76,3 +79,5 @@ if declare -f setup_gen_local >/dev/null 2>&1; then
 else
   setup_gen
 fi
+
+# vim: et
