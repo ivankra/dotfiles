@@ -13,7 +13,7 @@ export LANGUAGE=en_US:en
 export LC_COLLATE=C
 export EDITOR=vim
 export PAGER=less
-export LESS=-r
+export LESS=-FRSX
 export LESSHISTFILE=-
 
 if [[ -f "$HOME/.history" ]]; then
