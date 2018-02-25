@@ -96,9 +96,9 @@ __setup_ps1() {
     if [[ "$USER" == "root" ]]; then
       PS1_COLOR=31
     elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | egrep -q "(pids:/.|hypervisor)"; then
-      PS1_COLOR=32
+      PS1_COLOR=36
     else
-      PS1_COLOR=-39
+      PS1_COLOR=32
     fi
   fi
 
@@ -107,7 +107,7 @@ __setup_ps1() {
   else
     if ((PS1_COLOR < 0)); then  # 256 colors
       PS1_COLOR=$((-PS1_COLOR))
-      PS1_COLOR="01;38;5;${PS1_COLOR}"
+      PS1_COLOR="38;5;${PS1_COLOR}"
     fi
     PS1="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]"  # user@host:workdir
     if declare -f -F __git_ps1 >/dev/null; then
