@@ -1,21 +1,52 @@
 [[ -z "$PS1" || -z "$HOME" ]] && return
 
-for __d in ~/{.,}anaconda{2,3}/bin ~/.dotfiles*/bin ~/.local/bin ~/.bin; do
-  if [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]]; then
-    PATH="$__d:$PATH"
-  fi
-done
-[[ -d ~/.bin && ":$PATH:" != *"$HOME/bin:"* ]] && PATH="$HOME/bin:$PATH"
-unset __d
-
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 export LC_COLLATE=C
 export EDITOR=vim
 export PAGER=less
-export LESS=-FRSX
+export LESS=-FRSXi
 export LESSHISTFILE=-
 
+alias ls='ls --color=auto --group-directories-first'
+alias l='ls -l'
+alias ll='ls -l -h'
+alias mv='mv -i'
+alias rm='rm -i'
+alias cp='cp -i'
+alias df='df -h'
+alias du='du -h'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias cd3='cd "$(scm-root)"'
+alias cd..='cd ..'
+alias ..='cd ..'
+alias susl='sort | uniq -c | sort -nr | less'
+alias ipython='ipython --no-banner --no-confirm-exit'
+alias ipython3='ipython --no-banner --no-confirm-exit'
+alias p='ipython'
+alias pp='ipython3'
+alias bc='bc -q'
+alias gdb='gdb --quiet'
+alias R='R --no-save --no-restore --quiet'
+alias octave='octave -q'
+alias parallel='parallel --will-cite'
+alias b=byobu-tmux
+alias g=git
+alias got=git
+
+# Paths
+for __d in /usr/local/cuda/bin /opt/conda ~/{.,}conda{3,2,}/bin ~/.dotfiles*/bin ~/.local/bin ~/{.,}bin; do
+  [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]] && PATH="$__d:$PATH"
+done
+for __d in /usr/local/nvidia/{lib64,lib}; do
+  [[ -d "$__d" && ":$LD_LIBRARY_PATH:" != *":$__d:"* ]] && LD_LIBRARY_PATH="$__d:$LD_LIBRARY_PATH"
+done
+[[ -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
+unset __d
+
+# History
 if [[ -f "$HOME/.history" ]]; then
   HISTFILE=
   HISTCONTROL=ignoreboth
@@ -41,34 +72,6 @@ fi
 
 shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
 
-alias ls='ls --color=auto --group-directories-first'
-alias l='ls -l'
-alias ll='ls -l -h'
-alias mv='mv -i'
-alias rm='rm -i'
-alias cp='cp -i'
-alias df='df -h'
-alias du='du -h'
-alias grep='grep --color=auto'
-alias egrep='egrep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias cd3='cd "$(scm-root)"'
-alias cd..='cd ..'
-alias ..='cd ..'
-alias susl='sort | uniq -c | sort -nr | less'
-alias py='ipython --no-banner --no-confirm-exit'
-alias py3='ipython3 --no-banner --no-confirm-exit'
-alias ipython='ipython --no-banner --no-confirm-exit'
-alias ipython3='ipython --no-banner --no-confirm-exit'
-alias bc='bc -q'
-alias gdb='gdb --quiet'
-alias R='R --no-save --no-restore --quiet'
-alias octave='octave -q'
-alias parallel='parallel --will-cite'
-alias b=byobu-tmux
-alias g=git
-alias got=git
-
 # Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
 if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
   eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
@@ -90,14 +93,22 @@ __setup_ps1() {
   fi
 
   if [[ -z "$PS1_COLOR" ]]; then
-    PS1_COLOR=32
-    [[ "$USER" == "root" ]] && PS1_COLOR=31
-    [[ "$USER" == "vm" ]] && PS1_COLOR=36
+    if [[ "$USER" == "root" ]]; then
+      PS1_COLOR=31
+    elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | egrep -q "(pids:/.|hypervisor)"; then
+      PS1_COLOR=32
+    else
+      PS1_COLOR=-39
+    fi
   fi
 
   if [[ "$TERM" == "dumb" ]]; then
     PS1='\u@\h:\w\$ '
   else
+    if ((PS1_COLOR < 0)); then  # 256 colors
+      PS1_COLOR=$((-PS1_COLOR))
+      PS1_COLOR="01;38;5;${PS1_COLOR}"
+    fi
     PS1="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]"  # user@host:workdir
     if declare -f -F __git_ps1 >/dev/null; then
       PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'
