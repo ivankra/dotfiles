@@ -25,8 +25,8 @@ alias ..='cd ..'
 alias susl='sort | uniq -c | sort -nr | less'
 alias ipython='ipython --no-banner --no-confirm-exit'
 alias ipython3='ipython --no-banner --no-confirm-exit'
-alias p='ipython'
-alias pp='ipython3'
+alias p='ipython3'
+alias pp='ipython'
 alias bc='bc -q'
 alias gdb='gdb --quiet'
 alias R='R --no-save --no-restore --quiet'
@@ -37,13 +37,13 @@ alias g=git
 alias got=git
 
 # Paths
-for __d in /usr/local/cuda/bin /opt/conda ~/{.,}conda{3,2,}/bin ~/.dotfiles*/bin ~/.local/bin ~/{.,}bin; do
+for __d in /usr/local/cuda/bin /opt/conda ~/{.,}conda{2,3,}/bin ~/.dotfiles*/bin ~/.local/bin ~/{.,}bin; do
   [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]] && PATH="$__d:$PATH"
 done
 for __d in /usr/local/nvidia/{lib64,lib}; do
   [[ -d "$__d" && ":$LD_LIBRARY_PATH:" != *":$__d:"* ]] && LD_LIBRARY_PATH="$__d:$LD_LIBRARY_PATH"
 done
-[[ -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
+[[ -d /usr/local/cuda && -z "$CUDA_ROOT" ]] && export CUDA_ROOT=/usr/local/cuda
 unset __d
 
 # History
