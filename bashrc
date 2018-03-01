@@ -93,7 +93,7 @@ __setup_ps1() {
   fi
 
   if [[ -z "$PS1_COLOR" ]]; then
-    if [[ "$USER" == "root" ]]; then
+    if [[ $UID == 0 ]]; then
       PS1_COLOR=31
     elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | egrep -q "(pids:/.|hypervisor)"; then
       PS1_COLOR=36
