@@ -64,6 +64,7 @@ if has("autocmd")
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
   autocmd FileType ledger     source ~/.vim/ledger.vim
   autocmd FileType markdown   syn sync minlines=1000
+  autocmd FileType dockerfile set ai
 
   "autocmd BufReadPost * redraw
 endif
