@@ -37,13 +37,18 @@ alias g=git
 alias got=git
 
 # Paths
-for __d in /usr/local/cuda/bin /opt/conda ~/{.,}conda{2,3,}/bin ~/.dotfiles*/bin ~/.local/bin ~/{.,}bin; do
+[[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
+[[ -z "$CONDA_ROOT" && -d ~/.conda ]] && CONDA_ROOT=~/.conda
+[[ -z "$CONDA_ROOT" && -d /opt/conda ]] && CONDA_ROOT=/opt/conda
+
+for __d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles*/bin ~/.local/bin ~/.bin ~/bin; do
   [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]] && PATH="$__d:$PATH"
 done
+
 for __d in /usr/local/nvidia/{lib64,lib}; do
   [[ -d "$__d" && ":$LD_LIBRARY_PATH:" != *":$__d:"* ]] && LD_LIBRARY_PATH="$__d:$LD_LIBRARY_PATH"
 done
-[[ -d /usr/local/cuda && -z "$CUDA_ROOT" ]] && export CUDA_ROOT=/usr/local/cuda
+
 unset __d
 
 # History
@@ -154,3 +159,6 @@ declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
 declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
 unset __setup_prompt_command
 unset __setup_ps1
+
+[[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]] &&
+  source "$CONDA_ROOT/etc/profile.d/conda.sh"

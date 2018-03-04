@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Installes/reinstall dotfiles. Can be rerun multiple times.
 
-export SCM_NAME=""
+export SCM_NAME="$(whoami)"
 export SCM_EMAIL="$(whoami)@$(hostname --short)"
 
 TMPL_VARS='$SCM_NAME $SCM_EMAIL'
@@ -13,6 +13,7 @@ INSTALL_FILES=(
   fonts
   gdb
   gdbinit
+  hushlogin
   inputrc
   profile
   tkdiffrc
@@ -102,7 +103,6 @@ done
 for f in "${INSTALL_FILES[@]}"; do
   install_link "$f"
 done
-
 
 if [[ -x /usr/bin/gnome-keyring-daemon &&
       -x /usr/bin/keychain &&
