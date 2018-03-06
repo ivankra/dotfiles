@@ -25,8 +25,10 @@ alias ..='cd ..'
 alias susl='sort | uniq -c | sort -nr | less'
 alias ipython='ipython --no-banner --no-confirm-exit'
 alias ipython3='ipython --no-banner --no-confirm-exit'
-alias p='ipython3'
-alias pp='ipython'
+alias p='ipython'
+alias py='ipython'
+alias p3='ipython3'
+alias py3='ipython3'
 alias bc='bc -q'
 alias gdb='gdb --quiet'
 alias R='R --no-save --no-restore --quiet'
@@ -35,6 +37,7 @@ alias parallel='parallel --will-cite'
 alias b=byobu-tmux
 alias g=git
 alias got=git
+alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 
 # Paths
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
