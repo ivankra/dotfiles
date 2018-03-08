@@ -48,10 +48,6 @@ for __d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles*/bin ~/.local/bin ~/.b
   [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]] && PATH="$__d:$PATH"
 done
 
-for __d in /usr/local/nvidia/{lib64,lib}; do
-  [[ -d "$__d" && ":$LD_LIBRARY_PATH:" != *":$__d:"* ]] && LD_LIBRARY_PATH="$__d:$LD_LIBRARY_PATH"
-done
-
 unset __d
 
 # History
@@ -103,7 +99,7 @@ __setup_ps1() {
   if [[ -z "$PS1_COLOR" ]]; then
     if [[ $UID == 0 ]]; then
       PS1_COLOR=31
-    elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | egrep -q "(pids:/.|hypervisor)"; then
+    elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | grep -v /init.scope | egrep -q "(pids:/.|hypervisor)"; then
       PS1_COLOR=36
     else
       PS1_COLOR=32
@@ -163,5 +159,6 @@ declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
 unset __setup_prompt_command
 unset __setup_ps1
 
-[[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]] &&
+if [[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
+fi
