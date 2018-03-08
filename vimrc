@@ -285,16 +285,16 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  " gvim settings
-  if has("win32")
-    set guifont=DejaVu_Sans_Mono:h12:cRUSSIAN
-    autocmd GUIEnter * simalt ~x    " Maximize GUI window on start
-  endif
   "set guifont=Fira\ Mono\ Medium\ 13
   set guifont=M+\ 1mn\ Medium\ 12
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
   set background=light
+
+  if exists("+lines") && exists("+columns")
+    set lines=50
+    set columns=120
+  endif
 else
   " console vim settings
   if $TERM == "xterm" || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "screen"
