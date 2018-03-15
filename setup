@@ -104,6 +104,12 @@ for f in "${INSTALL_FILES[@]}"; do
   install_link "$f"
 done
 
+mkdir -p ~/.ssh
+chmod 0700 ~/.ssh
+if [[ -f ~/.ssh/authorized_keys ]]; then
+  chmod 0700 ~/.ssh/authorized_keys
+fi
+
 if [[ -x /usr/bin/gnome-keyring-daemon &&
       -x /usr/bin/keychain &&
       -f ~/.ssh/id_ed25519 &&
