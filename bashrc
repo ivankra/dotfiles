@@ -152,6 +152,11 @@ fi
 [[ -f /usr/share/bash-completion/bash_completion ]] &&
   source /usr/share/bash-completion/bash_completion
 
+if ! [[ -d ~/.ssh/control ]]; then
+  mkdir -p ~/.ssh/control >/dev/null 2>&1
+  chmod 0700 ~/.ssh ~/.ssh/control >/dev/null 2>&1
+fi
+
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
 
 declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
