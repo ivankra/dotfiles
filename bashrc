@@ -41,6 +41,7 @@ alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 
 # Paths
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
+[[ -z "$CUDA_PATH" && ! -z "$CUDA_ROOT" ]] && export CUDA_PATH=$CUDA_ROOT
 [[ -z "$CONDA_ROOT" && -x ~/.conda/bin/conda ]] && CONDA_ROOT=~/.conda
 [[ -z "$CONDA_ROOT" && -x /opt/conda/bin/conda ]] && CONDA_ROOT=/opt/conda
 
