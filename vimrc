@@ -395,6 +395,9 @@ if has("user_commands") && has("autocmd")
 
   com! -nargs=? T tabedit <args>
   com! -nargs=? Tabe tabedit <args>
+  com! -nargs=? E e <args>
+  com! -nargs=? W w <args>
+  com! -nargs=? Wq wq <args>
 endif
 
 " йцукен->qwerty translations for normal mode {{{
