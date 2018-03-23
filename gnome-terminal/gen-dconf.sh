@@ -16,7 +16,7 @@ DEFAULT_THEME="${DEFAULT_THEME:-Fruidle}"
 
 get_color() {
   cat "$FILENAME" | cpp | egrep ".*[*.]$1:" | egrep -o ':[^!]*' | \
-    egrep -o '#[a-zA-Z0-9]{6}'
+    egrep -o '#[a-zA-Z0-9]{6}' | head -1
 }
 
 parse_theme() {
@@ -51,10 +51,11 @@ foreground-color='$COLOR_FG'
 use-theme-colors=false
 palette=[$PALETTE]
 use-system-font=true
+use-theme-transparency=false
 default-size-columns=100
 default-size-rows=40
 scrollback-unlimited=true
-scrollbar-policy='never'
+scrollbar-policy='always'
 audible-bell=false
 
 EOF
