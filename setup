@@ -107,21 +107,23 @@ done
 mkdir -p ~/.ssh/control
 chmod 0700 ~/.ssh ~/.ssh/control
 if [[ -f ~/.ssh/authorized_keys ]]; then
-  chmod 0700 ~/.ssh/authorized_keys
+  chmod 0600 ~/.ssh/authorized_keys
+  if ! [[ -f ~/.ssh/config ]]; then
+    cp ssh_config.sample ~/.ssh/config
+    echo "Created sample ~/.ssh/config"
+  fi
 fi
 
-if [[ -x /usr/bin/gnome-keyring-daemon &&
-      -x /usr/bin/keychain &&
-      -f ~/.ssh/id_ed25519 &&
-      fix/keychain-ssh.desktop -ef ~/.config/autostart/gnome-keyring-ssh.desktop ]]; then
-  mkdir -p ~/.config/autostart
-  ln -sf ~/.dotfiles/fix/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
-  #ln -sf ~/.dotfiles/fix/keychain-gpg.desktop ~/.config/autostart/gnome-keyring-gpg.desktop
-  echo "Fixed up gnome keyring"
-
+if [[ -x /usr/bin/gnome-keyring-daemon && -f ~/.ssh/id_ed25519 ]]; then
+  if ! [[ data/keychain-ssh.desktop -ef ~/.config/autostart/gnome-keyring-ssh.desktop ]]; then
+    mkdir -p ~/.config/autostart
+    ln -sf ../../.dotfiles/data/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
+    echo "Fixed up gnome-keyring-ssh"
+  fi
+  if ! [[ -x /usr/bin/keychain ]]; then
+    echo -e "Action required:\nsudo apt-get install keychain"
+  fi
   if [[ -f /etc/xdg/autostart/gnome-keyring-ssh.desktop ]]; then
-    echo "Action required to complete keyring fix:"
-    echo "  1) sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
-    echo "  2) add 'Host *', 'AddKeysToAgent yes' to ~/.ssh/config"
+    echo -e "Action required:\nsudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
   fi
 fi
