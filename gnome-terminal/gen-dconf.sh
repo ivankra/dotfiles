@@ -43,6 +43,13 @@ gen_dconf() {
     [[ "$FILENAME" == "$DEFAULT_THEME" || -z "$UUID_DEFAULT" ]] &&
       UUID_DEFAULT="$UUID"
 
+    SCROLLBAR_POLICY="never"
+    for k in /org/{gnome,cinnamon}/desktop/interface/gtk-theme; do
+      if dconf read $k | grep -q Ambiance; then
+        SCROLLBAR_POLICY="always"
+      fi
+    done
+
     cat <<EOF
 [org/gnome/terminal/legacy/profiles:/:${UUID}]
 visible-name='$NAME'
@@ -55,7 +62,7 @@ use-theme-transparency=false
 default-size-columns=100
 default-size-rows=40
 scrollback-unlimited=true
-scrollbar-policy='always'
+scrollbar-policy='$SCROLLBAR_POLICY'
 audible-bell=false
 
 EOF
