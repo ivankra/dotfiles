@@ -1,0 +1,20 @@
+AddKeysToAgent yes
+Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+Compression no
+ControlMaster auto
+ControlPath ~/.ssh/control/%r@%h:%p
+ControlPersist 300
+HostKeyAlgorithms ssh-ed25519-cert-v01@openssh.com,ssh-ed25519,ssh-rsa
+IdentityFile ~/.ssh/id_ed25519
+IdentityFile ~/.ssh/id_rsa
+
+Include ~/.ssh/config.local
+
+Host 172.17.*
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null
+ControlPersist no
+
+Host github.com
+IdentityFile ~/.ssh/github.id_ed25519
+User git
