@@ -54,7 +54,7 @@ gen_file() {
 
 install_link() {
   local src=".dotfiles/$1"
-  local dst=".$(basename "$1")"
+  local dst="${2:-.$(basename "$1")}"
 
   local src_path="$HOME/$src"
   local dst_path="$HOME/$dst"
@@ -106,12 +106,20 @@ done
 
 mkdir -p ~/.ssh/control
 chmod 0700 ~/.ssh ~/.ssh/control
+if ! [[ -L ~/.ssh/config ]]; then
+  if [[ -f ~/.ssh/config ]]; then
+    mv -f ~/.ssh/config ~/.ssh/config.PREV
+    echo "Moved: ~/.ssh/config -> ~/.ssh/config.PREV"
+  fi
+  ln -s -f ~/.dotfiles/ssh_config ~/.ssh/config
+  echo "Linked: ~/.ssh/config -> ~/.dotfiles/ssh_config"
+fi
+if ! [[ -f ~/.ssh/config.local ]]; then
+  touch ~/.ssh/config.local
+fi
+chmod 0600 ~/.ssh/config ~/.ssh/config.local
 if [[ -f ~/.ssh/authorized_keys ]]; then
   chmod 0600 ~/.ssh/authorized_keys
-  if ! [[ -f ~/.ssh/config ]]; then
-    cp ssh_config.sample ~/.ssh/config
-    echo "Created sample ~/.ssh/config"
-  fi
 fi
 
 if [[ -x /usr/bin/gnome-keyring-daemon && -f ~/.ssh/id_ed25519 ]]; then
@@ -121,9 +129,9 @@ if [[ -x /usr/bin/gnome-keyring-daemon && -f ~/.ssh/id_ed25519 ]]; then
     echo "Fixed up gnome-keyring-ssh"
   fi
   if ! [[ -x /usr/bin/keychain ]]; then
-    echo -e "Action required:\nsudo apt-get install keychain"
+    echo -e "Action required: sudo apt-get install keychain"
   fi
   if [[ -f /etc/xdg/autostart/gnome-keyring-ssh.desktop ]]; then
-    echo -e "Action required:\nsudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
+    echo -e "Action required: sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
   fi
 fi
