@@ -53,11 +53,25 @@ gen_file() {
 }
 
 install_link() {
-  local src=".dotfiles/$1"
+  local src="$1"
+  if ! [[ "$src" == /* ]]; then
+    src=".dotfiles/$src";
+  fi
+
   local dst="${2:-.$(basename "$1")}"
 
-  local src_path="$HOME/$src"
-  local dst_path="$HOME/$dst"
+  local src_path=$(cd ~; readlink -f "$src")
+  local dst_path=$(cd ~; readlink -f "$dst")
+
+  if [[ "$dst" == */* ]]; then
+    src="$src_path"
+  fi
+
+  local dst_dir="$(dirname "$dst_path")"
+  if ! [[ -d "$dst_dir" ]]; then
+    mkdir -p "$dst_dir"
+    echo "Created $dst_dir"
+  fi
 
   if ! [[ -e "$src_path" ]]; then
     echo "Error: $src_path doesn't exist"
@@ -104,16 +118,11 @@ for f in "${INSTALL_FILES[@]}"; do
   install_link "$f"
 done
 
+install_link ipython_config.py ~/.ipython/profile_default/ipython_config.py
+install_link ssh_config ~/.ssh/config
+
 mkdir -p ~/.ssh/control
 chmod 0700 ~/.ssh ~/.ssh/control
-if ! [[ -L ~/.ssh/config ]]; then
-  if [[ -f ~/.ssh/config ]]; then
-    mv -f ~/.ssh/config ~/.ssh/config.PREV
-    echo "Moved: ~/.ssh/config -> ~/.ssh/config.PREV"
-  fi
-  ln -s -f ~/.dotfiles/ssh_config ~/.ssh/config
-  echo "Linked: ~/.ssh/config -> ~/.dotfiles/ssh_config"
-fi
 if ! [[ -f ~/.ssh/config.local ]]; then
   touch ~/.ssh/config.local
 fi
