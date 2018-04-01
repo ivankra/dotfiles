@@ -29,14 +29,15 @@ link() {
   if ! [[ "$src" == /* ]]; then
     src=".dotfiles/$src";
   fi
+  local src_path=$(cd ~; readlink -f "$src")
 
   local dst="${2:-.$(basename "$1")}"
-
-  local src_path=$(cd ~; readlink -f "$src")
-  local dst_path=$(cd ~; readlink -f "$dst")
-
+  local dst_path="$HOME/$dst"
   if [[ "$dst" == */* ]]; then
     src="$src_path"
+  fi
+  if [[ "$dst" == /* ]]; then
+    dst_path="$dst"
   fi
 
   local dst_dir="$(dirname "$dst_path")"
@@ -56,19 +57,19 @@ link() {
     elif [[ -d "$dst_path" ]]; then
       rm -rf "$dst_path"
       ln -s "$src" "$dst_path"
-      echo "Replaced directory: ~/$dst -> $src";
+      echo "Replaced directory: $dst_path -> $src";
     else
       rm -f "$dst_path"
       ln -s "$src" "$dst_path"
-      echo "Replaced: ~/$dst -> $src"
+      echo "Replaced: $dst_path -> $src"
     fi
   elif [[ -L "$dst_path" ]]; then
     rm -f "$dst_path"
     ln -s "$src" "$dst_path"
-    echo "Fixed broken link: ~/$dst -> $src"
+    echo "Fixed broken link: $dst_path -> $src"
   else
     ln -s "$src" "$dst_path"
-    echo "Linked: ~/$dst -> $src"
+    echo "Linked: $dst_path -> $src"
   fi
 }
 
