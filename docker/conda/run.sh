@@ -1,57 +1,29 @@
 #!/bin/bash
-# Usage:
-#   ./run.sh build
-#   ./run.sh [mount directory]
+# Usage: ./run.sh [-d <working directory or volume>] [command]
+# Command: lab, nb/notebook or a shell command e.g. bash.
 
-IMAGE=conda3
+IMAGE=conda
 
-ANACONDA_URL=https://repo.continuum.io/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh
-ANACONDA_SHA256=0c2e9b992b2edd87eddf954a96e5feae86dd66d69b1f6706a99bd7fa75e7a891
+host_main() {
+  WORKDIR=.
+  while [[ $# > 0 ]]; do
+    case "$1" in
+      -d) WORKDIR="$2"; shift 2;;
+      *) break;;
+    esac
+  done
 
-#ANACONDA_URL=https://repo.continuum.io/miniconda/Miniconda2-4.4.10-Linux-x86_64.sh
-#ANACONDA_SHA256=4e4ff02c9256ba22d59a1c1a52c723ca4c4ec28fed3bc3b6da68b9d910fe417c
-
-VOLUME=/srv/lab
-
-SCRIPT_DIR="$(dirname -- "$(readlink -f -- "$0")")"
-
-
-build() {
-  set -e -o pipefail
-  cd "$SCRIPT_DIR"
-  rm -rf pkg
-  mkdir -p pkg
-  cp -a ~/.dotfiles pkg/dotfiles
-  if [[ -f ~/.ssh/id_ed25519.pub ]]; then
-    cp -a ~/.ssh/id_ed25519.pub pkg/authorized_keys
-  elif [[ -f ~/.ssh/id_rsa.pub ]]; then
-    cp -a ~/.ssh/id_rsa.pub pkg/authorized_keys
-  fi
-  if [[ -f ~/.ssh/authorized_keys ]]; then
-    cat ~/.ssh/authorized_keys >>pkg/authorized_keys
-  fi
-  docker build -t "$IMAGE" --build-arg "ANACONDA_URL=$ANACONDA_URL" --build-arg "ANACONDA_SHA256=$ANACONDA_SHA256" .
-}
-
-run() {
-  if ! [[ -z "$1" ]]; then
-    VOLUME="$1"
-  fi
-
-  if [[ -z "$VOLUME" ]]; then
-    VOLUME=lab
-    echo "Using volume 'lab' as /mnt"
-  elif [[ -d "$VOLUME" ]]; then
-    echo "Using directory $VOLUME as /mnt"
-  else
-    echo "Error: $VOLUME is not a directory"
+  if ! [[ -d "$WORKDIR" ]]; then
+    echo "Error: directory $WORKDIR doesn't exist"
     exit 1
   fi
 
+  WORKDIR=$(realpath -m -- "$WORKDIR")
+
   if which nvidia-docker >/dev/null 2>&1; then
-    echo "Using nvidia runtime"
     DOCKER=nvidia-docker
   else
+    echo "Warning: nvidia runtime unavailable"
     DOCKER=docker
   fi
 
@@ -65,56 +37,73 @@ run() {
     echo "Picked host port $HOSTPORT"
   fi
 
+  ENVF=()
+  if [[ -n "$HOSTPORT" ]]; then ENVF+=("-e" "HOSTPORT=$HOSTPORT"); fi
+  if [[ -n "$JUMPHOST" ]]; then ENVF+=("-e" "JUMPHOST=$JUMPHOST"); fi
+  if [[ -n "$JUMPUSER" ]]; then ENVF+=("-e" "JUMPUSER=$JUMPUSER"); fi
+
   set -e -x
   $DOCKER run \
     --init --rm -i -t \
-    -v "$VOLUME:/mnt" \
-    -p "$HOSTPORT:8888" \
-    -e "HOSTPORT=$HOSTPORT" \
-    -e "JUMPHOST=$JUMPHOST" \
-    -e "JUMPUSER=$JUMPUSER" \
-    "$IMAGE"
+    -v "$WORKDIR:/mnt" \
+    ${HOSTPORT:+-p "$HOSTPORT:8888"} \
+    "${ENVF[@]}" "$IMAGE" "$@"
 }
 
-startup() {
-  if [[ $? == 0 ]]; then
+docker_main() {
+  if [[ $UID == 0 ]]; then
+    local USR="$(cd /home; ls)"
+    local PW="$(openssl rand -hex 16)"
+    echo
+    echo "root password:   $PW"
+    echo "$USR:$PW" | chpasswd
+    echo "root:$PW" | chpasswd
+    usermod -a -G sudo "$USR"
     mkdir -p /var/run/sshd
     /usr/sbin/sshd
+    echo "umask 002; cd /mnt" >~/.bashrc.local
+    sudo --preserve-env --login -u "$USR" bash -- "$(realpath -- "$0")" "$@"
+    exit $?
   fi
 
-  cd /mnt
+  umask 002; cd /mnt
   echo "umask 002; cd /mnt" >~/.bashrc.local
   source ~/.bashrc
 
   TOKEN="$(openssl rand -hex 16)"
+  mkdir -p ~/.jupyter
+  echo "$TOKEN" >~/.jupyter/token
+
   IPADDR="$(hostname -I | cut -d ' ' -f 1)"
 
-  echo
   echo "URL:             http://$IPADDR:8888/?token=${TOKEN}"
   if [[ -n "$JUMPHOST" ]]; then
+    # TODO: print ssh port forwarding instruction
     echo "                 http://$JUMPHOST:$HOSTPORT/?token=${TOKEN}"
   fi
   echo "SSH:             ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $(whoami)@$IPADDR"
   if [[ -n "$JUMPHOST" ]]; then
     echo "                 ssh -J $JUMPUSER@$JUMPHOST -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $(whoami)@$IPADDR"
   fi
-  echo "Attach as root:  docker exec -it -u root ${HOSTNAME} bash"
-  echo "Attach as $(whoami):  docker exec -it ${HOSTNAME} bash"
+  echo "Attach:               docker exec -it ${HOSTNAME} bash"
   echo
 
-  /opt/conda/bin/jupyter-lab \
-    --allow-root \
-    --ip=0.0.0.0 \
-    --no-browser \
-    --port=8888 \
-    --LabApp.token="${TOKEN}" \
-    --NotebookApp.iopub_data_rate_limit=100000000
+  case "${1:-nb}" in
+    lab)
+      set -x
+      /opt/conda/bin/jupyter-lab --ip=0.0.0.0 --port=8888 --LabApp.token="${TOKEN}";;
+    nb|notebook)
+      set -x
+      /opt/conda/bin/jupyter-notebook --ip=0.0.0.0 --port=8888 --NotebookApp.token="${TOKEN}";;
+    bash|sh)
+      bash -i -l;;
+    *)
+      bash -i -l -- "$@";;
+  esac
 }
 
-if [[ "$1" == "build" ]]; then
-  build
-elif [[ "$0" == "/run.sh" || "$1" == "startup" ]]; then
-  startup
+if [[ "$0" == "/run.sh" ]]; then
+  docker_main "$@"
 else
-  run "$@"
+  host_main "$@"
 fi

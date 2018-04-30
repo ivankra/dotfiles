@@ -1,0 +1,22 @@
+{
+  "Notebook": {
+    "Header": true,
+    "Toolbar": false
+  },
+  "CodeCell": {
+    "cm_config": {
+      "autoCloseBrackets": false,
+      "lineNumbers": false,
+      "indentUnit": 2,
+      "tabSize": 2,
+      "indentWithTabs": false,
+      "smartIndent": true
+    }
+  },
+  "load_extensions": {
+    "collapsible_headings/main": true,
+    "jupyter-js-widgets/extension": true,
+    "nbextensions_configurator/config_menu/main": true,
+    "contrib_nbextensions_help_item/main": true
+  }
+}

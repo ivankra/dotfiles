@@ -23,11 +23,8 @@ alias cd3='cd "$(scm-root)"'
 alias cd..='cd ..'
 alias ..='cd ..'
 alias susl='sort | uniq -c | sort -nr | less'
-alias ipython='ipython --no-banner --no-confirm-exit'
-alias ipython3='ipython --no-banner --no-confirm-exit'
-alias p='ipython'
+alias nb='jupyter-notebook'
 alias py='ipython'
-alias p3='ipython3'
 alias py3='ipython3'
 alias bc='bc -q'
 alias gdb='gdb --quiet'
@@ -38,6 +35,14 @@ alias b=byobu-tmux
 alias g=git
 alias got=git
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
+
+if [[ -d ~/.ws/docker ]] && ls ~/.ws/docker/*/run.sh >/dev/null 2>&1; then
+  for __d in $(ls ~/.ws/docker); do
+    if [[ -x "$HOME/.ws/docker/$__d/run.sh" ]]; then
+      alias "docker-$__d"="$HOME/.ws/docker/$__d/run.sh"
+    fi
+  done
+fi
 
 # Paths
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda

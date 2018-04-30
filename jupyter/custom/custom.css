@@ -1,0 +1,5 @@
+.CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field, .terminal-app .terminal, .output_text pre {
+  font-family: "M+ 1mn Medium";
+  font-size: 12pt;
+  font-weight: 500;
+}
