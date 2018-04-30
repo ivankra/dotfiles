@@ -94,6 +94,7 @@ link gdb
 link gdbinit
 link hushlogin
 link inputrc
+link jupyter
 link profile
 link tkdiffrc
 link tmux.conf

@@ -31,6 +31,7 @@ dependencies:
   - py-xgboost
   - pygpu
   - pytorch
+  - python-graphviz
   - pyyaml
   - scikit-image
   - scikit-learn
@@ -46,7 +47,9 @@ dependencies:
   - typing
   - pip:
     - gpustat
+    - isoweek
     - jupyter_contrib_nbextensions
+    - jupyter_nbextensions_configurator
     - kernda
     - lightgbm
     - opencv-python
@@ -55,4 +58,3 @@ dependencies:
     - pynvrtc
     - sklearn_pandas
     - torchtext
-    #- cupy

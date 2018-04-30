@@ -1,3 +1,6 @@
+*.local
+fonts/.uuid
 gitconfig
 hgrc
-*.local
+jupyter/migrated
+jupyter/token

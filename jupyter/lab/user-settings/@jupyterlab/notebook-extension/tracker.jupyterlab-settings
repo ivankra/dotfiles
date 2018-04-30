@@ -1,0 +1,14 @@
+{
+    "codeCellConfig": {
+      "autoClosingBrackets": false,
+      "tabSize": 2
+    },
+
+    "markdownCellConfig": {
+      "tabSize": 2
+    },
+
+    "rawCellConfig": {
+      "tabSize": 2
+    }
+}
