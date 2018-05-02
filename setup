@@ -130,4 +130,4 @@ if [[ -x /usr/bin/gnome-keyring-daemon && -f ~/.ssh/id_ed25519 ]]; then
 fi
 
 mkdir -p ~/.byobu
-touch ~/.byoub/.welcome-displayed
+touch ~/.byobu/.welcome-displayed
