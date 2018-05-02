@@ -128,3 +128,6 @@ if [[ -x /usr/bin/gnome-keyring-daemon && -f ~/.ssh/id_ed25519 ]]; then
     echo -e "Action required: sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
   fi
 fi
+
+mkdir -p ~/.byobu
+touch ~/.byoub/.welcome-displayed
