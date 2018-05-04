@@ -1,0 +1,12 @@
+FROM lab
+
+RUN conda install -n base -c r -y rstudio && \
+    mkdir -p /etc/rstudio && \
+    echo "rsession-which-r=/opt/conda/bin/R" >/etc/rstudio/rserver.conf && \
+    echo "www-port=8888" >>/etc/rstudio/rserver.conf
+
+RUN cd /tmp && \
+    curl -s -o rstudio-server.deb "https://download2.rstudio.org/rstudio-server-1.1.447-amd64.deb" && \
+    echo "4090430b309d51e240601bc13955a1ff70f3a10ca0137d0cba4126b22829ae4b  rstudio-server.deb" | sha256sum -c - && \
+    dpkg -i ./rstudio-server.deb && \
+    rm -f ./rstudio-server.deb

@@ -3,6 +3,7 @@ channels:
 dependencies:
   - r-base
   - r-caret
+  - r-rbokeh
   - r-crayon
   - r-devtools
   - r-forecast
@@ -22,4 +23,3 @@ dependencies:
   - r-tidyverse
   - r-xgboost
   - rpy2
-  - rstudio

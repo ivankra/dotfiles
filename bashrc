@@ -42,6 +42,12 @@ if [[ -d ~/.ws/docker ]] && ls ~/.ws/docker/*/run.sh >/dev/null 2>&1; then
       alias "docker-$__d"="$HOME/.ws/docker/$__d/run.sh"
     fi
   done
+else
+  for __d in $(ls ~/.dotfiles/docker); do
+    if [[ -x "$HOME/.dotfiles/docker/$__d/run.sh" ]]; then
+      alias "docker-$__d"="$HOME/.dotfiles/docker/$__d/run.sh"
+    fi
+  done
 fi
 
 # Paths
