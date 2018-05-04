@@ -16,6 +16,8 @@ RUN apt-get clean && \
 RUN apt-get clean && \
     apt-get update -y -q && \
     apt-get install -y -q --no-install-recommends \
+        aptitude \
+        bc \
         bsdmainutils \
         build-essential \
         byobu \
@@ -25,6 +27,7 @@ RUN apt-get clean && \
         curl \
         dnsutils \
         ffmpeg \
+        file \
         fonts-dejavu \
         fonts-liberation \
         fonts-mplus \
@@ -35,6 +38,7 @@ RUN apt-get clean && \
         git \
         gnuplot \
         graphviz \
+        imagemagick \
         iproute2 \
         iputils-ping \
         less \
@@ -43,28 +47,38 @@ RUN apt-get clean && \
         libcurl3-dev \
         libfreetype6-dev \
         libgl1-mesa-glx \
-        libjpeg-dev \
         libhdf5-dev \
+        libjpeg-dev \
         liboctave-dev \
         libpng-dev \
         libpng12-dev \
+        libssl-dev \
+        libxml2-dev \
         libzmq3-dev \
         locales \
-        netpbm \
+        mercurial \
         net-tools \
+        netpbm \
+        octave \
         openmpi-bin \
+        pandoc \
+        parallel \
+        patch \
+        p7zip-full \
         pkg-config \
+        psmisc \
         python \
         python-dev \
         python-pip \
-        p7zip-full \
         rsync \
-        software-properties-common \
         screen \
+        software-properties-common \
         ssh \
         sshfs \
-        swig \
+        strace \
+        subversion \
         sudo \
+        swig \
         tmux \
         traceroute \
         tzdata \
@@ -72,8 +86,8 @@ RUN apt-get clean && \
         vim \
         vim-gtk3 \
         wget \
+        whois \
         xauth \
-        xpra \
         xsel \
         zip \
         zlib1g-dev \
@@ -84,42 +98,33 @@ RUN apt-get clean && \
     locale-gen && \
     passwd -d root
 
-ARG NB_USER=user
-ARG NB_GID=1000
-ARG NB_UID=1000
-ARG ANACONDA_URL=https://repo.continuum.io/miniconda/Miniconda3-4.4.10-Linux-x86_64.sh
-ARG ANACONDA_SHA256=0c2e9b992b2edd87eddf954a96e5feae86dd66d69b1f6706a99bd7fa75e7a891
-
 ENV CONDA_DIR=/opt/conda \
     PATH="/root/.dotfiles/bin:/opt/conda/bin:/usr/local/cuda/bin:${PATH}"
 
+ARG NB_USER=user
+ARG NB_GID=1000
+ARG NB_UID=1000
+
 RUN groupadd --gid ${NB_GID} ${NB_USER} && \
-    useradd --uid ${NB_UID} --gid ${NB_GID} --shell /bin/bash --create-home --no-log-init ${NB_USER} && \
+    useradd --uid ${NB_UID} --gid ${NB_GID} --groups sudo --shell /bin/bash --create-home --no-log-init ${NB_USER} && \
     mkdir -p ${CONDA_DIR} /usr/local/share/jupyter && \
     chown -R ${NB_UID}:${NB_GID} ${CONDA_DIR} /home/${NB_USER} /usr/local/share/jupyter
 
 USER ${NB_USER}
 
-ADD environment.yml ${CONDA_DIR}/environment.yml
 RUN mkdir -p ${CONDA_DIR} && \
     cd /tmp && \
-    curl -s -o anaconda.sh "${ANACONDA_URL}" && \
-    echo "${ANACONDA_SHA256}  anaconda.sh" | sha256sum -c - && \
+    curl -s -o anaconda.sh "https://repo.continuum.io/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh" && \
+    echo "4b857c96d7aad4b09063224e88f4f62e778a5f1f2a1b211340ba765ce6aa21e5  anaconda.sh" | sha256sum -c - && \
     bash ./anaconda.sh -f -b -p ${CONDA_DIR} && \
     rm -f anaconda.sh && \
-    conda update -y -n base conda && \
-    conda env update -n base -f ${CONDA_DIR}/environment.yml && \
-    { \
-      if [[ "${ANACONDA_URL}" == *conda3* ]]; then \
-        conda create -y -n py27 python=2.7 && \
-        conda env update -n py27 -f ${CONDA_DIR}/environment.yml && \
-        /opt/conda/envs/py27/bin/python -m ipykernel install; \
-      else \
-        conda create -y -n py36 python=3.6 && \
-        conda env update -n py36 -f ${CONDA_DIR}/environment.yml && \
-        /opt/conda/envs/py36/bin/python -m ipykernel install; \
-      fi; \
-    } && \
+    conda update -y -n base conda
+
+ADD environment.yml ${CONDA_DIR}/environment.yml
+RUN conda env update -n base -f ${CONDA_DIR}/environment.yml && \
+    conda create -y -n py27 python=2.7 && \
+    conda env update -n py27 -f ${CONDA_DIR}/environment.yml && \
+    /opt/conda/envs/py27/bin/python -m ipykernel install && \
     conda clean -a -y
 
 ADD environment-r.yml ${CONDA_DIR}/environment-r.yml
@@ -129,19 +134,16 @@ RUN python -m spacy download en && \
     jupyter contrib nbextension install --user && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
-#jupyter nbextension enable --py widgetsnbextension && \
-#jupyter nbextensions_configurator enable --user
-#jupyter contrib nbextension install --user
-#RUN pip install cupy
-
 USER root
-ADD pkg/authorized_keys /root/.ssh/authorized_keys
-ADD pkg/dotfiles /root/.dotfiles
-RUN /root/.dotfiles/setup && \
+ADD .dotfiles /root/.dotfiles
+RUN mkdir -m 0700 -p /root/.ssh && \
+    cp -a /root/.dotfiles/authorized_keys /root/.ssh/ && \
     cp -a /root/.dotfiles /root/.ssh /home/${NB_USER}/ && \
     chmod -R og-rwx /root/.ssh /home/${NB_USER}/.ssh && \
     /root/.dotfiles/setup && \
-    chown -R ${NB_UID}:${NB_GID} ${CONDA_DIR} /home/${NB_USER} /mnt /usr/local/share/jupyter && \
+    find ${CONDA_DIR} /home/${NB_USER} /usr/local/share/jupyter '!' -user ${NB_UID} -exec chown ${NB_UID}:${NB_GID} '{}' ';' && \
+    mkdir -p /work && ln -s /work /home/${NB_USER}/work && \
+    chown -h ${NB_UID}:${NB_GID} /work /home/${NB_USER}/work && \
     sudo --login -u ${NB_USER} /home/${NB_USER}/.dotfiles/setup
 
 EXPOSE 22 8888

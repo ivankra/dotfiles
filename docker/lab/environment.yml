@@ -8,6 +8,7 @@ dependencies:
   - cmake
   - dask
   - flask
+  - fonts-anaconda
   - gensim
   - graphviz
   - h5py
@@ -30,8 +31,8 @@ dependencies:
   - pip
   - py-xgboost
   - pygpu
-  - pytorch
   - python-graphviz
+  - pytorch
   - pyyaml
   - scikit-image
   - scikit-learn
@@ -46,6 +47,7 @@ dependencies:
   - tqdm
   - typing
   - pip:
+    - catboost
     - gpustat
     - isoweek
     - jupyter_contrib_nbextensions
@@ -56,5 +58,6 @@ dependencies:
     - pandas_summary
     - plotnine
     - pynvrtc
+    - pysqldf
     - sklearn_pandas
     - torchtext
