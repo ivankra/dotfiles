@@ -1,0 +1,8 @@
+#!/bin/bash
+# Wrapper to call FUSE umount command when running under unprivileged user.
+set -e
+if [[ $UID != 0 && "$#" == 1 && -d "$1" ]]; then
+  fusermount -u "$1" && exit 0
+else
+  /bin/umount "$@"
+fi
