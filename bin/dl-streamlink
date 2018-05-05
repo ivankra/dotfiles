@@ -20,11 +20,13 @@ if [[ "$URL" =~ .*/([-a-zA-Z0-9_]+)/*$ ]]; then
 fi
 
 NUM=1
+SLEEP=60
 
 while :; do
-  FILENAME="$BASENAME.$(date +%Y%m%d)"
-  ((NUM > 1)) && FILENAME+=".$NUM"
-  FILENAME+=".flv"
+  FILENAME="$BASENAME.$(date +%Y%m%d).$NUM.flv"
+  if [[ -d "$BASENAME" ]]; then
+    FILENAME="$BASENAME/$FILENAME"
+  fi
 
   if [[ -f "$FILENAME" && "$(stat -c '%s' "$FILENAME" 2>/dev/null)" -le 1000 ]]; then
     echo "Removing empty $FILENAME"
@@ -42,9 +44,24 @@ while :; do
   streamlink \
     --default-stream=best \
     --retry-streams=30 \
-    --retry-open=999 \
+    --retry-open=3 \
     -o "$FILENAME" \
     "$URL" "$@"
 
-  sleep 5
+  if [[ -f "$FILENAME" && "$(stat -c '%s' "$FILENAME" 2>/dev/null)" -le 1000 ]]; then
+    rm -f "$FILENAME"
+  fi
+
+  if [[ -f "$FILENAME" ]]; then
+    SLEEP=60
+    NUM=$((NUM + 1))
+  else
+    SLEEP=$((SLEEP * 4 / 3))
+    SLEEP=$((SLEEP > 900 ? 900 : SLEEP))
+  fi
+
+  sleep $SLEEP
+  if [[ $? -ne 0 ]]; then
+    break
+  fi
 done
