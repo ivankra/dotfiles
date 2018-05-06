@@ -36,7 +36,9 @@ alias g=git
 alias got=git
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 
-if [[ -d ~/.ws/docker ]] && ls ~/.ws/docker/*/run.sh >/dev/null 2>&1; then
+if [[ -d ~/.ws/.git ]]; then
+  umask 002
+
   for __d in $(ls ~/.ws/docker); do
     if [[ -x "$HOME/.ws/docker/$__d/run.sh" ]]; then
       alias "docker-$__d"="$HOME/.ws/docker/$__d/run.sh"
@@ -50,7 +52,6 @@ else
   done
 fi
 
-# Paths
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
 [[ -z "$CUDA_PATH" && ! -z "$CUDA_ROOT" ]] && export CUDA_PATH=$CUDA_ROOT
 [[ -z "$CONDA_ROOT" && -x ~/.conda/bin/conda ]] && CONDA_ROOT=~/.conda
