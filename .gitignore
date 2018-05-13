@@ -2,5 +2,6 @@
 fonts/.uuid
 gitconfig
 hgrc
+jupyter/jupyter_notebook_config.json
 jupyter/migrated
 jupyter/token

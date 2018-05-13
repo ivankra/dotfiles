@@ -103,6 +103,7 @@ link vimrc
 link xinitrc
 
 link ipython_config.py ~/.ipython/profile_default/ipython_config.py
+
 link ssh_config ~/.ssh/config
 
 mkdir -p ~/.ssh/control
@@ -131,3 +132,14 @@ fi
 
 mkdir -p ~/.byobu
 touch ~/.byobu/.welcome-displayed
+
+cat >jupyter/jupyter_notebook_config.json <<EOF
+{
+  "NotebookApp": {
+    "nbserver_extensions": {
+      $(python -c 'import jupyter_nbextensions_configurator' >/dev/null 2>&1 &&
+        echo '"jupyter_nbextensions_configurator": true')
+    }
+  }
+}
+EOF
