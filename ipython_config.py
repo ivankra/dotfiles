@@ -1,5 +1,6 @@
 import os
 import re
+import IPython
 
 from pygments.style import Style
 from pygments.token import Comment, Error, Generic, Keyword, Literal, Name, \
@@ -19,30 +20,8 @@ def HasParentProcess(cmdline_pattern):
   return False
 
 
-class DarkStyle(Style):
-    background_color = '#000000'
-    default_style = '#ffffff'
-
-    styles = {
-        Token:              '#ffffff',
-        Whitespace:         '#666666',
-        Comment:            '#66cccc',
-        Keyword:            'bold #33ff33',
-        Keyword.Pseudo:     'nobold',
-        Operator.Word:      'bold #33ff33',
-        String:             '#99ccff bold',
-        Number:             'bold #33ffff',
-        Name.Builtin:       '#00bbff bold',
-        Name.Function:      '#ffffff bold',
-        Error:              '#ff6600',
-        Generic.Heading:    '#ffffff bold',
-        Generic.Output:     '#444444 bg:#222222',
-        Generic.Subheading: '#ffffff bold',
-    }
-
-
 # Based on https://github.com/dracula/pygments/blob/master/dracula.py
-class DraculaStyle(Style):
+class ModDraculaStyle(Style):
     background_color = "#282a36"
     default_style = ""
 
@@ -65,25 +44,25 @@ class DraculaStyle(Style):
         Generic.Subheading: "#ffffff bold",
         Generic.Traceback: "#ffffff",
         Error: "#ffffff",
-        Keyword: "#ff79c6",
-        Keyword.Constant: "#ff79c6",
-        Keyword.Declaration: "#8be9fd italic",
-        Keyword.Namespace: "#ff79c6",
-        Keyword.Pseudo: "#ff79c6",
-        Keyword.Reserved: "#ff79c6",
-        Keyword.Type: "#8be9fd",
+        Keyword: "#ff79c6 bold",
+        Keyword.Constant: "#ff79c6 bold",
+        Keyword.Declaration: "#8be9fd bold italic",
+        Keyword.Namespace: "#ff79c6 bold",
+        Keyword.Pseudo: "#ff79c6 bold",
+        Keyword.Reserved: "#ff79c6 bold",
+        Keyword.Type: "#8be9fd bold",
         Literal: "#ffffff",
         Literal.Date: "#ffffff",
         Name: "#ffffff",
-        Name.Attribute: "#50fa7b",
-        Name.Builtin: "#8be9fd italic",
+        Name.Attribute: "#50fa7b bold",
+        Name.Builtin: "#8be9fd bold",
         Name.Builtin.Pseudo: "#ffffff",
-        Name.Class: "#50fa7b",
+        Name.Class: "#50fa7b bold",
         Name.Constant: "#ffffff",
         Name.Decorator: "#ffffff",
         Name.Entity: "#ffffff",
         Name.Exception: "#ffffff",
-        Name.Function: "#50fa7b",
+        Name.Function: "#50fa7b bold",
         Name.Label: "#8be9fd italic",
         Name.Namespace: "#ffffff",
         Name.Other: "#ffffff",
@@ -92,29 +71,29 @@ class DraculaStyle(Style):
         Name.Variable.Class: "#8be9fd italic",
         Name.Variable.Global: "#8be9fd italic",
         Name.Variable.Instance: "#8be9fd italic",
-        Number: "#bd93f9",
-        Number.Bin: "#bd93f9",
-        Number.Float: "#bd93f9",
-        Number.Hex: "#bd93f9",
-        Number.Integer: "#bd93f9",
-        Number.Integer.Long: "#bd93f9",
-        Number.Oct: "#bd93f9",
-        Operator: "#ff79c6",
-        Operator.Word: "#ff79c6",
+        Number: "#99ffff bold",
+        Number.Bin: "#99ffff bold",
+        Number.Float: "#99ffff bold",
+        Number.Hex: "#99ffff bold",
+        Number.Integer: "#99ffff bold",
+        Number.Integer.Long: "#99ffff bold",
+        Number.Oct: "#99ffff bold",
+        Operator: "#ff79c6 bold",
+        Operator.Word: "#ff79c6 bold",
         Other: "#ffffff",
         Punctuation: "#ffffff",
-        String: "#f1fa8c",
-        String.Backtick: "#f1fa8c",
-        String.Char: "#f1fa8c",
-        String.Doc: "#f1fa8c",
-        String.Double: "#f1fa8c",
-        String.Escape: "#f1fa8c",
-        String.Heredoc: "#f1fa8c",
-        String.Interpol: "#f1fa8c",
-        String.Other: "#f1fa8c",
-        String.Regex: "#f1fa8c",
-        String.Single: "#f1fa8c",
-        String.Symbol: "#f1fa8c",
+        String: "#ffff99 bold",
+        String.Backtick: "#ffff99",
+        String.Char: "#ffff99",
+        String.Doc: "#ffff99",
+        String.Double: "#ffff99",
+        String.Escape: "#ffff99",
+        String.Heredoc: "#ffff99",
+        String.Interpol: "#ffff99",
+        String.Other: "#ffff99",
+        String.Regex: "#ffff99",
+        String.Single: "#ffff99",
+        String.Symbol: "#ffff99",
         Text: "#ffffff",
         Whitespace: "#ffffff"
 }
@@ -123,12 +102,13 @@ class DraculaStyle(Style):
 # Use a good legible dark theme if running under Guake
 if os.environ.get('GUAKE_TAB_UUID', '') != '' or HasParentProcess('.*guake.*'):
   c.TerminalInteractiveShell.colors = 'linux'
-  c.TerminalInteractiveShell.highlighting_style = DraculaStyle  #DarkStyle
+  if IPython.version_info >= (5, 2, 0, ''):
+    c.TerminalInteractiveShell.highlighting_style = ModDraculaStyle
   c.TerminalInteractiveShell.highlighting_style_overrides = {
-      Token.Prompt: '#ansigreen',
-      Token.PromptNum: '#ansigreen bold',
-      Token.OutPrompt: '#ansired',
-      Token.OutPromptNum: '#ansired bold',
+      Token.Prompt: '#33cc33',
+      Token.PromptNum: '#66ff66 bold',
+      Token.OutPrompt: '#ff0000',
+      Token.OutPromptNum: '#ff0000 bold',
   }
 else:
   c.TerminalInteractiveShell.colors = 'lightbg'

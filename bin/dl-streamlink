@@ -20,7 +20,7 @@ if [[ "$URL" =~ .*/([-a-zA-Z0-9_]+)/*$ ]]; then
 fi
 
 NUM=1
-SLEEP=60
+SLEEP=100
 
 while :; do
   FILENAME="$BASENAME.$(date +%Y%m%d).$NUM.flv"
@@ -40,11 +40,9 @@ while :; do
 
   echo "$(date): Recording $URL to $FILENAME"
 
-  set -x
   streamlink \
     --default-stream=best \
-    --retry-streams=30 \
-    --retry-open=3 \
+    --retry-open=1 \
     -o "$FILENAME" \
     "$URL" "$@"
 
@@ -53,14 +51,16 @@ while :; do
   fi
 
   if [[ -f "$FILENAME" ]]; then
-    SLEEP=60
+    SLEEP=100
     NUM=$((NUM + 1))
   else
-    SLEEP=$((SLEEP * 4 / 3))
-    SLEEP=$((SLEEP > 900 ? 900 : SLEEP))
+    SLEEP=$((SLEEP * 105 / 100))
+    SLEEP=$((SLEEP > 12000 ? 12000 : SLEEP))
   fi
 
-  sleep $SLEEP
+  echo "Sleeping for $((SLEEP/10))s"
+
+  sleep $((SLEEP/10))
   if [[ $? -ne 0 ]]; then
     break
   fi
