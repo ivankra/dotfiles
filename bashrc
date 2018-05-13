@@ -33,8 +33,10 @@ alias octave='octave -q'
 alias parallel='parallel --will-cite'
 alias b=byobu-tmux
 alias g=git
-alias got=git
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
+
+alias dokcer=docker
+alias got=git
 
 if [[ -d ~/.ws/.git ]]; then
   umask 002
