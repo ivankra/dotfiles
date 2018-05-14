@@ -55,6 +55,7 @@ if has("autocmd")
   autocmd BufNewFile,BufRead CMakeLists.lib set ft=cmake
   autocmd BufNewFile,BufRead *.ledger set ft=ledger
   autocmd BufNewFile,BufRead ledger.txt set ft=ledger
+  autocmd BufNewFile,BufRead Dockerfile.* set ft=dockerfile
 
   autocmd FileType c,cpp,java,ragel,proto set sts=2 sw=2 et ai cin
   autocmd FileType asm,python,perl,lua    set sts=2 sw=2 et ai
