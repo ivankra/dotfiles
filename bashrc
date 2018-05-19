@@ -8,51 +8,35 @@ export PAGER=less
 export LESS=-FRSXi
 export LESSHISTFILE=-
 
-alias ls='ls --color=auto --group-directories-first'
-alias l='ls -l'
-alias ll='ls -l -h'
-alias mv='mv -i'
-alias rm='rm -i'
+alias ..='cd ..'
+alias R='R --no-save --no-restore --quiet'
+alias b=byobu-tmux
+alias bc='bc -q'
+alias cd..='cd ..'
+alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
 alias df='df -h'
+alias dokcer=docker
 alias du='du -h'
-alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
-alias cd3='cd "$(scm-root)"'
-alias cd..='cd ..'
-alias ..='cd ..'
-alias susl='sort | uniq -c | sort -nr | less'
-alias nb='jupyter-notebook'
-alias py='ipython'
-alias py3='ipython3'
-alias bc='bc -q'
+alias g=git
 alias gdb='gdb --quiet'
-alias R='R --no-save --no-restore --quiet'
+alias got=git
+alias grep='grep --color=auto'
+alias l='ls -l'
+alias ll='ls -l -h'
+alias ls='ls --color=auto --group-directories-first'
+alias mv='mv -i'
+alias nb='jupyter-notebook'
+alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
-alias b=byobu-tmux
-alias g=git
-alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
-
-alias dokcer=docker
-alias got=git
-
-if [[ -d ~/.ws/.git ]]; then
-  umask 002
-
-  for __d in $(ls ~/.ws/docker); do
-    if [[ -x "$HOME/.ws/docker/$__d/run.sh" ]]; then
-      alias "docker-$__d"="$HOME/.ws/docker/$__d/run.sh"
-    fi
-  done
-else
-  for __d in $(ls ~/.dotfiles/docker); do
-    if [[ -x "$HOME/.dotfiles/docker/$__d/run.sh" ]]; then
-      alias "docker-$__d"="$HOME/.dotfiles/docker/$__d/run.sh"
-    fi
-  done
-fi
+alias py3='ipython3'
+alias py='ipython'
+alias rm='rm -i'
+alias ssh-insecure="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+alias susl='sort | uniq -c | sort -nr | less'
 
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
 [[ -z "$CUDA_PATH" && ! -z "$CUDA_ROOT" ]] && export CUDA_PATH=$CUDA_ROOT
@@ -172,6 +156,7 @@ if ! [[ -d ~/.ssh/control ]]; then
   chmod 0700 ~/.ssh ~/.ssh/control >/dev/null 2>&1
 fi
 
+[[ -f ~/.ws/bashrc ]] && source ~/.ws/bashrc
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
 
 declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
