@@ -21,7 +21,7 @@ def HasParentProcess(cmdline_pattern):
 
 
 # Based on https://github.com/dracula/pygments/blob/master/dracula.py
-class ModDraculaStyle(Style):
+class DraculaStyle(Style):
     background_color = "#282a36"
     default_style = ""
 
@@ -103,7 +103,14 @@ class ModDraculaStyle(Style):
 if os.environ.get('GUAKE_TAB_UUID', '') != '' or HasParentProcess('.*guake.*'):
   c.TerminalInteractiveShell.colors = 'linux'
   if IPython.version_info >= (5, 2, 0, ''):
-    c.TerminalInteractiveShell.highlighting_style = ModDraculaStyle
+    c.TerminalInteractiveShell.highlighting_style = DraculaStyle
+  else:
+    from IPython.terminal import interactiveshell
+    def _get_style_by_name(name, orig=interactiveshell.get_style_by_name):
+      return DraculaStyle if name == 'dracula' else orig(name)
+    interactiveshell.get_style_by_name = _get_style_by_name
+    c.TerminalInteractiveShell.highlighting_style = 'dracula'
+
   c.TerminalInteractiveShell.highlighting_style_overrides = {
       Token.Prompt: '#33cc33',
       Token.PromptNum: '#66ff66 bold',
