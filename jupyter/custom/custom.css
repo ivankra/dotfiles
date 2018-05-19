@@ -1,6 +1,6 @@
 .CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field, .terminal-app .terminal, .output_text pre {
-  font-family: "M+ 1mn Medium";
-  font-size: 11pt;
+  font-family: "M+ 1mn";
+  font-size: 12px;
   font-weight: 500;
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
