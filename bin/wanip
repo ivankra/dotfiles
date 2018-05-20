@@ -1,0 +1,16 @@
+#!/bin/bash
+# Get publicly visible IP originating from local host.
+A=$(dig +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
+B=$(dig TXT +short o-o.myaddr.l.google.com @ns1.google.com 2>/dev/null | tr -d '"')
+if [[ -n "$A" && "$A" == "$B" ]]; then
+  echo "$A"
+  exit 0
+fi
+C=$(dig +short whoami.akamai.net @ns1-1.akamaitech.net 2>/dev/null)
+if [[ -n "$A" && "$A" == "$C" ]]; then
+  echo "$A"
+elif [[ -n "$B" && "$B" == "$C" ]]; then
+  echo "$B"
+else
+  exit 1
+fi
