@@ -49,6 +49,10 @@ done
 
 unset __d
 
+if [[ $UID == 0 ]]; then
+  umask 027
+fi
+
 # History
 if [[ -f "$HOME/.history" ]]; then
   HISTFILE=
