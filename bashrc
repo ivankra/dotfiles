@@ -35,7 +35,7 @@ alias parallel='parallel --will-cite'
 alias py3='ipython3'
 alias py='ipython'
 alias rm='rm -i'
-alias ssh-insecure="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+alias ssh-insecure="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no"
 alias susl='sort | uniq -c | sort -nr | less'
 
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
