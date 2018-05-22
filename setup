@@ -80,20 +80,25 @@ fi
 
 cd "$HOME/.dotfiles"
 
+umask 077
+
 [[ -f ./setup.local ]] && source ./setup.local
 
 gen gitconfig
-link gitconfig
 gen hgrc
-link hgrc
+
 link Rprofile
 link bash_logout
 link bashrc
 link fonts
 link gdb
 link gdbinit
+link gitconfig
+link hgrc
+link htoprc ~/.config/htop/htoprc
 link hushlogin
 link inputrc
+link ipython_config.py ~/.ipython/profile_default/ipython_config.py
 link jupyter
 link profile
 link tkdiffrc
@@ -101,8 +106,6 @@ link tmux.conf
 link vim
 link vimrc
 link xinitrc
-
-link ipython_config.py ~/.ipython/profile_default/ipython_config.py
 
 link ssh_config ~/.ssh/config
 
