@@ -161,8 +161,11 @@ if [[ -f ~/.ssh/authorized_keys ]]; then
 fi
 # }}}
 
-# Fix gnome-keyring-ssh with ed25519 keys {{{
-if [[ -x /usr/bin/gnome-keyring-daemon && -f ~/.ssh/id_ed25519 ]]; then
+# Fix gnome-keyring pre 3.28 for ed25519 keys {{{
+if [[ -f ~/.ssh/id_ed25519 &&
+      -x /usr/bin/gnome-keyring-daemon &&
+      -x /usr/bin/gnome-keyring &&
+      "$(/usr/bin/gnome-keyring version | egrep -o '[0-9]+')" < 3.28 ]]; then
   if ! [[ data/keychain-ssh.desktop -ef ~/.config/autostart/gnome-keyring-ssh.desktop ]]; then
     mkdir -p ~/.config/autostart
     ln -sf ../../.dotfiles/data/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
