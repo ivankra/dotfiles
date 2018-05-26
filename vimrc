@@ -299,11 +299,13 @@ if has("gui_running")
 else
   " console vim settings
   if $TERM == "xterm" || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "screen"
-    set background=light
     set t_Co=256
-  else
-    set background=dark
   endif
+  "if $TERM == "xterm" || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "screen"
+  "  set t_Co=256
+  "else
+  "  set background=dark
+  "endif
 endif
 
 " Colors
@@ -388,11 +390,11 @@ if has("user_commands") && has("autocmd")
     com! -nargs=? Dark call DarkTheme(expand("<args>"))
   endif
 
-  if &background == "light"
-    call LightTheme("")
-  else
-    call DarkTheme("")
-  endif
+  "if &background == "light"
+  "  call LightTheme("")
+  "else
+  "  call DarkTheme("")
+  "endif
 
   com! -nargs=? T tabedit <args>
   com! -nargs=? Tabe tabedit <args>
