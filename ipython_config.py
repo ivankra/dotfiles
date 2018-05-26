@@ -100,7 +100,9 @@ class DraculaStyle(Style):
 
 
 # Use a good legible dark theme if running under Guake
-if os.environ.get('GUAKE_TAB_UUID', '') != '' or HasParentProcess('.*guake.*'):
+if (os.environ.get('COLORFGBG', '').endswith(';0') or
+    os.environ.get('GUAKE_TAB_UUID', '') != '' or
+    HasParentProcess('.*guake.*')):
   c.TerminalInteractiveShell.colors = 'linux'
   if IPython.version_info >= (5, 2, 0, ''):
     c.TerminalInteractiveShell.highlighting_style = DraculaStyle

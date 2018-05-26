@@ -84,6 +84,48 @@ if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
   eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
 fi
 
+# Determine terminal's background color
+function __guess_bgcolor() {
+  if [[ -n "$COLORFGBG" ]]; then
+    # rxvt like
+    # https://github.com/vim/vim/blob/master/src/option.c term_bg_default
+    if [[ "$COLORFGBG" =~ *\;[0-68] ]]; then
+      echo "dark"
+    else
+      echo "light"
+    fi
+  elif [[ "$TERM" == "linux" ||
+          "$TERM" == "screen.linux" ||
+          "$TERM" == "cygwin" ||
+          "$TERM" == "puttry" ||
+          -n "$GUAKE_TAB_UUID" ||      # guake
+          -n "$PYXTERM_DIMENSIONS" ||  # jupyterlab
+          -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES"  # ssh applet
+       ]]; then
+    echo "dark"
+  else
+    local prev_stty=$(stty -g)
+    stty raw -echo min 0 time 0
+    printf "\033]11;?\033\\"
+    sleep 0.05
+    read -r res
+    stty "$prev_stty"
+
+    if [[ "$res" == *rgb:[0-8]* ]]; then
+      echo "dark"
+    else
+      echo "light"
+    fi
+  fi
+}
+if [[ -z "$COLORGFGBG" ]]; then
+  if [[ "$(__guess_bgcolor)" == "dark" ]]; then
+    export COLORFGBG="15;default;0"
+  else
+    export COLORFGBG="0;default;15"
+  fi
+fi
+
 # For use in PROMPT_COMMAND: print last command's exit code if non zero.
 __prompt_print_status() {
   local __status=$?
