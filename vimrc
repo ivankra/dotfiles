@@ -390,11 +390,11 @@ if has("user_commands") && has("autocmd")
     com! -nargs=? Dark call DarkTheme(expand("<args>"))
   endif
 
-  "if &background == "light"
-  "  call LightTheme("")
-  "else
-  "  call DarkTheme("")
-  "endif
+  if $COLORFGBG == "15;default;0"
+    call DarkTheme("")
+  else
+    call LightTheme("")
+  endif
 
   com! -nargs=? T tabedit <args>
   com! -nargs=? Tabe tabedit <args>
