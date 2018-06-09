@@ -1,5 +1,6 @@
 [[ -z "$PS1" || -z "$HOME" ]] && return
 
+# Env {{{
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 export LC_COLLATE=C
@@ -7,7 +8,9 @@ export EDITOR=vim
 export PAGER=less
 export LESS=-FRSXi
 export LESSHISTFILE=-
+# }}}
 
+# Aliases {{{
 alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
 alias b=byobu-tmux
@@ -37,94 +40,100 @@ alias py='ipython'
 alias rm='rm -i'
 alias ssh-insecure="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no"
 alias susl='sort | uniq -c | sort -nr | less'
+# }}}
+
+# Paths {{{
 
 [[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
 [[ -z "$CUDA_PATH" && ! -z "$CUDA_ROOT" ]] && export CUDA_PATH=$CUDA_ROOT
 [[ -z "$CONDA_ROOT" && -x ~/.conda/bin/conda ]] && CONDA_ROOT=~/.conda
 [[ -z "$CONDA_ROOT" && -x /opt/conda/bin/conda ]] && CONDA_ROOT=/opt/conda
 
-for __d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles*/bin ~/.local/bin ~/.bin ~/bin; do
-  [[ -d "$__d" && ":$PATH:" != *":$__d:"* ]] && PATH="$__d:$PATH"
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles*/bin ~/.local/bin ~/.bin ~/bin; do
+  if [[ -d "$_d" && ":$PATH:" != *":$_d:"* ]]; then
+    PATH="$_d:$PATH"
+  fi
 done
 
-unset __d
+# }}}
 
-if [[ $UID == 0 ]]; then
-  umask 027
-fi
+# History {{{
+# * keep deduped in ~/history/bash.YYYYMM files
+# * load last few months on startup
+# * append to last history file but don't read back
+# * force to re-read history: h
 
-# History
-if [[ -f "$HOME/.history" ]]; then
+shopt -s cmdhist histverify histreedit
+
+if [[ -f ~/.history ]]; then
   HISTFILE=
   HISTCONTROL=ignoreboth
   HISTSIZE=100000
 else
-  [[ -d "$HOME/.history" ]] || mkdir -m 0700 -p "$HOME/.history"
+  if ! [[ -d ~/.history ]]; then
+    mkdir -m 0700 -p ~/.history
+  fi
+
   shopt -s histappend
-  HISTFILE="$HOME/.history/bash.$(date +%Y%m)"
+
+  HISTFILE=~/.history/bash."$(date +%Y%m)"
   HISTCONTROL=ignoreboth
   HISTSIZE=100000
   HISTFILESIZE=-1
   HISTTIMEFORMAT='[%F %T] '
 
-  if [[ -x "$HOME/.dotfiles/bin/erasedups.py" ]]; then
-    "$HOME/.dotfiles/bin/erasedups.py" -q "$HISTFILE"
-    h() { history -a; "$HOME/.dotfiles/bin/erasedups.py" -q "$HISTFILE"; history -c; history -r; }
+  if ! [[ -f "$HISTFILE" ]]; then
+    touch "$HISTFILE"
+    chmod 0600 "$HISTFILE"
+  fi
+
+  if [[ -x ~/.dotfiles/bin/erasedups.py && -x /usr/bin/python ]]; then
+    history -c
+
+    for _d in "$(date -d '-3 month' +%Y%m)" \
+              "$(date -d '-2 month' +%Y%m)" \
+              "$(date -d '-1 month' +%Y%m)"; do
+      if [[ -f ~/.history/"bash.$_d" ]]; then
+        if [[ -w ~/.history/"bash.$_d" ]]; then
+          ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
+          chmod 0400 ~/.history/"bash.$_d"
+        fi
+        history -r ~/.history/"bash.$_d"
+      fi
+    done
+
+    ~/.dotfiles/bin/erasedups.py -q "$HISTFILE"
+
+    # Re-read history to synchronize with other shell instances
+    # Also fix background color guess
+    h() {
+      history -a
+      ~/.dotfiles/bin/erasedups.py -q "$HISTFILE"
+      history -c
+      local _d
+      for _d in "$(date -d '-3 month' +%Y%m)" \
+                "$(date -d '-2 month' +%Y%m)" \
+                "$(date -d '-1 month' +%Y%m)"; do
+        if [[ -f ~/.history/"bash.$_d" ]]; then
+          history -r ~/.history/"bash.$_d"
+        fi
+      done
+      history -r
+      __guess_colorfgbgr
+    }
+
     __prompt_history() { history -a; }
   else
+    # Fallback
     h() { history -a; history -c; history -r; }
     __prompt_history() { history -a; }
   fi
 fi
 
-shopt -s autocd cmdhist checkhash checkwinsize histverify histreedit
+unset _d
+# }}}
 
-# Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
-if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
-  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
-fi
-
-# Determine terminal's background color
-function __guess_bgcolor() {
-  if [[ -n "$COLORFGBG" ]]; then
-    # rxvt like
-    # https://github.com/vim/vim/blob/master/src/option.c term_bg_default
-    if [[ "$COLORFGBG" =~ *\;[0-68] ]]; then
-      echo "dark"
-    else
-      echo "light"
-    fi
-  elif [[ "$TERM" == "linux" ||
-          "$TERM" == "screen.linux" ||
-          "$TERM" == "cygwin" ||
-          "$TERM" == "puttry" ||
-          -n "$GUAKE_TAB_UUID" ||      # guake
-          -n "$PYXTERM_DIMENSIONS" ||  # jupyterlab
-          -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES"  # ssh applet
-       ]]; then
-    echo "dark"
-  else
-    local prev_stty=$(stty -g)
-    stty raw -echo min 0 time 0
-    printf "\033]11;?\033\\"
-    sleep 0.05
-    read -r res
-    stty "$prev_stty"
-
-    if [[ "$res" == *rgb:[0-8]* ]]; then
-      echo "dark"
-    else
-      echo "light"
-    fi
-  fi
-}
-if [[ -z "$COLORGFGBG" ]]; then
-  if [[ "$(__guess_bgcolor)" == "dark" ]]; then
-    export COLORFGBG="15;default;0"
-  else
-    export COLORFGBG="0;default;15"
-  fi
-fi
+# Prompt setup functions {{{
 
 # For use in PROMPT_COMMAND: print last command's exit code if non zero.
 __prompt_print_status() {
@@ -186,6 +195,65 @@ __setup_prompt_command() {
 
 unset PROMPT_COMMAND
 
+# }}}
+
+# __guess_colorfgbg {{{
+# Automatically determine terminal's background color and set rxvt's var for vim
+function __guess_colorfgbgr() {
+  if [[ -n "$COLORFGBG" && -z "$COLORBG_GUESS" ]]; then
+    # rxvt like
+    return
+  fi
+
+  unset COLORBG_GUESS
+  if [[ "$TERM" == "linux" ||
+        "$TERM" == "screen.linux" ||
+        "$TERM" == "cygwin" ||
+        "$TERM" == "putty" ||
+        -n "$GUAKE_TAB_UUID" ||      # guake
+        -n "$PYXTERM_DIMENSIONS" ||  # jupyterlab
+        -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES"  # ssh applet
+       ]]; then
+    export COLORBG_GUESS="dark"
+  else
+    local prev_stty="$(stty -g)"
+    local response=""
+    stty raw -echo min 0 time 0
+    printf "\033]11;?\033\\"
+    sleep 0.05
+    read -r response
+    stty "$prev_stty"
+
+    if [[ "$response" == *rgb:[0-8]* ]]; then
+      export COLORBG_GUESS="dark"
+    else
+      export COLORBG_GUESS="light"
+    fi
+  fi
+
+  if [[ "$COLORBG_GUESS" == "dark" ]]; then
+    export COLORFGBG="15;default;0"
+  elif [[ "$COLORBG_GUESS" == "light" ]]; then
+    export COLORFGBG="0;default;15"
+  else
+    unset COLORFGBG
+  fi
+}
+
+__guess_colorfgbgr
+# }}}
+
+if [[ $UID == 0 ]]; then
+  umask 027
+fi
+
+shopt -s autocd checkhash checkwinsize
+
+# Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
+if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
+  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
+fi
+
 if [[ -n "$VTE_VERSION" ]]; then
   if [[ -f /etc/profile.d/vte.sh ]]; then
     source /etc/profile.d/vte.sh
@@ -202,8 +270,12 @@ if ! [[ -d ~/.ssh/socket ]]; then
   chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
 fi
 
-[[ -f ~/.ws/bashrc ]] && source ~/.ws/bashrc
-[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
+if [[ -f ~/.ws/bashrc ]]; then
+  source ~/.ws/bashrc
+fi
+if [[ -f ~/.bashrc.local && ! ~/.ws/bashrc -ef ~/.bashrc.local ]]; then
+  source ~/.bashrc.local
+fi
 
 declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
 declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
