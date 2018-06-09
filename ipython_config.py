@@ -121,7 +121,9 @@ if (os.environ.get('COLORFGBG', '').endswith(';0') or
   }
 else:
   c.TerminalInteractiveShell.colors = 'lightbg'
-  c.TerminalInteractiveShell.highlighting_style = 'tango'
+  c.TerminalInteractiveShell.highlighting_style = 'manni'
+  c.TerminalInteractiveShell.highlighting_style_overrides = {
+  }
 
 c.TerminalInteractiveShell.confirm_exit = False
 c.TerminalInteractiveShell.banner1 = ''
