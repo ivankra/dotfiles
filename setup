@@ -198,3 +198,7 @@ gen -f jupyter/jupyter_notebook_config.json <(cat <<EOF
 }
 EOF
 )
+
+if [[ -f ~/.dotfiles/setup.local ]]; then
+  source ~/.dotfiles/setup.local
+fi
