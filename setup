@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installes/reinstall dotfiles. Can be rerun multiple times.
+# Installs/reinstall dotfiles. Can be rerun multiple times.
 
 set -e -o pipefail
 
@@ -127,10 +127,12 @@ link vim
 link vimrc
 link xinitrc
 
-# ~/.ssh {{{
-mkdir -p ~/.ssh/socket
-chmod 0700 ~/.ssh ~/.ssh/socket
+if [[ $UID != 0 ]]; then
+  link vlcrc ~/.config/vlc/vlcrc
+  link mpv-input.conf ~/.config/mpv/input.conf
+fi
 
+# ~/.ssh {{{
 if [[ -L ~/.ssh/config && ~/.ssh/config -ef ~/.dotfiles/ssh_config ]]; then
   rm -rf ~/.ssh/config ~/.ssh/control ~/.dotfiles/{ssh_config,gitconfig,hgrc}
 fi
@@ -140,11 +142,15 @@ gen ~/.ssh/config <(
 AddKeysToAgent yes
 Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
 Compression no
-ControlMaster auto
-ControlPath ~/.ssh/socket/%r@%h:%p
-ControlPersist 300
 HashKnownHosts no
 HostKeyAlgorithms ssh-ed25519-cert-v01@openssh.com,ssh-ed25519,ssh-rsa'
+  if [[ $UID != 0 ]]; then
+    echo 'ControlMaster auto'
+    echo 'ControlPath ~/.ssh/socket/%r@%h:%p'
+    echo 'ControlPersist 300'
+    mkdir -p ~/.ssh/socket
+    chmod 0700 ~/.ssh ~/.ssh/socket
+  fi
   [[ -f ~/.ssh/id_ed25519 ]] && echo "IdentityFile ~/.ssh/id_ed25519"
   [[ -f ~/.ssh/id_rsa ]] && echo "IdentityFile ~/.ssh/id_rsa"
   echo
@@ -184,8 +190,11 @@ if [[ -f ~/.ssh/id_ed25519 &&
 fi
 # }}}
 
-mkdir -p ~/.byobu
-touch ~/.byobu/.welcome-displayed
+if [[ -x /usr/bin/byobu && ! -f ~/.byobu/.welcome-displayed ]]; then
+  mkdir -p ~/.byobu
+  touch ~/.byobu/.welcome-displayed
+  echo "Touched ~/.byobu/.welcome-displayed"
+fi
 
 gen -f jupyter/jupyter_notebook_config.json <(cat <<EOF
 {
@@ -200,5 +209,6 @@ EOF
 )
 
 if [[ -f ~/.dotfiles/setup.local ]]; then
+  echo "Running ~/.dotfiles/setup.local"
   source ~/.dotfiles/setup.local
 fi

@@ -1,0 +1,11 @@
+[qt4]
+qt-notification=0
+qt-recentplay=0
+qt-continue=0
+qt-privacy-ask=0
+qt-bgcone=0
+[core]
+random=1
+loop=1
+key-leave-fullscreen=
+key-quit=Esc
