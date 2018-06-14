@@ -1,5 +1,5 @@
 .CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field, .terminal-app .terminal, .output_text pre {
-  font-family: "M+ 1mn";
+  font-family: "Roboto Mono", "M+ 1mn";
   font-size: 12px;
   font-weight: 500;
 }
@@ -7,3 +7,7 @@
 .CodeMirror .cm-operator { font-weight: 500 !important; }
 
 .container { width:100% !important; }
+
+.ipython_tooltip .tooltiptext pre {
+  font-family: "Roboto Mono", "M+ 1mn";
+}
