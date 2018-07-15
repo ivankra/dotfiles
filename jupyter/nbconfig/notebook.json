@@ -1,22 +1,22 @@
 {
+  "load_extensions": {
+    "nbextensions_configurator/config_menu/main": true,
+    "contrib_nbextensions_help_item/main": true,
+    "jupyter-js-widgets/extension": true,
+    "collapsible_headings/main": true
+  },
   "Notebook": {
     "Header": true,
     "Toolbar": false
   },
   "CodeCell": {
     "cm_config": {
-      "autoCloseBrackets": false,
-      "lineNumbers": false,
-      "indentUnit": 2,
-      "tabSize": 2,
       "indentWithTabs": false,
-      "smartIndent": true
+      "smartIndent": true,
+      "lineNumbers": false,
+      "tabSize": 2,
+      "autoCloseBrackets": false,
+      "indentUnit": 2
     }
-  },
-  "load_extensions": {
-    "collapsible_headings/main": true,
-    "jupyter-js-widgets/extension": true,
-    "nbextensions_configurator/config_menu/main": true,
-    "contrib_nbextensions_help_item/main": true
   }
 }

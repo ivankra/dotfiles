@@ -1,13 +1,24 @@
-.CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field, .terminal-app .terminal, .output_text pre {
-  font-family: "Roboto Mono", "M+ 1mn";
-  font-size: 12px;
+body, .CodeMirror, .rendered_html table {
+  font-family: "Roboto", "Noto", sans-serif;
+  font-size: 14px;
+}
+
+.CodeMirror pre,
+.CodeMirror-dialog,
+.CodeMirror-dialog .CodeMirror-search-field,
+.terminal-app .terminal,
+.output_text pre,
+.ipython_tooltip .tooltiptext pre,
+table.dataframe thead {
+  font-family: "Dejavu Sans Mono", "Roboto Mono", "M+ 1mn";
+  font-size: 14px;
   font-weight: 500;
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
 .CodeMirror .cm-operator { font-weight: 500 !important; }
 
-.container { width:100% !important; }
+/* Hide header: div#header-container { display: none !important; }*/
 
-.ipython_tooltip .tooltiptext pre {
-  font-family: "Roboto Mono", "M+ 1mn";
-}
+/* Expand notebook area to full page width */
+.container { width: 100% !important; }
+div#notebook { padding-top: 0px; }
