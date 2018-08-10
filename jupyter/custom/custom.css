@@ -14,6 +14,9 @@ table.dataframe thead {
   font-size: 14px;
   font-weight: 500;
 }
+.ipython_tooltip {
+  max-width: 1000px;
+}
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
 .CodeMirror .cm-operator { font-weight: 500 !important; }
 
