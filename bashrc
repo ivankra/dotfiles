@@ -90,9 +90,8 @@ else
   if [[ -x ~/.dotfiles/bin/erasedups.py && -x /usr/bin/python ]]; then
     history -c
 
-    for _d in "$(date -d '-3 month' +%Y%m)" \
-              "$(date -d '-2 month' +%Y%m)" \
-              "$(date -d '-1 month' +%Y%m)"; do
+    for _i in 6 5 4 3 2 1; do
+      _d="$(date -d "-$_i month" +%Y%m)"
       if [[ -f ~/.history/"bash.$_d" ]]; then
         if [[ -w ~/.history/"bash.$_d" ]]; then
           ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
@@ -111,9 +110,9 @@ else
       ~/.dotfiles/bin/erasedups.py -q "$HISTFILE"
       history -c
       local _d
-      for _d in "$(date -d '-3 month' +%Y%m)" \
-                "$(date -d '-2 month' +%Y%m)" \
-                "$(date -d '-1 month' +%Y%m)"; do
+      local _i
+      for _i in 6 5 4 3 2 1; do
+        _d="$(date -d "-$_i month" +%Y%m)"
         if [[ -f ~/.history/"bash.$_d" ]]; then
           history -r ~/.history/"bash.$_d"
         fi
@@ -130,7 +129,7 @@ else
   fi
 fi
 
-unset _d
+unset _i _d
 # }}}
 
 # Prompt setup functions {{{
