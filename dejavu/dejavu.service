@@ -1,0 +1,10 @@
+[Unit]
+Description=dejavu startup script
+After=basic.target
+
+[Service]
+ExecStart=$HOME/.dotfiles/dejavu/dejavu.sh --startup
+Type=simple
+
+[Install]
+WantedBy=default.target
