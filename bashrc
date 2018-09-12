@@ -118,13 +118,14 @@ else
         fi
       done
       history -r
+      hash -r
       __guess_colorfgbgr
     }
 
     __prompt_history() { history -a; }
   else
     # Fallback
-    h() { history -a; history -c; history -r; }
+    h() { history -a; history -c; history -r; hash -r; }
     __prompt_history() { history -a; }
   fi
 fi
