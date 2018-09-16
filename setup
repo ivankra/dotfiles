@@ -20,6 +20,11 @@ gen() {
     shift
   fi
 
+  local dstdir=$(dirname -- "$dst")
+  if ! [[ -d "$dstdir" ]]; then
+    mkdir -p "$dstdir"
+  fi
+
   local dst="$1"
   local tmp="$(basename -- "$dst").tmp"
   cat "$2" >"$tmp"
@@ -133,6 +138,9 @@ if [[ $UID != 0 ]]; then
 fi
 
 # ~/.ssh {{{
+mkdir -p ~/.ssh
+chmod 0700 ~/.ssh
+
 if [[ -L ~/.ssh/config && ~/.ssh/config -ef ~/.dotfiles/ssh_config ]]; then
   rm -rf ~/.ssh/config ~/.ssh/control ~/.dotfiles/{ssh_config,gitconfig,hgrc}
 fi
