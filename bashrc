@@ -119,7 +119,7 @@ else
       done
       history -r
       hash -r
-      __guess_colorfgbgr
+      __guess_colorfgbg
     }
 
     __prompt_history() { history -a; }
@@ -199,7 +199,7 @@ unset PROMPT_COMMAND
 
 # __guess_colorfgbg {{{
 # Automatically determine terminal's background color and set rxvt's var for vim
-function __guess_colorfgbgr() {
+function __guess_colorfgbg() {
   if [[ -n "$COLORFGBG" && -z "$COLORBG_GUESS" ]]; then
     # rxvt like
     return
@@ -217,11 +217,24 @@ function __guess_colorfgbgr() {
     export COLORBG_GUESS="dark"
   else
     local prev_stty="$(stty -g)"
-    local response=""
     stty raw -echo min 0 time 0
     printf "\033]11;?\033\\"
-    sleep 0.05
-    read -r response
+
+    # sometimes terminal can be slow to respond
+    local response=""
+    local i=0
+    while ((i < 15)); do
+      if [[ "$i" -le 10 ]]; then
+        sleep 0.01
+      else
+        sleep 0.1
+      fi
+      read -r response
+      if [[ "$response" != "" ]]; then
+        break
+      fi
+      i=$((i + 1))
+    done
     stty "$prev_stty"
 
     if [[ "$response" == *rgb:[0-8]* ]]; then
@@ -240,7 +253,7 @@ function __guess_colorfgbgr() {
   fi
 }
 
-__guess_colorfgbgr
+__guess_colorfgbg
 # }}}
 
 if [[ $UID == 0 ]]; then
