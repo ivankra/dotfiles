@@ -1,7 +1,14 @@
+@import url('http://fonts.googleapis.com/css?family=Crimson+Text');
+
 body, .CodeMirror, .rendered_html table {
-  font-family: "Roboto", "Noto", sans-serif;
+  font-family: Roboto, Noto, sans-serif;
   font-size: 14px;
+  line-height: 150%;
 }
+
+.rendered_html p { line-height: 150%; }
+.rendered_html code { font-weight: 500; font-family: "Roboto Mono", monospace; color: #37474f; }
+.rendered_html h1, h2, h3, h4, h5, h6 { font-weight: 400 !important; }
 
 .CodeMirror pre,
 .CodeMirror-dialog,
@@ -10,15 +17,13 @@ body, .CodeMirror, .rendered_html table {
 .output_text pre,
 .ipython_tooltip .tooltiptext pre,
 table.dataframe thead {
-  font-family: "Dejavu Sans Mono", "Roboto Mono", "M+ 1mn";
+  font-family: monospace, "Roboto Mono", "M+ 1mn";
   font-size: 14px;
-  font-weight: 500;
-}
-.ipython_tooltip {
-  max-width: 1000px;
+  /*font-weight: 400;*/
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
 .CodeMirror .cm-operator { font-weight: 500 !important; }
+.ipython_tooltip { max-width: 1000px; }
 
 /* Hide header: div#header-container { display: none !important; }*/
 
