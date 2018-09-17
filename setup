@@ -131,6 +131,7 @@ link tmux.conf
 link vim
 link vimrc
 link xinitrc
+link xonshrc
 
 if [[ $UID != 0 ]]; then
   link vlcrc ~/.config/vlc/vlcrc
