@@ -1,14 +1,19 @@
-@import url('http://fonts.googleapis.com/css?family=Crimson+Text');
-
-body, .CodeMirror, .rendered_html table {
-  font-family: Roboto, Noto, sans-serif;
-  font-size: 14px;
-  line-height: 150%;
+html, body, .CodeMirror, .rendered_html table {
+  font-family: Roboto, sans-serif;
+  font-size: 16px;
 }
 
-.rendered_html p { line-height: 150%; }
-.rendered_html code { font-weight: 500; font-family: "Roboto Mono", monospace; color: #37474f; }
-.rendered_html h1, h2, h3, h4, h5, h6 { font-weight: 400 !important; }
+.rendered_html p {
+  line-height: 150%;
+  max-width: 1000px;
+  font-size: 16px;
+}
+
+.rendered_html h1 { font-size: 28px; }
+.rendered_html h2 { font-size: 21px; }
+.rendered_html h3 { font-size: 18px; }
+.rendered_html h4, h5, h6 { font-size: 16px; }
+.rendered_html h1, h2, h3, h4, h5, h6 { font-weight: 500 !important; }
 
 .CodeMirror pre,
 .CodeMirror-dialog,
@@ -16,16 +21,31 @@ body, .CodeMirror, .rendered_html table {
 .terminal-app .terminal,
 .output_text pre,
 .ipython_tooltip .tooltiptext pre,
-table.dataframe thead {
-  font-family: monospace, "Roboto Mono", "M+ 1mn";
-  font-size: 14px;
-  /*font-weight: 400;*/
+table.dataframe thead,
+.rendered_html code {
+  font-family: "Roboto Mono", monospace;
+  font-size: 15px;
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
 .CodeMirror .cm-operator { font-weight: 500 !important; }
+
 .ipython_tooltip { max-width: 1000px; }
 
-/* Hide header: div#header-container { display: none !important; }*/
+/* Hide header, move filename box into menubar */
+div#header-container { position: absolute; left: 0px; top: 0px; }
+
+span.save_widget {
+  position: absolute;
+  left: 440px;
+  top: 4px;
+  height: 21px;
+  z-index: 1;
+}
+
+span.save_widget span.filename { font-size: 16px; color: #505050; }
+span.checkpoint_status { font-size: 11px; color: #808080; }
+span.autosave_status { font-size: 11px; color: #808080; }
+span#login_widget { display: none; }
 
 /* Expand notebook area to full page width */
 .container { width: 100% !important; }
