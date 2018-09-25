@@ -14,9 +14,9 @@
       "indentWithTabs": false,
       "smartIndent": true,
       "lineNumbers": false,
-      "tabSize": 2,
+      "tabSize": 4,
       "autoCloseBrackets": false,
-      "indentUnit": 2
+      "indentUnit": 4
     }
   }
 }

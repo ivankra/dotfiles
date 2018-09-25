@@ -27,18 +27,20 @@ alias g=git
 alias gdb='gdb --quiet'
 alias got=git
 alias grep='grep --color=auto'
+alias gt=git
+alias ju=jupyter-notebook
 alias l='ls -l'
 alias ll='ls -l -h'
 alias ls='ls --color=auto --group-directories-first'
 alias mv='mv -i'
-alias nb='jupyter-notebook'
+alias nb=jupyter-notebook
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
 alias py3='ipython3'
 alias py='ipython'
 alias rm='rm -i'
-alias ssh-insecure="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no"
+alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
 alias susl='sort | uniq -c | sort -nr | less'
 # }}}
 
