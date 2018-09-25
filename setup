@@ -221,3 +221,5 @@ if [[ -f ~/.dotfiles/setup.local ]]; then
   echo "Running ~/.dotfiles/setup.local"
   source ~/.dotfiles/setup.local
 fi
+
+rm -rf python/dotfiles/__pycache__

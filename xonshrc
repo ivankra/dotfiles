@@ -1,25 +1,67 @@
-#!/usr/bin/env python3
+import importlib
+import os
+import re
+import sys
 
-XONSH_COLOR_STYLE='fruity'
-
-try:
-  import pandas as pd
-  import numpy as np
-  import matplotlib as mpl
-  import matplotlib.pyplot as plt
-  import sys, os, re
-except:
-  pass
+sys.path.append(os.path.expanduser('~/.dotfiles/python'))
+import dotfiles.dracula
+import dotfiles.lazyimport
 
 def _import_bashrc_aliases():
-  global aliases
-  for line in open(os.environ['HOME'] + '/.bashrc'):
-    m = re.match('^alias (\w+)=(.+)$', line)
-    if m:
-      key = m.group(1)
-      val = m.group(2)
-      if val[0] in "\"'": val = val[1:-1]
-      if '$' in val or '|' in val: continue
-      aliases[key] = val
+    global aliases
+    for line in open(os.environ['HOME'] + '/.bashrc'):
+        m = re.match('^alias (\w+)=(.+)$', line)
+        if not m: continue
+        key = m.group(1)
+        val = m.group(2)
+        if val[0] in "\"'": val = val[1:-1]
+        if '$' in val or '|' in val: continue
+        aliases[key] = val
 
 _import_bashrc_aliases()
+
+(dotfiles.lazyimport.lazyimport(
+    globals(),
+    'bs4',
+    'collections',
+    'datetime',
+    'decimal',
+    'functools',
+    'glob',
+    'hashlib',
+    'itertools',
+    'json',
+    'math',
+    'multiprocessing',
+    'pandas_datareader',
+    'pathlib',
+    'pickle',
+    'pprint',
+    'random',
+    'requests',
+    'requests_cache',
+    'scipy',
+    'six',
+    'subprocess',
+    'tempfile',
+    'time',
+    'traceback',
+    'urllib',
+    np='numpy',
+    pd='pandas',
+    mpl='matplotlib',
+    plt='matplotlib.pyplot',
+    sns='seaborn',
+    ET='xml.etree.ElementTree',
+))
+
+
+$PROMPT = (
+    '{env_name:{} }{BOLD_GREEN}{user}@{hostname}{NO_COLOR}:{BOLD_CYAN}{cwd}'
+    '{branch_color}{curr_branch: ({})}{NO_COLOR}{NO_COLOR}{prompt_end}{NO_COLOR} '
+)
+
+dotfiles.dracula.set_xonsh()
+$XONSH_COLOR_STYLE = 'dracula'
+
+# vim: ft=python
