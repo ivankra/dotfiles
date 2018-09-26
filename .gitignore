@@ -1,4 +1,5 @@
 *.local
+*.pyc
 __pycache__
 fonts/.uuid
 gitconfig
