@@ -23,7 +23,7 @@ dark = (os.environ.get('COLORFGBG', '').endswith(';0') or
         parent_process_cmdline_matches('.*guake.*'))
 
 if dark:
-    dotfiles.dracula.set_ipython()
+    dotfiles.dracula.set_ipython(c)
 else:
     from pygments.token import Name
     c.TerminalInteractiveShell.colors = 'lightbg'

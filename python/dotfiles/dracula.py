@@ -135,8 +135,7 @@ def set_xonsh():
     xonsh.pyghooks.get_style_by_name = gsbn(xonsh.pyghooks.get_style_by_name)
 
 
-def set_ipython():
-    global c
+def set_ipython(c):
     import IPython
     c.TerminalInteractiveShell.colors = 'linux'
     if IPython.version_info >= (5, 2, 0, ''):
