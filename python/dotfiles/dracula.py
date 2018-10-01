@@ -25,12 +25,12 @@ class DraculaStyle(Style):
     default_style = ""
 
     styles = {
-        Comment: "#6272a4",
-        Comment.Hashbang: "#6272a4",
-        Comment.Multiline: "#6272a4",
+        Comment: "#7a8fcc",
+        Comment.Hashbang: "#7a8fcc",
+        Comment.Multiline: "#7a8fcc",
         Comment.Preproc: "#ff79c6",
-        Comment.Single: "#6272a4",
-        Comment.Special: "#6272a4",
+        Comment.Single: "#7a8fcc",
+        Comment.Special: "#7a8fcc",
         Generic: "#ffffff",
         Generic.Deleted: "#8b080b",
         Generic.Emph: "#ffffff underline",
