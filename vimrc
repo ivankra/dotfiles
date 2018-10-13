@@ -342,6 +342,7 @@ if has("user_commands") && has("autocmd")
 
   com! HighlightExtraWhitespace call MatchExtraWhitespace("setup")
   com! UnhighlightExtraWhitespace call MatchExtraWhitespace("remove")
+  com! NoHighlightExtraWhitespace call MatchExtraWhitespace("remove")
 
   function! LightTheme(scheme)
     set background=light
