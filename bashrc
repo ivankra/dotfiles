@@ -36,11 +36,12 @@ alias nb=jupyter-notebook
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
-alias py3='ipython3'
-alias py='ipython'
+alias py3=ipython3
+alias py=ipython
 alias rm='rm -i'
 alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
 alias susl='sort | uniq -c | sort -nr | less'
+alias venv='python3 -m venv'
 # }}}
 
 # Paths {{{
