@@ -1,14 +1,13 @@
-[[ -z "$PS1" || -z "$HOME" ]] && return
-
-# Env {{{
+export EDITOR=vim
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 export LC_COLLATE=C
-export EDITOR=vim
-export PAGER=less
 export LESS=-FRSXi
 export LESSHISTFILE=-
-# }}}
+export PAGER=less
+export QT_STYLE_OVERRIDE=adwaita
+
+[[ -z "$PS1" || -z "$HOME" ]] && return
 
 # Aliases {{{
 alias ..='cd ..'
@@ -51,7 +50,7 @@ alias susl='sort | uniq -c | sort -nr | less'
 [[ -z "$CONDA_ROOT" && -x ~/.conda/bin/conda ]] && CONDA_ROOT=~/.conda
 [[ -z "$CONDA_ROOT" && -x /opt/conda/bin/conda ]] && CONDA_ROOT=/opt/conda
 
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles*/bin ~/.local/bin ~/.bin ~/bin; do
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
   if [[ -d "$_d" && ":$PATH:" != *":$_d:"* ]]; then
     PATH="$_d:$PATH"
   fi
@@ -300,3 +299,16 @@ unset __setup_ps1
 if [[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
+
+for _f in \
+  ~/.python_history \
+  ~/.sqlite_history \
+  ~/.wget-hsts \
+  ~/.xsel.log \
+  ~/.xsession-errors \
+  ~/.xsession-errors.old; do
+  if [[ -f "$_f" ]]; then
+    rm -f "$_f"
+  fi
+done
+unset _f
