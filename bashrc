@@ -181,6 +181,10 @@ __setup_ps1() {
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
   fi
 
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    PS1="(${VIRTUAL_ENV##*/}) $PS1"
+  fi
+
   unset PS1_COLOR
   unset PS1_HOST
 }
