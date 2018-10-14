@@ -34,7 +34,7 @@ table.dataframe thead,
 /* Hide header, move filename box into menubar */
 div#header-container { position: absolute; left: 0px; top: 0px; }
 span.save_widget { padding-top: 3px; width: auto; }
-span.save_widget span.filename { font-size: 15px; font-weight: 500; color: #505050; padding-left: 5px; padding-right: 5px; }
+span.save_widget span.filename { font-size: 15px; font-weight: 500; color: #505050; padding-left: 5px; padding-right: 5px; height: 20px; }
 span.checkpoint_status { font-size: 12px; color: #808080; }
 span.autosave_status { font-size: 12px; color: #808080; }
 
