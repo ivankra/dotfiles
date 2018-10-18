@@ -7,7 +7,32 @@ export LESSHISTFILE=-
 export PAGER=less
 export QT_STYLE_OVERRIDE=adwaita
 
-[[ -z "$PS1" || -z "$HOME" ]] && return
+if [[ -z "$CUDA_ROOT" && -z "$CUDA_PATH" && -d /usr/local/cuda ]]; then
+  export CUDA_ROOT=/usr/local/cuda
+  export CUDA_PATH=/usr/local/cuda
+fi
+
+if [[ -z "$CONDA_ROOT" ]]; then
+  if [[ -x ~/.conda/bin/conda ]]; then
+    export CONDA_ROOT=~/.conda
+  elif [[ -x /opt/conda/bin/conda ]]; then
+    export CONDA_ROOT=/opt/conda
+  fi
+fi
+
+if [[ "$PATH" != *".dotfiles/bin"* ]]; then
+  for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
+    if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
+      PATH="$_d:$PATH"
+    fi
+  done
+  unset _d
+fi
+
+if [[ -z "$PS1" || -z "$HOME" ]]; then
+  # non interactive
+  return
+fi
 
 # Aliases {{{
 alias ..='cd ..'
@@ -42,21 +67,6 @@ alias rm='rm -i'
 alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
-# }}}
-
-# Paths {{{
-
-[[ -z "$CUDA_ROOT" && -d /usr/local/cuda ]] && export CUDA_ROOT=/usr/local/cuda
-[[ -z "$CUDA_PATH" && ! -z "$CUDA_ROOT" ]] && export CUDA_PATH=$CUDA_ROOT
-[[ -z "$CONDA_ROOT" && -x ~/.conda/bin/conda ]] && CONDA_ROOT=~/.conda
-[[ -z "$CONDA_ROOT" && -x /opt/conda/bin/conda ]] && CONDA_ROOT=/opt/conda
-
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
-  if [[ -d "$_d" && ":$PATH:" != *":$_d:"* ]]; then
-    PATH="$_d:$PATH"
-  fi
-done
-
 # }}}
 
 # History {{{
