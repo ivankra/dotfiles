@@ -142,6 +142,16 @@ if [[ $UID != 0 ]]; then
   link mpv-input.conf ~/.config/mpv/input.conf
 fi
 
+if ! [[ -d ~/.local/bin ]]; then
+  mkdir -p ~/.local/bin
+  echo "Created: ~/.local/bin"
+fi
+
+if ! [[ -d ~/.bin ]]; then
+  ln -s .local/bin ~/.bin
+  echo "Linked: ~/.bin -> ~/.local/bin"
+fi
+
 # ~/.ssh {{{
 mkdir -p ~/.ssh
 chmod 0700 ~/.ssh
