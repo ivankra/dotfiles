@@ -66,6 +66,7 @@ if has("autocmd")
   autocmd FileType ledger     source ~/.vim/ledger.vim
   autocmd FileType markdown   syn sync minlines=1000
   autocmd FileType dockerfile set ai
+  autocmd FileType vala       set sts=2 sw=2 et ai cin
 
   autocmd FileType python     set sts=4 sw=4 ts=8 et ai
   let g:pyindent_open_paren = '&sw'
