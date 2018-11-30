@@ -130,14 +130,16 @@ link inputrc
 link ipython_config.py ~/.ipython/profile_default/ipython_config.py
 link jupyter
 link profile
-link tkdiffrc
 link tmux.conf
 link vim
 link vimrc
-link xinitrc
-link xonshrc
 
 if [[ $UID != 0 ]]; then
+  link tkdiffrc
+  link xinitrc
+  link xonshrc
+  link xsessionrc
+
   link vlcrc ~/.config/vlc/vlcrc
   link mpv-input.conf ~/.config/mpv/input.conf
 fi
