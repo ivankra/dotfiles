@@ -57,7 +57,7 @@ if has("autocmd")
   autocmd BufNewFile,BufRead ledger.txt set ft=ledger
   autocmd BufNewFile,BufRead Dockerfile.* set ft=dockerfile
 
-  autocmd FileType c,cpp,java,ragel,proto set sts=2 sw=2 et ai cin
+  autocmd FileType c,cpp,java,ragel,proto,vala set sts=2 sw=2 et ai cin cino=j1,+2s,g1,h1,(0,l1
   autocmd FileType asm,perl,lua    set sts=2 sw=2 et ai
   autocmd FileType make       set sts=0 sw=8 noet nowrap
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
@@ -66,7 +66,6 @@ if has("autocmd")
   autocmd FileType ledger     source ~/.vim/ledger.vim
   autocmd FileType markdown   syn sync minlines=1000
   autocmd FileType dockerfile set ai
-  autocmd FileType vala       set sts=2 sw=2 et ai cin
 
   autocmd FileType python     set sts=4 sw=4 ts=8 et ai
   let g:pyindent_open_paren = '&sw'
