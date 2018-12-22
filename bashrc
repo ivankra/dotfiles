@@ -283,6 +283,10 @@ if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
   eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
 fi
 
+if [[ -z "$LS_COLORS" && -x /usr/bin/dircolors ]]; then
+  eval $(dircolors ~/.dotfiles/dircolors)
+fi
+
 if [[ -n "$VTE_VERSION" ]]; then
   if [[ -f /etc/profile.d/vte.sh ]]; then
     source /etc/profile.d/vte.sh
