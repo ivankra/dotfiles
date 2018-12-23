@@ -5,22 +5,26 @@
 #
 #   --copy      copy existing browser directories if creating repo
 #   --keyrings  also copy keyrings directory into the repo
-#
+
 set -e -o pipefail
 
 COPY=0
-KEYRINGS=0
+KEYRINGS=1
 
 while [[ $# > 0 ]]; do
   case $1 in
     --copy) COPY=1; shift;;
+    --no-copy) COPY=0; shift;;
     --keyrings) KEYRINGS=1; shift;;
+    --no-keyrings) KEYRINGS=0; shift;;
     *) echo "Unknown flag: $1"; exit 1;
   esac
 done
 
-if ! [[ -d ~/.dejavu.git ]]; then
-  echo "Creating initial dejavu.git repository"
+if [[ -d ~/.dejavu.git ]]; then
+  echo "~/.dejavu.git already exists"
+else
+  echo "Creating initial ~/.dejavu.git repository"
 
   rm -rf "$XDG_RUNTIME_DIR/dejavu"
 
