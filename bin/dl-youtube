@@ -1,8 +1,13 @@
 #!/bin/bash
 
 if ! which youtube-dl >/dev/null 2>&1; then
-  echo "Error: youtube-dl is not installed"
-  exit 1
+  if grep -q hypervisor /proc/cpuinfo && (groups | grep -q sudo); then
+    (set -x; sudo bash -c 'apt-get update && apt-get install youtube-dl')
+  fi
+  if ! which youtube-dl >/dev/null 2>&1; then
+    echo "Error: youtube-dl is not installed"
+    exit 1
+  fi
 fi
 
 IDS=()

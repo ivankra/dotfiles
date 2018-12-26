@@ -9,9 +9,18 @@ if [[ -z "$URL" ]]; then
 fi
 
 if ! which streamlink >/dev/null 2>&1; then
-  echo "Streamlink not installed."
-  echo "Advice: sudo apt install python-pip && pip install streamlink"
-  exit 1
+  if grep -q hypervisor /proc/cpuinfo && (groups | grep -q sudo); then
+    echo "Installing streamlink"
+    if ! which pip3 >/dev/null 2>&1; then
+      (set -x; sudo bash -c 'apt-get update && apt-get install python3-pip')
+    fi
+    (set -x; pip3 install streamlink)
+  fi
+
+  if ! which streamlink >/dev/null 2>&1; then
+    echo "Error: streamlink is not installed"
+    exit 1
+  fi
 fi
 
 BASENAME=streamlink
@@ -23,7 +32,7 @@ NUM=1
 SLEEP=100
 
 while :; do
-  FILENAME="$BASENAME.$(date +%Y%m%d).$NUM.flv"
+  FILENAME="$BASENAME.$(date +%Y%m%d).$NUM.mpg"
   if [[ -d "$BASENAME" ]]; then
     FILENAME="$BASENAME/$FILENAME"
   fi
