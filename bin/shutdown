@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [[ "$#" == 0 ]]; then
+  "$0" -h now
+  exit $?
+fi
+
+export PATH="$(echo "$PATH:/sbin:/usr/sbin" | sed -e 's/[^:]*dotfiles[^:]*//g; s/::/:/g')"
+
+if [[ $UID != 0 ]] && grep -q hypervisor /proc/cpuinfo; then
+  (set -x; sudo shutdown "$@")
+else
+  shutdown "$@"
+fi

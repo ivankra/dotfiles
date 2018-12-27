@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export PATH="$(echo "$PATH:/sbin:/usr/sbin" | sed -e 's/[^:]*dotfiles[^:]*//g; s/::/:/g')"
+
+if [[ $UID != 0 ]] && grep -q hypervisor /proc/cpuinfo; then
+  (set -x; sudo reboot "$@")
+else
+  reboot "$@"
+fi
