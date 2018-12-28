@@ -12,3 +12,6 @@ if os.path.exists('/proc/self/cgroup') and '/docker' in open('/proc/self/cgroup'
   #c.NotebookApp.ip = '0.0.0.0'
 
 c.NotebookApp.iopub_data_rate_limit = 1000000000
+
+if os.path.exists('/usr/bin/firefox'):
+    c.NotebookApp.browser = 'firefox'

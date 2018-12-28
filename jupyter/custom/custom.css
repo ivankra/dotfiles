@@ -41,3 +41,7 @@ span.autosave_status { font-size: 12px; color: #808080; }
 /* Expand notebook area to full page width */
 .container { width: 100% !important; }
 div#notebook { padding-top: 0px; }
+
+/* Fix oversided buttons in tooltips */
+.ui-button { padding: 0px; font-size: 10px; height: 14px; }
+tooltipbuttons { font-size: 10px; }
