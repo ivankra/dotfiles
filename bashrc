@@ -13,21 +13,19 @@ if [[ -z "$CUDA_ROOT" && -z "$CUDA_PATH" && -d /usr/local/cuda ]]; then
 fi
 
 if [[ -z "$CONDA_ROOT" ]]; then
-  if [[ -x ~/.conda/bin/conda ]]; then
+  if [[ -x ~/.conda/bin/conda && ! ~/.conda/bin/conda -ef /opt/conda/bin/conda ]]; then
     export CONDA_ROOT=~/.conda
   elif [[ -x /opt/conda/bin/conda ]]; then
     export CONDA_ROOT=/opt/conda
   fi
 fi
 
-if [[ "$PATH" != *".dotfiles/bin"* ]]; then
-  for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
-    if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
-      PATH="$_d:$PATH"
-    fi
-  done
-  unset _d
-fi
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
+  if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
+    PATH="$_d:$PATH"
+  fi
+done
+unset _d
 
 if [[ -z "$PS1" || -z "$HOME" ]]; then
   # non interactive
@@ -70,7 +68,7 @@ alias venv='python3 -m venv'
 # }}}
 
 # History {{{
-# * keep deduped in ~/history/bash.YYYYMM files
+# * keep deduped in ~/.history/bash.YYYYMM files
 # * load last few months on startup
 # * append to last history file but don't read back
 # * force to re-read history: h
@@ -102,9 +100,9 @@ else
   if [[ -x ~/.dotfiles/bin/erasedups.py && -x /usr/bin/python ]]; then
     history -c
 
-    for _i in 6 5 4 3 2 1; do
+    for _i in 9 8 7 6 5 4 3 2 1; do
       _d="$(date -d "-$_i month" +%Y%m)"
-      if [[ -f ~/.history/"bash.$_d" ]]; then
+      if [[ -f ~/.history/"bash.$_d" && ~/.history/"bash.$_d" != "$HISTFILE" ]]; then
         if [[ -w ~/.history/"bash.$_d" ]]; then
           ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
           chmod 0400 ~/.history/"bash.$_d"
@@ -295,8 +293,9 @@ if [[ -n "$VTE_VERSION" ]]; then
   fi
 fi
 
-[[ -f /usr/share/bash-completion/bash_completion ]] &&
+if [[ -f /usr/share/bash-completion/bash_completion ]]; then
   source /usr/share/bash-completion/bash_completion
+fi
 
 if ! [[ -d ~/.ssh/socket ]]; then
   mkdir -p ~/.ssh/socket >/dev/null 2>&1
