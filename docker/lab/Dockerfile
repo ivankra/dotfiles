@@ -1,4 +1,7 @@
-FROM nvidia/cuda:9.0-cudnn7-devel-ubuntu16.04
+# Container for running anaconda with jupyter/jupyterlab on nvidia-docker
+# Sets up non-root user, ssh, optionally accepts external conda installation dirs.
+
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
 SHELL ["/bin/bash", "-x", "-c"]
 
@@ -42,7 +45,6 @@ RUN apt-get clean && \
         iproute2 \
         iputils-ping \
         less \
-        libav-tools \
         libcairo2-dev \
         libcurl3-dev \
         libfreetype6-dev \
@@ -51,7 +53,6 @@ RUN apt-get clean && \
         libjpeg-dev \
         liboctave-dev \
         libpng-dev \
-        libpng12-dev \
         libssl-dev \
         libxml2-dev \
         libzmq3-dev \
@@ -66,6 +67,7 @@ RUN apt-get clean && \
         patch \
         p7zip-full \
         pkg-config \
+        poppler-utils \
         psmisc \
         python \
         python-dev \
@@ -99,11 +101,14 @@ RUN apt-get clean && \
     passwd -d root
 
 ENV CONDA_DIR=/opt/conda \
-    PATH="/root/.dotfiles/bin:/opt/conda/bin:/usr/local/cuda/bin:${PATH}"
+    PATH="/opt/conda/bin:/usr/local/cuda/bin:${PATH}"
 
-ARG NB_USER=user
-ARG NB_GID=1000
+ARG NB_USER=lab
 ARG NB_UID=1000
+ARG NB_GID=1000
+ARG INSTALLER_URL1="http://s/packages/Miniconda3-4.5.12-Linux-x86_64.sh"
+ARG INSTALLER_URL2="https://repo.anaconda.com/miniconda/Miniconda3-4.5.12-Linux-x86_64.sh"
+ARG INSTALLER_HASH="e5e5b4cd2a918e0e96b395534222773f7241dc59d776db1b9f7fedfcb489157a"
 
 RUN groupadd --gid ${NB_GID} ${NB_USER} && \
     useradd --uid ${NB_UID} --gid ${NB_GID} --groups sudo --shell /bin/bash --create-home --no-log-init ${NB_USER} && \
@@ -113,28 +118,20 @@ RUN groupadd --gid ${NB_GID} ${NB_USER} && \
 USER ${NB_USER}
 
 RUN mkdir -p ${CONDA_DIR} && \
-    cd /tmp && \
-    curl -s -o anaconda.sh "https://repo.continuum.io/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh" && \
-    echo "4b857c96d7aad4b09063224e88f4f62e778a5f1f2a1b211340ba765ce6aa21e5  anaconda.sh" | sha256sum -c - && \
-    bash ./anaconda.sh -f -b -p ${CONDA_DIR} && \
-    rm -f anaconda.sh && \
-    conda update -y -n base conda
-
+    ((curl -s -o /tmp/anaconda.sh "${INSTALLER_URL1}" && \
+     echo "${INSTALLER_HASH}  /tmp/anaconda.sh" | sha256sum --quiet -c -) || \
+     (curl -s -o /tmp/anaconda.sh "${INSTALLER_URL2}" && \
+      echo "${INSTALLER_HASH}  /tmp/anaconda.sh" | sha256sum --quiet -c -)) && \
+    bash /tmp/anaconda.sh -f -b -u -p ${CONDA_DIR} && \
+    rm -f /tmp/anaconda.sh
 ADD environment.yml ${CONDA_DIR}/environment.yml
 RUN conda env update -n base -f ${CONDA_DIR}/environment.yml && \
-    conda create -y -n py27 python=2.7 && \
-    conda env update -n py27 -f ${CONDA_DIR}/environment.yml && \
-    /opt/conda/envs/py27/bin/python -m ipykernel install && \
     conda clean -a -y
-
-ADD environment-r.yml ${CONDA_DIR}/environment-r.yml
-RUN conda env update -n base -f ${CONDA_DIR}/environment-r.yml
-
-RUN python -m spacy download en && \
-    jupyter contrib nbextension install --user && \
+RUN jupyter contrib nbextension install --user && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 USER root
+
 ADD .dotfiles /root/.dotfiles
 RUN mkdir -m 0700 -p /root/.ssh && \
     cp -a /root/.dotfiles/authorized_keys /root/.ssh/ && \

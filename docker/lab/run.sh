@@ -1,69 +1,49 @@
 #!/bin/bash
-# Usage: ./run.sh [flags] [nb|lab|r|sh]
-#   -d <dir>      directory to mount at /mnt, default: current directory
-#   -i <image>    image to run, default: guess from command
-#   -v <spec>     docker run flag: bind mount a volume
+# Usage: ./run.sh [flags] [notebook|lab|bash]
+#   -v <spec>   docker run flag: bind mount a volume
+#   -c <dir>    mount specified conda installation directory at /opt/conda
+#               default: ./conda if exists, else installation from docker build
+
+IMAGE=lab
 
 host_main() {
-  DFLAGS=()
-  IMAGE=
-  WORKDIR=.
+  CMD=(nvidia-docker run --rm -it --init --shm-size=4g --ulimit memlock=-1 --ulimit stack=67108864)
+
+  CONDA_DIR=""
+  if [[ -d conda ]]; then
+    CONDA_DIR=conda
+  fi
 
   while [[ $# > 0 ]]; do
     case "$1" in
-      -d) WORKDIR="$2"; shift 2;;
-      -i|--image) IMAGE="$2"; shift 2;;
-      -v) DFLAGS+=("$1" "$2"); shift 2;;
+      -v) CMD+=(-v "$2"); shift 2;;
+      -c|--conda) CONDA_DIR="$2"; shift 2;;
       *) break;;
     esac
   done
 
-  if [[ -z "$IMAGE" ]]; then
-    IMAGE=lab
-    if [[ "$1" == r ]]; then
-      IMAGE=lab-rstudio
-    fi
+  CMD+=(-v "$(pwd):/work")
+  if [[ -n "$CONDA_DIR" ]]; then
+    CMD+=(-v "$(realpath -- "$CONDA_DIR"):/opt/conda")
   fi
 
-  if ! [[ -d "$WORKDIR" ]]; then
-    echo "Error: directory $WORKDIR doesn't exist"
-    exit 1
-  fi
-  WORKDIR=$(realpath -m -- "$WORKDIR")
-  DFLAGS+=(-v "$WORKDIR:/work")
-
-  if which nvidia-docker >/dev/null 2>&1; then
-    DOCKER=nvidia-docker
-  else
-    echo "Warning: nvidia runtime unavailable"
-    DOCKER=docker
+  if ! which nvidia-docker >/dev/null 2>&1; then
+    echo "Warning: nvidia-docker unavailable"
+    CMD[0]=docker
   fi
 
-  if [[ -n "$SSH_CONNECTION" ]]; then
-    DFLAGS+=(-e "JUMPHOST=$(hostname --fqdn)")
-    DFLAGS+=(-e "JUMPUSER=$(whoami)")
-    HOSTPORT=8888
-    while netstat -46nlt 2>&1 | grep -q ":$HOSTPORT "; do
-      HOSTPORT=$((HOSTPORT + 1))
-    done
-    echo "Picked host port $HOSTPORT"
-    DFLAGS+=("-p" "$HOSTPORT:8888")
-  fi
-
-  set -e -x
-  $DOCKER run --init --rm -i -t "${DFLAGS[@]}" "$IMAGE" "$@"
+  (set -e -x; "${CMD[@]}" "$IMAGE" "$@")
 }
 
 docker_main() {
-  COMMAND="${1:-nb}"
   NB_USER="$(cd /home; ls)"
   IPADDR="$(hostname -I | cut -d ' ' -f 1)"
 
   if [[ $UID == 0 ]]; then
-    local PW="$(openssl rand -hex 16)"
+    ldconfig
+    local PW="$(openssl rand -hex 8)"
     echo
-    echo "Login:    $NB_USER"
-    echo "Password: $PW"
+    echo "Password: $NB_USER:$PW"
     echo "$NB_USER:$PW" | chpasswd
     echo "root:$PW" | chpasswd
     unset PW
@@ -71,56 +51,45 @@ docker_main() {
     /usr/sbin/sshd
     umask 002; cd /work
     echo "umask 002; cd /work" >~/.bashrc.local
-
-    if [[ "$1" == r ]]; then
-      echo "URL:      http://$IPADDR:8888/"
-      echo "Qt:       ssh -X -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $NB_USER@$IPADDR bash -i -c rstudio"
-      echo "SSH:      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $NB_USER@$IPADDR"
-      echo
-      set -x
-      rstudio-server start
-      bash -i -l
-      exit $?
-    fi
-
     sudo --login -u "$NB_USER" bash -- "$(realpath -- "$0")" "$@"
     exit $?
   fi
 
-  umask 002; cd /work
-  echo "umask 002; cd /work" >~/.bashrc.local
-  source ~/.bashrc
+  unset SUDO_UID SUDO_GID SUDO_USER SUDO_COMMAND
 
-  TOKEN="$(openssl rand -hex 16)"
+  umask 002; cd /work
+  echo "umask 002; cd /work" >~/.bashrc.local  # for ssh
+  export CONDA_ROOT=/opt/conda
+  source ~/.bashrc
+  if [[ -f $CONDA_ROOT/etc/profile.d/conda.sh ]]; then
+    source $CONDA_ROOT/etc/profile.d/conda.sh
+  fi
+
+  if ! [[ -f ~/.torch ]]; then
+    mkdir -p "$CONDA_ROOT/torch" && ln -s "$CONDA_ROOT/torch" ~/.torch
+  fi
+
+  TOKEN="$(openssl rand -hex 8)"
   mkdir -p ~/.jupyter
   echo "$TOKEN" >~/.jupyter/token
 
   echo "URL:      http://$IPADDR:8888/?token=${TOKEN}"
-  echo "SSH:      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $(whoami)@$IPADDR"
-  if [[ -n "$JUMPHOST" ]]; then
-    echo "Jump:     ssh -J $JUMPUSER@$JUMPHOST  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $(whoami)@$IPADDR"
-    # TODO: print ssh port forwarding instructions
-    echo "          http://$JUMPHOST:$HOSTPORT/?token=${TOKEN}"
-  fi
-  echo "Attach:   docker exec -it ${HOSTNAME} bash"
+  echo "SSH:      ssh-insecure $(whoami)@$IPADDR"
+  echo "          ssh-insecure root@$IPADDR"
+  echo "Attach:   docker exec -it $HOSTNAME bash"
   echo
 
-  case "$COMMAND" in
-    lab)
-      set -x
-      /opt/conda/bin/jupyter-lab --ip=0.0.0.0 --port=8888 --LabApp.token="${TOKEN}";;
-    nb|notebook)
-      set -x
-      /opt/conda/bin/jupyter-notebook --ip=0.0.0.0 --port=8888 --NotebookApp.token="${TOKEN}";;
-    bash|sh)
-      bash -i -l;;
-    *)
-      bash -i -l -- "$@";;
-  esac
+  if [[ "$1" == notebook || "$1" == nb || "$1" == "" ]] && [[ -x /opt/conda/bin/jupyter-notebook ]]; then
+    (set -e -x; /opt/conda/bin/jupyter-notebook --ip=0.0.0.0 --port=8888 --NotebookApp.token="$TOKEN")
+  elif [[ "$1" == lab && -x /opt/conda/bin/jupyter-lab ]]; then
+    (set -e -x; /opt/conda/bin/jupyter-lab --ip=0.0.0.0 --port=8888 --LabApp.token="$TOKEN")
+  else
+    bash -i -l
+  fi
 }
 
-if [[ "$0" == "/run.sh" ]]; then
-  docker_main "$@"
-else
+if [[ "$0" != "/run.sh" ]]; then
   host_main "$@"
+else
+  docker_main "$@"
 fi
