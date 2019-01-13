@@ -59,6 +59,7 @@ alias nb=jupyter-notebook
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
+alias json_pp='python -m json.tool'
 alias py3=ipython3
 alias py=ipython
 alias rm='rm -i'

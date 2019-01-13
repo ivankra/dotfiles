@@ -8,8 +8,8 @@
 
 set -e -o pipefail
 
-COPY=0
-KEYRINGS=1
+COPY=1
+KEYRINGS=0
 
 while [[ $# > 0 ]]; do
   case $1 in
@@ -22,11 +22,9 @@ while [[ $# > 0 ]]; do
 done
 
 if [[ -d ~/.dejavu.git ]]; then
-  echo "~/.dejavu.git already exists"
+  echo "~/.dejavu.git already exists, not recreating it"
 else
   echo "Creating initial ~/.dejavu.git repository"
-
-  rm -rf "$XDG_RUNTIME_DIR/dejavu"
 
   TMPREPO=/tmp/dejavu-init
   rm -rf "$TMPREPO"
@@ -48,6 +46,10 @@ else
     fi
   fi
 
+  mkdir -p "$TMPREPO/mozilla" && touch "$TMPREPO/mozilla/.gitignore"
+  mkdir -p "$TMPREPO/chromium" && touch "$TMPREPO/chromium/.gitignore"
+  mkdir -p "$TMPREPO/google-chrome" && touch "$TMPREPO/google-chrome/.gitignore"
+
   if ((KEYRINGS)) && [[ -d ~/.local/share/keyrings ]] ; then
     echo "Copying keyrings"
     rm -f ~/.local/share/keyrings/git
@@ -59,15 +61,19 @@ else
   git gc
   git clone --mirror "$TMPREPO" ~/.dejavu.git
   rm -rf "$TMPREPO"
+
+  echo "Created ~/.dejavu.git"
+
+  rm -rf "$XDG_RUNTIME_DIR/dejavu"
 fi
 
 if systemctl --user status dejavu.service >/dev/null 2>&1; then
   systemctl --user disable dejavu.service
+  rm -f ~/.config/systemd/user/dejavu.service
 fi
 
 mkdir -p ~/.config/systemd/user
-envsubst <~/.dotfiles/dejavu/dejavu.service >~/.config/systemd/user/dejavu.service
-
+envsubst <~/.dotfiles/browser/dejavu/dejavu.service >~/.config/systemd/user/dejavu.service
 systemctl --user enable dejavu.service
-
-echo OK
+echo "Created dejavu.service"
+echo "Run 'systemctl --user start dejavu.service' to activate it"

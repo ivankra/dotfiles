@@ -85,6 +85,8 @@ startup() {
 
   if [[ -x "$WORKTREE/startup.sh" ]]; then
     bash "$WORKTREE/startup.sh"
+  elif [[ -x ~/.dotfiles/browser/dejavu/startup.sh ]]; then
+    bash ~/.dotfiles/browser/dejavu/startup.sh
   fi
 }
 
