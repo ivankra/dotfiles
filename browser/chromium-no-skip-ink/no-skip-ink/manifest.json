@@ -1,0 +1,9 @@
+{
+   "manifest_version": 2,
+   "name": "no-skip-ink",
+   "version": "1.0",
+   "content_scripts": [{
+      "css": [ "no-skip-ink.css" ],
+      "matches": [ "<all_urls>" ]
+   }]
+}
