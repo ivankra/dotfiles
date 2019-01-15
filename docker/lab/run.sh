@@ -1,8 +1,9 @@
 #!/bin/bash
 # Usage: ./run.sh [flags] [notebook|lab|bash]
-#   -v <spec>   docker run flag: bind mount a volume
 #   -c <dir>    mount specified conda installation directory at /opt/conda
 #               default: ./conda if exists, else installation from docker build
+#   -n <env>    activate specified environment
+#   -v <spec>   docker run flag: bind mount a volume
 
 IMAGE=lab
 
@@ -16,8 +17,9 @@ host_main() {
 
   while [[ $# > 0 ]]; do
     case "$1" in
-      -v) CMD+=(-v "$2"); shift 2;;
       -c|--conda) CONDA_DIR="$2"; shift 2;;
+      -n) CMD+=(-e "LAB_ENV=$2"); shift 2;;
+      -v) CMD+=(-v "$2"); shift 2;;
       *) break;;
     esac
   done
@@ -51,11 +53,12 @@ docker_main() {
     /usr/sbin/sshd
     umask 002; cd /work
     echo "umask 002; cd /work" >~/.bashrc.local
-    sudo --login -u "$NB_USER" bash -- "$(realpath -- "$0")" "$@"
+    sudo --preserve-env -u "$NB_USER" bash -- "$(realpath -- "$0")" "$@"
     exit $?
   fi
 
   unset SUDO_UID SUDO_GID SUDO_USER SUDO_COMMAND
+  export HOME="/home/$USERNAME"
 
   umask 002; cd /work
   echo "umask 002; cd /work" >~/.bashrc.local  # for ssh
@@ -65,26 +68,39 @@ docker_main() {
     source $CONDA_ROOT/etc/profile.d/conda.sh
   fi
 
-  if ! [[ -f ~/.torch ]]; then
-    mkdir -p "$CONDA_ROOT/torch" && ln -s "$CONDA_ROOT/torch" ~/.torch
+  if [[ -d ~/.history && ! -L ~/.history ]]; then
+    rm -rf ~/.history
   fi
+  for dir in .history .torch .keras; do
+    if ! [[ -f "$HOME/$dir" ]]; then
+      mkdir -p "$CONDA_ROOT/home/$dir" && ln -s "$CONDA_ROOT/home/$dir" "$HOME/$dir"
+    fi
+  done
 
   TOKEN="$(openssl rand -hex 8)"
   mkdir -p ~/.jupyter
+  # for jupyter_notebook_config.py
   echo "$TOKEN" >~/.jupyter/token
 
+  echo "SSH:      ssh-insecure $(whoami)@$IPADDR / ssh-insecure root@$IPADDR / docker exec -it $HOSTNAME bash"
   echo "URL:      http://$IPADDR:8888/?token=${TOKEN}"
-  echo "SSH:      ssh-insecure $(whoami)@$IPADDR"
-  echo "          ssh-insecure root@$IPADDR"
-  echo "Attach:   docker exec -it $HOSTNAME bash"
   echo
 
-  if [[ "$1" == notebook || "$1" == nb || "$1" == "" ]] && [[ -x /opt/conda/bin/jupyter-notebook ]]; then
-    (set -e -x; /opt/conda/bin/jupyter-notebook --ip=0.0.0.0 --port=8888 --NotebookApp.token="$TOKEN")
-  elif [[ "$1" == lab && -x /opt/conda/bin/jupyter-lab ]]; then
-    (set -e -x; /opt/conda/bin/jupyter-lab --ip=0.0.0.0 --port=8888 --LabApp.token="$TOKEN")
-  else
+  if [[ -n "$LAB_ENV" ]]; then
+    echo "+ conda activate $LAB_ENV"
+    conda activate "$LAB_ENV"
+    unset LAB_ENV
+  fi
+
+  if [[ "$1" == notebook || "$1" == nb ]] ||
+     ([[ "$1" == "" ]] && which jupyter-notebook >/dev/null 2>&1); then
+    (set -e -x; jupyter-notebook --ip=0.0.0.0 --port=8888 --NotebookApp.token="$TOKEN")
+  elif [[ "$1" == lab ]]; then
+    (set -e -x; jupyter-lab --ip=0.0.0.0 --port=8888 --LabApp.token="$TOKEN")
+  elif [[ "$1" == "" || "$1" == "sh" || "$1" == bash ]]; then
     bash -i -l
+  else
+    "$@"
   fi
 }
 
