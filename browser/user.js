@@ -57,3 +57,13 @@ user_pref("privacy.clearOnShutdown.history", false);
 user_pref("privacy.clearOnShutdown.sessions", false);
 user_pref("privacy.sanitize.sanitizeOnShutdown", false);
 user_pref("security.mixed_content.block_display_content", false);
+
+// ESR
+user_pref("browser.onboarding.state", "watermark");
+user_pref("browser.onboarding.tour.onboarding-tour-addons.completed", true);
+user_pref("browser.onboarding.tour.onboarding-tour-customize.completed", true);
+user_pref("browser.onboarding.tour.onboarding-tour-default-browser.completed", true);
+user_pref("browser.onboarding.tour.onboarding-tour-performance.completed", true);
+user_pref("browser.onboarding.tour.onboarding-tour-private-browsing.completed", true);
+user_pref("browser.onboarding.tour.onboarding-tour-screenshots.completed", true);
+user_pref("privacy.trackingprotection.introCount", 20);
