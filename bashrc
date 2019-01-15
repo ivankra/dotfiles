@@ -40,6 +40,7 @@ alias bc='bc -q'
 alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
+alias d=docker
 alias df='df -h'
 alias dokcer=docker
 alias du='du -h'
@@ -66,6 +67,9 @@ alias rm='rm -i'
 alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
+
+mk() { mkdir -p "$@" && cd "$@"; }
+mkd() { mkdir -p "$@" && cd "$@"; }
 # }}}
 
 # History {{{
@@ -92,6 +96,7 @@ else
   HISTSIZE=100000
   HISTFILESIZE=-1
   HISTTIMEFORMAT='[%F %T] '
+  HISTIGNORE='bg:fg:clear:ls:pwd:history:exit'
 
   if ! [[ -f "$HISTFILE" ]]; then
     touch "$HISTFILE"
@@ -192,6 +197,9 @@ __setup_ps1() {
 
   if [[ -n "$VIRTUAL_ENV" ]]; then
     PS1="(${VIRTUAL_ENV##*/}) $PS1"
+  fi
+  if [[ -n "$CONDA_DEFAULT_ENV" ]]; then
+    PS1="(${CONDA_DEFAULT_ENV}) $PS1"
   fi
 
   unset PS1_COLOR
