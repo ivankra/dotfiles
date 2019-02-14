@@ -329,9 +329,23 @@ if [[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
+if [[ -d ~/.history ]]; then
+  move_to_history() {
+    local name="$1"
+    local src="$2"
+    if [[ -f "$src" && ! -L "$src" && ! -f ~/.history/"$name" ]]; then
+      local history_rel="$(realpath --relative-to="$(dirname "$src")" ~/.history)"
+      mv "$src" ~/.history/"$name" && ln -s "$history_rel/$name" "$src"
+    fi
+  }
+  move_to_history sqlite ~/.sqlite_history sqlite
+  move_to_history python ~/.python_history python
+  move_to_history julia ~/.julia/logs/repl_history.jl julia
+  unset -f move_to_history
+fi
+
 for _f in \
-  ~/.python_history \
-  ~/.sqlite_history \
+  ~/.lesshst \
   ~/.wget-hsts \
   ~/.xsel.log \
   ~/.xsession-errors \
