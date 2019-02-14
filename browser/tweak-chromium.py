@@ -78,6 +78,7 @@ with JsonWrapper('~/.config/chromium/Default/Preferences') as w:
     w['bookmark_bar.show_on_all_tabs'] = False
     w['browser.check_default_browser'] = False
     w['browser.has_seen_welcome_page'] = True
+    w['dns_prefetching.enabled'] = False
     w['enable_do_not_track'] = True
     w['intl.accept_languages'] = 'en-US,en'
     w['net.network_prediction_options'] = 2
