@@ -34,6 +34,7 @@ fi
 
 # Aliases {{{
 alias ..='cd ..'
+alias ...='cd ...'
 alias R='R --no-save --no-restore --quiet'
 alias b=byobu-tmux
 alias bc='bc -q'
@@ -41,6 +42,7 @@ alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
 alias d=docker
+alias diff='diff -u'
 alias df='df -h'
 alias dokcer=docker
 alias du='du -h'
