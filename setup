@@ -135,13 +135,13 @@ link vim
 link vimrc
 
 if [[ $UID != 0 ]]; then
+  link mpv-input.conf ~/.config/mpv/input.conf
+  link qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
   link tkdiffrc
+  link vlcrc ~/.config/vlc/vlcrc
   link xinitrc
   link xonshrc
   link xsessionrc
-
-  link vlcrc ~/.config/vlc/vlcrc
-  link mpv-input.conf ~/.config/mpv/input.conf
 fi
 
 if ! [[ -d ~/.local/bin ]]; then
