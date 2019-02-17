@@ -55,6 +55,7 @@ alias grep='grep --color=auto'
 alias gt=git
 alias ju=jupyter-notebook
 alias l='ls -l'
+alias la='ls -la'
 alias ll='ls -l -h'
 alias ls='ls --color=auto --group-directories-first'
 alias mv='mv -i'
