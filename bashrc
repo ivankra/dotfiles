@@ -313,10 +313,9 @@ if ! [[ -d ~/.ssh/socket ]]; then
   chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
 fi
 
-if [[ -f ~/.ws/bashrc ]]; then
-  source ~/.ws/bashrc
-fi
-if [[ -f ~/.bashrc.local && ! ~/.ws/bashrc -ef ~/.bashrc.local ]]; then
+if [[ -f ~/.private/bashrc ]]; then
+  source ~/.private/bashrc
+elif [[ -f ~/.bashrc.local ]]; then
   source ~/.bashrc.local
 fi
 
