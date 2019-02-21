@@ -15,7 +15,7 @@ fi
 DEFAULT_THEME="${DEFAULT_THEME:-Fruidle}"
 
 get_color() {
-  cat "$FILENAME" | cpp | egrep ".*[*.]$1:" | egrep -o ':[^!]*' | \
+  cat "$FILENAME" | cpp | sed -e 's/!.*//' | egrep ".*[*.]$1:" | egrep -o ':[^!]*' | \
     egrep -o '#[a-zA-Z0-9]{6}' | head -1
 }
 
