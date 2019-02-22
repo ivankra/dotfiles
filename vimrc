@@ -4,7 +4,6 @@ if has("autocmd")
   autocmd!
 endif
 
-
 set noerrorbells                        " Be quiet
 set wildmenu                            " Enhanced command line completion mode
 set autoread                            " Automatically re-read files changed outside of vim
@@ -290,7 +289,8 @@ endif
 
 if has("gui_running")
   "set guifont=Fira\ Mono\ Medium\ 13
-  set guifont=M+\ 1mn\ Medium\ 13
+  "set guifont=M+\ 1mn\ Medium\ 13
+  set guifont=Source\ Code\ Pro\ Semibold\ 13
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
   set background=light
@@ -369,7 +369,7 @@ if has("user_commands") && has("autocmd")
     set background=dark
     if a:scheme == ""
       if has("gui_running")
-        colorscheme ir_black
+        colorscheme dracula
       else
         colorscheme default
       endif
@@ -386,15 +386,10 @@ if has("user_commands") && has("autocmd")
     endif
   endfunction
 
-  if v:version > 703 || v:version == 703 && has("patch257")
-    com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
-    com! -nargs=? -complete=color Dark call DarkTheme(expand("<args>"))
-  else
-    com! -nargs=? Light call LightTheme(expand("<args>"))
-    com! -nargs=? Dark call DarkTheme(expand("<args>"))
-  endif
+  com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
+  com! -nargs=? -complete=color Dark call DarkTheme(expand("<args>"))
 
-  if $COLORFGBG == "15;default;0"
+  if $COLORFGBG == "15;default;0" && !has("gui_running")
     call DarkTheme("")
   else
     call LightTheme("")
@@ -480,6 +475,6 @@ if has("user_commands") && has("autocmd")
   call pathogen#helptags() " generate helptags for everything in 'runtimepath'
 endif
 
-if filereadable(expand("~/.vimrc.local"))
-  source ~/.vimrc.local
+if filereadable(expand("~/.private/vimrc"))
+  source ~/.private/vimrc
 endif
