@@ -158,7 +158,7 @@ def lazyimport(scope, *mod_list, **mod_kw):
                 scope[key] = LazyObject(mod, scope, key)
             elif mod in sys.modules:
                 scope[key] = sys.modules[mod]
-            elif importlib.util.find_spec(mod) is not None:
+            else:
                 scope[key] = LazyObject(lambda m=mod: importlib.import_module(m), scope, key)
         except:
             pass
