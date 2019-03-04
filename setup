@@ -170,6 +170,10 @@ if [[ -f ~/.ssh/authorized_keys ]]; then
 fi
 # }}}
 
+if [[ -d ~/.gnupg/ ]]; then
+  chmod og-rwx ~/.gnupg/
+fi
+
 # Fix gnome-keyring pre 3.28 for ed25519 keys {{{
 if [[ -f ~/.ssh/id_ed25519 &&
       -x /usr/bin/gnome-keyring-daemon &&
