@@ -288,9 +288,9 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  set guifont=Fira\ Mono\ Medium\ 13
-  "set guifont=M+\ 1mn\ Medium\ 13
-  "set guifont=Source\ Code\ Pro\ Semibold\ 13
+  set guifont=M+\ 1mn\ Medium\ 13
+  "set guifont=Fira\ Mono\ Medium\ 13
+  "set guifont=Roboto\ Mono\ Medium\ 13
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
   set background=light
