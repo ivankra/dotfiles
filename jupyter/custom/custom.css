@@ -8,28 +8,20 @@ html, body, .CodeMirror, .rendered_html table {
   max-width: 1000px;
   font-size: 16px;
 }
-
 .rendered_html h1 { font-size: 28px; }
 .rendered_html h2 { font-size: 21px; }
 .rendered_html h3 { font-size: 18px; }
 .rendered_html h4, h5, h6 { font-size: 16px; }
 .rendered_html h1, h2, h3, h4, h5, h6 { font-weight: 500 !important; }
 
-.CodeMirror pre,
-.CodeMirror-dialog,
-.CodeMirror-dialog .CodeMirror-search-field,
-.terminal-app .terminal,
-.output_text pre,
-.ipython_tooltip .tooltiptext pre,
-table.dataframe thead,
+.CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field,
+.terminal-app .terminal, .output_text pre, .ipython_tooltip .tooltiptext pre, table.dataframe thead,
 .rendered_html code {
   font-family: "Roboto Mono", monospace;
   font-size: 15px;
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
 .CodeMirror .cm-operator { font-weight: 500 !important; }
-
-.ipython_tooltip { max-width: 1000px; }
 
 /* Hide header, move filename box into menubar */
 div#header-container { position: absolute; left: 0px; top: 0px; }
@@ -45,3 +37,7 @@ div#notebook { padding-top: 0px; }
 /* Fix oversided buttons in tooltips */
 .ui-button { padding: 0px; font-size: 10px; height: 14px; }
 tooltipbuttons { font-size: 10px; }
+
+/* Tooltip size */
+.ipython_tooltip { max-width: 1000px; }
+div.tooltiptext.bigtooltip { height: 400px; }
