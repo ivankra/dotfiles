@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+BASENAME="${BASH_SOURCE[0]##*/}"
+
+FLAGS=(${MIN_FLAGS[@]})
+add_argdirs "$@" "$(pwd)"
+
+exec bwrap "${FLAGS[@]}" "/usr/lib/p7zip/$BASENAME" "$@"

@@ -1,0 +1,21 @@
+#!/bin/bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_X11_FLAGS[@]}
+  --share-net
+  --bind /run/user/$UID/pulse /run/user/$UID/pulse
+  --bind ~/.cache/mozilla ~/.cache/mozilla
+  --bind ~/.mozilla ~/.mozilla
+  --ro-bind /etc /etc
+  --ro-bind ~/.config/pulse ~/.config/pulse
+  --unsetenv DBUS_SESSION_BUS_ADDRESS
+  --unsetenv SESSION_MANAGER
+)
+add_nvidia
+add_argdirs ~/Downloads /share
+add_argdirs_ro "$@"
+
+mkdir -m 0700 -p ~/.cache/mozilla
+
+exec bwrap "${FLAGS[@]}" /usr/lib/firefox/firefox "$@"

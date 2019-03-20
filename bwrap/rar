@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_FLAGS[@]}
+  --ro-bind /usr/bin/rar /usr/bin/rar
+)
+add_argdirs "$@" "$(pwd)"
+
+exec bwrap "${FLAGS[@]}" /usr/bin/rar "$@"

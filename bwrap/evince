@@ -1,0 +1,15 @@
+#!/bin/bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_X11_FLAGS[@]}
+  --bind /run/user/$UID/bus /run/user/$UID/bus
+  --bind /run/user/$UID/dconf /run/user/$UID/dconf
+  --bind ~/.config/evince ~/.config/evince
+  --bind ~/.cache/fontconfig ~/.cache/fontconfig
+  --ro-bind /usr/bin/evince /usr/bin/evince
+  --unsetenv SESSION_MANAGER
+)
+add_argdirs_ro "$@"
+
+exec bwrap "${FLAGS[@]}" /usr/bin/evince "$@"

@@ -1,0 +1,19 @@
+#!/bin/bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_X11_FLAGS[@]}
+  --share-net
+  --bind /run/user/$UID/bus /run/user/$UID/bus
+  --bind /run/user/$UID/pulse /run/user/$UID/pulse
+  --ro-bind /etc /etc
+  --ro-bind /usr/bin/vlc /usr/bin/vlc
+  --ro-bind ~/.config/dconf ~/.config/dconf
+  --ro-bind ~/.config/vlc ~/.config/vlc
+  --ro-bind ~/.local/share/vlc ~/.local/share/vlc
+  --unsetenv SESSION_MANAGER
+)
+add_nvidia
+add_argdirs_ro "$@" ~/Downloads /share
+
+exec bwrap "${FLAGS[@]}" /usr/bin/vlc "$@"

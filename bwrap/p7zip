@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+BASENAME="${BASH_SOURCE[0]##*/}"
+
+FLAGS=(
+  ${MIN_FLAGS[@]}
+  --ro-bind /bin/cat /bin/cat
+  --ro-bind /bin/grep /bin/grep
+  --ro-bind /bin/mktemp /bin/mktemp
+  --ro-bind /bin/rm /bin/rm
+  --ro-bind /bin/sh /bin/sh
+  --ro-bind /usr/bin/$BASENAME /usr/bin/$BASENAME
+  --ro-bind /usr/bin/7z /usr/bin/7z
+  --ro-bind /usr/bin/7za /usr/bin/7za
+  --ro-bind /usr/bin/tty /usr/bin/tty
+  --ro-bind /usr/bin/which /usr/bin/which
+)
+add_argdirs "$@" "$(pwd)"
+
+exec bwrap "${FLAGS[@]}" "/usr/bin/$BASENAME" "$@"

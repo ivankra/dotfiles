@@ -1,0 +1,13 @@
+#!/bin/bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_X11_FLAGS[@]}
+  --bind /run/user/$UID/bus /run/user/$UID/bus
+  --ro-bind /usr/bin/eog /usr/bin/eog
+  --ro-bind ~/.config/dconf ~/.config/dconf
+)
+add_etc
+add_argdirs_ro "$@"
+
+exec bwrap "${FLAGS[@]}" /usr/bin/eog "$@"

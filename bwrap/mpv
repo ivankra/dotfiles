@@ -1,0 +1,18 @@
+#!/bin/bash
+source "${BASH_SOURCE[0]%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_X11_FLAGS[@]}
+  --share-net
+  --bind /run/user/$UID/pulse /run/user/$UID/pulse
+  --ro-bind /etc /etc
+  --ro-bind /usr/bin/mpv /usr/bin/mpv
+  --ro-bind ~/.config/dconf ~/.config/dconf
+  --ro-bind ~/.config/mpv/input.conf ~/.config/mpv/input.conf
+  --ro-bind ~/.config/pulse ~/.config/pulse
+  --unsetenv SESSION_MANAGER
+)
+add_nvidia
+add_argdirs_ro "$@" ~/Downloads /share
+
+exec bwrap "${FLAGS[@]}" /usr/bin/mpv "$@"

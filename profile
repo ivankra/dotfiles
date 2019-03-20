@@ -16,7 +16,7 @@ if ! (echo "$PATH" | grep -q ".dotfiles/bin"); then
     fi
   fi
 
-  for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
+  for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.dotfiles/bwrap ~/.local/bin ~/.bin ~/bin; do
     if [ -d "$_d" ] && ! (echo ":$PATH:" | fgrep -q ":$_d:"); then
       PATH="$_d:$PATH"
     fi
