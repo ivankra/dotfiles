@@ -18,4 +18,9 @@ add_argdirs_ro "$@"
 
 mkdir -m 0700 -p ~/.cache/mozilla
 
-exec bwrap "${FLAGS[@]}" /usr/lib/firefox/firefox "$@"
+BINARY=/usr/lib/firefox/firefox
+if ! [[ -x "$BINARY" ]]; then
+  BINARY=/usr/lib/firefox-esr/firefox-esr
+fi
+
+exec bwrap "${FLAGS[@]}" "$BINARY" "$@"

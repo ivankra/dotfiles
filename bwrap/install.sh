@@ -20,11 +20,16 @@ install() {
       launcher="org.gnome.Evince.desktop"
     fi
 
+    if ! [[ -f /usr/share/applications/$launcher ]]; then
+      echo "Skipping $launcher"
+      continue
+    fi
+
     cat /usr/share/applications/$launcher \
-      | egrep -v '^([A-Za-z-]+\[.*\]=|#|X-GNOME-Bug|TryExec=)' \
+      | egrep -v '^TryExec=' \
       | sed -Ee 's/((Name|Comment)=.*)/\1 (bwrap)/' \
-      | sed -Ee "s|Exec=([^ ]+)|Exec=\$HOME/$(realpath --relative-to="$HOME" .)/$app|" \
-      | envsubst >~/.local/share/applications/$launcher
+      | sed -Ee "s|Exec=([^ ]+)|Exec=$(realpath .)/$app|" \
+      >~/.local/share/applications/$launcher
 
     echo "Installed ~/.local/share/applications/$launcher"
   done
