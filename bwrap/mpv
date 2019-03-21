@@ -8,7 +8,7 @@ FLAGS=(
   --ro-bind /etc /etc
   --ro-bind /usr/bin/mpv /usr/bin/mpv
   --ro-bind ~/.config/dconf ~/.config/dconf
-  --ro-bind ~/.config/mpv/input.conf ~/.config/mpv/input.conf
+  --ro-bind ~/.config/mpv/ ~/.config/mpv/
   --ro-bind ~/.config/pulse ~/.config/pulse
   --unsetenv SESSION_MANAGER
 )
