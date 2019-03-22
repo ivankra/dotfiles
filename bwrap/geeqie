@@ -1,15 +1,19 @@
 #!/bin/bash
 source "${BASH_SOURCE[0]%/*}/lib.sh"
 
+BINARY=/usr/bin/geeqie
+
 FLAGS=(
   ${MIN_X11_FLAGS[@]}
+  --bind ~/.config/geeqie ~/.config/geeqie
+  --ro-bind "$BINARY" "$BINARY"
   --ro-bind /etc /etc
-  --ro-bind /usr/bin/eog /usr/bin/eog
   --ro-bind /var/cache/fontconfig /var/cache/fontconfig
-  --ro-bind ~/.config/dconf ~/.config/dconf
   --ro-bind ~/.fonts ~/.fonts
   --unsetenv SESSION_MANAGER
 )
 add_argdirs_ro "$@"
 
-exec bwrap "${FLAGS[@]}" /usr/bin/eog "$@"
+mkdir -p -m 0700 ~/.config/geeqie
+
+exec bwrap "${FLAGS[@]}" "$BINARY" "$@"

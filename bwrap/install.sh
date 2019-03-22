@@ -8,6 +8,7 @@ APPS=(
   eog
   evince
   firefox
+  geeqie
   mpv
   qpdfview
   vlc

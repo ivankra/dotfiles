@@ -139,7 +139,11 @@ if [[ $UID != 0 ]]; then
     rm -rf ~/.config/mpv
   fi
   link mpv ~/.config/mpv
-  link qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
+
+  mkdir -p -m 0700 ~/.config/qpdfview
+  rm -f ~/.config/qpdfview/shortcuts.conf
+  cp -f qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
+
   link tkdiffrc
   link vlcrc ~/.config/vlc/vlcrc
   link xinitrc

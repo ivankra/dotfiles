@@ -67,6 +67,7 @@ MIN_FLAGS=(
   --cap-drop ALL
   --new-session
   --die-with-parent
+  --hostname bwrap
   --dev /dev
   --proc /proc
   --tmpfs /tmp
