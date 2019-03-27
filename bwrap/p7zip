@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-source "${BASH_SOURCE[0]%/*}/lib.sh"
+SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
+source "${SCRIPT%/*}/lib.sh"
 
 BASENAME="${BASH_SOURCE[0]##*/}"
 

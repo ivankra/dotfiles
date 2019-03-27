@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-source "${BASH_SOURCE[0]%/*}/lib.sh"
+SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
+source "${SCRIPT%/*}/lib.sh"
 
-BASENAME="${BASH_SOURCE[0]##*/}"
+CMD="${BASH_SOURCE[0]##*/}"
 
 FLAGS=(${MIN_FLAGS[@]})
 add_argdirs "$@" "$(pwd)"
 
-exec bwrap "${FLAGS[@]}" "/usr/lib/p7zip/$BASENAME" "$@"
+exec bwrap "${FLAGS[@]}" "/usr/lib/p7zip/$CMD" "$@"

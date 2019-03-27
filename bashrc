@@ -20,7 +20,7 @@ if [[ -z "$CONDA_ROOT" ]]; then
   fi
 fi
 
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.dotfiles/bwrap ~/.local/bin ~/.bin ~/bin; do
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
   if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
     PATH="$_d:$PATH"
   fi
