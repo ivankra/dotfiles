@@ -15,3 +15,5 @@ c.NotebookApp.iopub_data_rate_limit = 1000000000
 
 if os.path.exists('/usr/bin/firefox'):
     c.NotebookApp.browser = 'firefox'
+
+c.IPKernelApp.matplotlib = 'inline'
