@@ -1,9 +1,18 @@
 #!/bin/bash
-# Installs app launcher overrides for the current user.
+# Installs bubblewrapped launchers for the current user into ~/.local/share/applications/
+# as well as symlinks into ~/.local/bin/ for the terminal.
+#
+#
+#
+# Usage: ./setup.sh [app ...]
 
 set -e -o pipefail
 
+# app[:launcher]
 APPS=(
+  7z:none
+  7za:none
+  7zr:none
   eog
   evince:org.gnome.Evince.desktop
   firefox
@@ -18,58 +27,65 @@ APPS=(
   libreoffice:libreoffice-xsltfilter.desktop
   mpv
   okular:org.kde.okular.desktop
+  p7zip:none
   qpdfview
+  rar:none
   vlc
 )
 
-UTILS=(
-  7z
-  7za
-  7zr
-  p7zip
-  rar
-)
+install() {
+  mkdir -p -m 0700 ~/.local/share/applications ~/.local/bin
 
-mkdir -p -m 0700 ~/.local/share/applications ~/.local/bin
+  only_app="$1"
 
-for app in "${UTILS[@]}"; do
-  if [[ -x /usr/bin/"$app" ]]; then
+  for spec in "${APPS[@]}"; do
+    if [[ "$spec" == *:* ]]; then
+      launcher="${spec#*:}"
+      app="${spec%:*}"
+    else
+      app="$spec"
+      launcher="$spec.desktop"
+    fi
+
+    if [[ -n "$only_app" && "$app" != "$only_app" ]]; then
+      continue
+    fi
+
+    if [[ "$launcher" == "none" ]]; then
+      if ! [[ -x /usr/bin/"$app" ]]; then
+        echo "$app: skipping (/usr/bin/$app missing)"
+        continue
+      fi
+    else
+      if ! [[ -f /usr/share/applications/$launcher ]]; then
+        echo "$app: skipping (/usr/share/applications/$launcher missing)"
+        continue
+      fi
+
+      cat /usr/share/applications/$launcher \
+        | egrep -v '^(TryExec|[A-Za-z]*\[.*\])=' \
+        | sed -Ee 's/^((Name|GenericName|Comment)=.*)/\1 (bwrap)/' \
+        | sed -Ee "s|Exec=([^ ]+)|Exec=$(realpath .)/$app|" \
+        >~/.local/share/applications/$launcher
+
+      echo "$app: installed ~/.local/share/applications/$launcher"
+    fi
+
     src="$(realpath .)/$app"
     dst=~/.local/bin/"$app"
     if ! [[ "$src" -ef "$dst" ]]; then
       rm -f "$dst"
       ln -s -f "$src" "$dst"
-      echo "Linked ~/.local/bin/$app -> $src"
+      echo "$app: linked ~/.local/bin/$app -> $src"
     fi
-  fi
-done
+  done
+}
 
-for app in "${APPS[@]}"; do
-  if [[ "$app" == *:* ]]; then
-    launcher="${app#*:}"
-    app="${app%:*}"
-  else
-    launcher="$app.desktop"
-  fi
 
-  if ! [[ -f /usr/share/applications/$launcher ]]; then
-    echo "Skipping $app ($launcher)"
-    continue
-  fi
-
-  cat /usr/share/applications/$launcher \
-    | egrep -v '^(TryExec|[A-Za-z]*\[.*\])=' \
-    | sed -Ee 's/^((Name|GenericName|Comment)=.*)/\1 (bwrap)/' \
-    | sed -Ee "s|Exec=([^ ]+)|Exec=$(realpath .)/$app|" \
-    >~/.local/share/applications/$launcher
-
-  echo "Generated ~/.local/share/applications/$launcher"
-
-  src="$(realpath .)/$app"
-  dst=~/.local/bin/"$app"
-  if ! [[ "$src" -ef "$dst" ]]; then
-    rm -f "$dst"
-    ln -s -f "$src" "$dst"
-    echo "Linked ~/.local/bin/$app -> $src"
-  fi
-done
+if [[ $# == 0 ]]; then
+  install
+else
+  for app in "$@"; do
+    install "$app"
+  done
+fi
