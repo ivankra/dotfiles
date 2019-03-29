@@ -92,7 +92,7 @@ link_or_copy() {
 
     if [[ -L "$dst_path" ]]; then
       rm -f "$dst_path"
-      ln -s "$src" "$dst_path"
+      cp -a "$src" "$dst_path"
       echo "Copied $src over symlink $dst_path"
     elif ! [[ -f "$dst_path" ]]; then
       cp -af "$src" "$dst_path"
