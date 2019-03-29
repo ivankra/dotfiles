@@ -7,15 +7,12 @@ FLAGS=(
   ${MIN_X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
-  --bind ~/.config/okularpartrc ~/.config/okularpartrc
-  --bind ~/.config/okularrc ~/.config/okularrc
+  --bind ~/.config ~/.config
   --ro-bind "$BINARY" "$BINARY"
   --ro-bind /etc /etc
   --ro-bind /var/cache/fontconfig /var/cache/fontconfig
   --unsetenv SESSION_MANAGER
 )
 add_argdirs_ro "$@" /share ~/Downloads /s/study ~/.config/qt5ct ~/.icons ~/.fonts
-
-touch ~/.config/okularrc ~/.config/okularpartrc
 
 exec bwrap "${FLAGS[@]}" "$BINARY" "$@"

@@ -50,6 +50,9 @@ add_argdirs() {
     if [[ "$arg" == --* ]]; then
       continue
     fi
+    if ! realpath -s -- "$arg" >/dev/null 2>&1; then
+      continue
+    fi
     local dir="$(realpath -s -- "$arg")"
     if [[ -f "$dir" ]]; then
       dir="$(dirname -- "$dir")"
