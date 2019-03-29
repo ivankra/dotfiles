@@ -1,18 +1,23 @@
 #!/bin/bash
 # Generates /org/gnome/terminal/ dconf configuration from Xresources-style
-# colorscheme files in colors/ subdirectory or passed on command line.
-# One profile per color scheme.
-
+# colorscheme files in this directory (all files beginning with cap)
+# or from files passed on the command line.
+#
+# Generated one profile per color scheme.
+#
+# Usage:
+#   $ dconf reset -f /org/gnome/terminal/ && ./gen-dconf.sh | dconf load /
+#
 set -e -o pipefail
 
 if [[ $# == 0 ]]; then
   SCRIPT_DIR="$(dirname $(readlink -f "$0"))"
-  THEMES="$(ls "$SCRIPT_DIR/colors/"*)"
+  THEMES="$(ls "$SCRIPT_DIR"/[A-Z]*)"
 else
   THEMES="$(ls $@)"
 fi
 
-DEFAULT_THEME="${DEFAULT_THEME:-Fruidle}"
+DEFAULT_THEME="${DEFAULT_THEME:-Dracula}"
 
 get_color() {
   cat "$FILENAME" | cpp | sed -e 's/!.*//' | egrep ".*[*.]$1:" | egrep -o ':[^!]*' | \
