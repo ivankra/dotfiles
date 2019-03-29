@@ -7,12 +7,16 @@ FLAGS=(
   ${MIN_X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
-  --bind ~/.config/libreoffice ~/.config/libreoffice
+  --ro-bind ~/.config/libreoffice ~/.config/libreoffice
   --ro-bind /bin /bin
   --ro-bind /etc /etc
   --ro-bind /usr/bin /usr/bin
   --unsetenv SESSION_MANAGER
 )
 add_argdirs "$@" /share ~/Downloads
+
+if [[ -z "$GTK_THEME" && -d /usr/share/themes/Numix ]]; then
+  FLAGS+=(--setenv GTK_THEME Numix)
+fi
 
 exec bwrap "${FLAGS[@]}" "$BINARY" "$@"
