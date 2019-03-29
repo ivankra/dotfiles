@@ -1,0 +1,34 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: svc-iperf3
+Version: 1.0
+Maintainer: none
+Depends: iperf3
+Architecture: all
+Description: iperf3 service
+
+File: postinst
+ #!/bin/bash
+ systemctl enable iperf3.service
+ systemctl start iperf3.service
+
+File: prerm
+ #!/bin/bash
+ systemctl stop iperf3.service
+
+File: /etc/systemd/system/iperf3.service 0644
+ [Unit]
+ Description=iperf3 service
+ After=syslog.target network.target
+ .
+ [Service]
+ ExecStart=/usr/bin/iperf3 -s
+ Restart=always
+ RestartSec=30
+ User=nobody
+ Group=nogroup
+ .
+ [Install]
+ WantedBy=multi-user.target

@@ -1,0 +1,32 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: svc-rclocal
+Version: 1.0
+Maintainer: none
+Depends: systemd
+Architecture: all
+Description: Execute /etc/rc.local on startup
+
+File: postinst
+ #!/bin/bash
+ if ! [[ -f /etc/rc.local ]]; then
+   echo '#!/bin/bash' >/etc/rc.local
+ fi
+ chown root:root /etc/rc.local
+ chmod 0755 /etc/rc.local
+ systemctl enable rc-local.service
+
+File: /etc/systemd/system/rc-local.service 0644
+ [Unit]
+ Description=Execute /etc/rc.local on startup
+ ConditionFileIsExecutable=/etc/rc.local
+ After=network-online.target
+ .
+ [Service]
+ ExecStart=/etc/rc.local start
+ Type=simple
+ .
+ [Install]
+ WantedBy=multi-user.target

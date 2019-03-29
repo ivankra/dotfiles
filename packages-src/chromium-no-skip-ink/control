@@ -1,4 +1,4 @@
-Section: World Wide Web
+Section: dotfiles
 Priority: optional
 Standards-Version: 4.3.0
 
@@ -6,7 +6,7 @@ Package: chromium-no-skip-ink
 Version: 1.0
 Maintainer: none
 Architecture: all
-Description: Fix friggin text-decoration-skip-ink crap
+Description: Fix friggin text-decoration-skip-ink
 
 Files: no-skip-ink/manifest.json /usr/share/chromium/extensions/no-skip-ink/
  no-skip-ink/no-skip-ink.css /usr/share/chromium/extensions/no-skip-ink/
