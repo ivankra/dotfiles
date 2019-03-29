@@ -133,7 +133,7 @@ link() { link_or_copy link "$@"; }
 copy() { link_or_copy copy "$@"; }
 
 rm_dotfiles_symlinks() {
-  for f in "$@}"; do
+  for f in "$@"; do
     if [[ -L "$f" ]] && (readlink -f -- "$f" | fgrep -q /.dotfiles/); then
       rm -rf "$f"
       echo "Removed obsolete symlink $f"
