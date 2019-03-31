@@ -288,7 +288,15 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  set guifont=M+\ 1mn\ Medium\ 13
+  if filereadable(expand('~/.fonts/iosevka-term-ss04-medium.ttf'))
+    if $HIDPI == "1"
+      set guifont=Iosevka\ Term\ SS04\ Medium\ 11
+    else
+      set guifont=Iosevka\ Term\ SS04\ Medium\ 13
+    endif
+  else
+    set guifont=M+\ 1mn\ Medium\ 13
+  endif
   "set guifont=Fira\ Mono\ Medium\ 13
   "set guifont=Roboto\ Mono\ Medium\ 13
   set guioptions-=T   " disable toolbar

@@ -38,6 +38,10 @@ if [[ $UID != 0 ]]; then
   link xinitrc
   link xonshrc
   link xsessionrc
+
+  if [[ -x /usr/bin/virt-manager ]]; then
+    copy virt-manager.desktop ~/.local/share/applications
+  fi
 fi
 
 if ! [[ -d ~/.local/bin ]]; then

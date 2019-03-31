@@ -22,6 +22,7 @@ user_pref("gfx.downloadable_fonts.fallback_delay", 0);
 user_pref("gfx.downloadable_fonts.fallback_delay_short", 0);
 user_pref("gfx.font_loader.delay", 0);
 user_pref("image.decode-immediately.enabled", true);
+user_pref("layers.acceleration.disabled", false);
 user_pref("mousewheel.default.delta_multiplier_y", 150);
 user_pref("pdfjs.disablePageMode", true);
 user_pref("permissions.default.camera", 2);

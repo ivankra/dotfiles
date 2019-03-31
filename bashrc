@@ -5,6 +5,7 @@ export LC_COLLATE=C
 export LESS=-FRSXi
 export LESSHISTFILE=-
 export PAGER=less
+export QT_AUTO_SCREEN_SCALE_FACTOR=1
 export QT_STYLE_OVERRIDE=adwaita
 
 if [[ -z "$CUDA_ROOT" && -z "$CUDA_PATH" && -d /usr/local/cuda ]]; then
@@ -32,7 +33,15 @@ if [[ -z "$PS1" || -z "$HOME" ]]; then
   return
 fi
 
-# Aliases {{{
+if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
+  if [[ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == "uint32 2" ]]; then
+    export HIDPI=1
+  else
+    export HIDPI=0
+  fi
+fi
+
+# Aliases
 alias ..='cd ..'
 alias ...='cd ...'
 alias R='R --no-save --no-restore --quiet'
@@ -70,10 +79,14 @@ alias rm='rm -i'
 alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
+alias virt-manager='GDK_SCALE=1 virt-manager'
+
+if ((HIDPI)); then
+  alias gvim='GDK_SCALE=1 gvim'
+fi
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
-# }}}
 
 # History {{{
 # * keep deduped in ~/.history/bash.YYYYMM files
