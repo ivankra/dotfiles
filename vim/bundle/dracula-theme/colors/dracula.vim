@@ -92,6 +92,15 @@ if has('nvim')
   let g:terminal_color_15 = '#FFFFFF'
 endif
 
+if has('terminal')
+  let g:terminal_ansi_colors = [
+      \ '#21222C', '#FF5555', '#50FA7B', '#F1FA8C',
+      \ '#BD93F9', '#FF79C6', '#8BE9FD', '#F8F8F2',
+      \ '#6272A4', '#FF6E6E', '#69FF94', '#FFFFA5',
+      \ '#D6ACFF', '#FF92DF', '#A4FFFF', '#FFFFFF'
+      \]
+endif
+
 " }}}2
 " User Configuration: {{{2
 
@@ -221,7 +230,7 @@ call s:h('DraculaSearch', s:green, s:none, [s:attrs.inverse])
 call s:h('DraculaBoundary', s:comment, s:bgdark)
 call s:h('DraculaLink', s:cyan, s:none, [s:attrs.underline])
 
-call s:h('DraculaDiffChange', s:none, s:none)
+call s:h('DraculaDiffChange', s:orange, s:none)
 call s:h('DraculaDiffText', s:bg, s:orange)
 call s:h('DraculaDiffDelete', s:red, s:bgdark)
 
