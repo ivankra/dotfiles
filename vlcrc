@@ -4,8 +4,11 @@ qt-recentplay=0
 qt-continue=0
 qt-privacy-ask=0
 qt-bgcone=0
+
 [core]
 random=1
 loop=1
 key-leave-fullscreen=
 key-quit=Esc
+input-fast-seek=1
+metadata-network-access=0
