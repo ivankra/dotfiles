@@ -39,7 +39,7 @@ if [[ $UID != 0 ]]; then
   link xsessionrc
 
   if [[ -x /usr/bin/virt-manager ]]; then
-    copy virt-manager.desktop ~/.local/share/applications
+    copy virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
   fi
 fi
 

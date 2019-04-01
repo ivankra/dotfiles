@@ -2,7 +2,7 @@
 Name=Virtual Machine Manager
 Comment=Manage virtual machines
 Icon=virt-manager
-Exec=env GDK_SCALE=1 virt-manager
+Exec=env GDK_SCALE=1 GTK_THEME=Ambiance virt-manager
 Type=Application
 Terminal=false
 Categories=System;
