@@ -17,7 +17,6 @@ gen -c <(./hgrc.sh) ~/.hgrc
 link Rprofile
 link bash_logout
 link bashrc
-link fonts
 link gdbinit
 link htoprc ~/.config/htop/htoprc
 link hushlogin
@@ -52,6 +51,12 @@ fi
 if ! [[ -d ~/.bin ]]; then
   ln -s .local/bin ~/.bin
   echo "Linked: ~/.bin -> ~/.local/bin"
+fi
+
+if [[ -L ~/.fonts && ! -d ~/.fonts ]]; then
+  echo "Removing obsolete symlink ~/.fonts"
+  rm -f ~/.fonts
+  mkdir -p -m 0750 ~/.fonts
 fi
 
 # ~/.ssh {{{
