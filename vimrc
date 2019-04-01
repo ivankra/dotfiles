@@ -288,7 +288,7 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  if filereadable(expand('~/.fonts/iosevka-term-ss04-medium.ttf'))
+  if (filereadable(expand('~/.fonts/iosevka-term-ss04-medium.ttf')) || filereadable('/usr/share/fonts/truetype/iosevka-term-ss04/iosevka-term-ss04-medium.ttf'))
     if $HIDPI == "1"
       set guifont=Iosevka\ Term\ SS04\ Medium\ 11
     else
