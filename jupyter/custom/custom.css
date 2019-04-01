@@ -17,7 +17,7 @@ html, body, .CodeMirror, .rendered_html table {
 .CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field,
 .terminal-app .terminal, .output_text pre, .ipython_tooltip .tooltiptext pre, table.dataframe thead,
 .rendered_html code {
-  font-family: "Roboto Mono", monospace;
+  font-family: "Iosevka Term SS04", "Roboto Mono", monospace;
   font-size: 15px;
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
