@@ -81,10 +81,6 @@ alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
 
-if ((HIDPI)); then
-  alias gvim='GDK_SCALE=1 gvim'
-fi
-
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
 

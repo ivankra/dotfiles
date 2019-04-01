@@ -397,12 +397,6 @@ if has("user_commands") && has("autocmd")
   com! -nargs=? -complete=color Light call LightTheme(expand("<args>"))
   com! -nargs=? -complete=color Dark call DarkTheme(expand("<args>"))
 
-  if $COLORFGBG == "15;default;0" && !has("gui_running")
-    call DarkTheme("")
-  else
-    call LightTheme("")
-  endif
-
   com! -nargs=? T tabedit <args>
   com! -nargs=? Tabe tabedit <args>
   com! -nargs=? E e <args>
@@ -481,6 +475,15 @@ map Ю >
 if has("user_commands") && has("autocmd")
   execute pathogen#infect()
   call pathogen#helptags() " generate helptags for everything in 'runtimepath'
+endif
+
+if has("user_commands") && has("autocmd")
+  if $COLORFGBG == "15;default;0"
+    "&& !has("gui_running")
+    call DarkTheme("")
+  else
+    call LightTheme("")
+  endif
 endif
 
 if filereadable(expand("~/.private/vimrc"))

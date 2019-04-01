@@ -1,5 +1,3 @@
-#!/bin/bash
-
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 export QT_STYLE_OVERRIDE=adwaita
 
@@ -30,8 +28,8 @@ if [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then
   . "$HOME/.bashrc"
 fi
 
-if [ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]; then
-  if [ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == "uint32 2" ]; then
+if [ -z "$HIDPI" ] && [ -f "/run/user/$(id -u)/dconf/user" ]; then
+  if [ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" = "uint32 2" ]; then
     export HIDPI=1
   else
     export HIDPI=0
