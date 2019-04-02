@@ -1,8 +1,13 @@
 #!/bin/bash
-# Packages specified directories with font files into .deb packages.
+# Packs specified directories with font files into .deb packages.
+# Creates one package per argument, fonts-<dir>_<version>_all.deb
+# containing all recursively found font files in a directory.
+# Version inferred from directory name suffix or set to 0.0.YYYYMMDD.
+#
 # Usage: ./package-fonts.sh [dir1 [dir2 ...]]
-# Creates fonts-<dir>_<version>_all.deb for each directory.
-# Version inferred from directory name or set to 0.0.YYYYMMDD.
+#
+# Example to download and package up all google fonts:
+# git clone https://github.com/google/fonts.git && ./package-fonts.sh fonts/{apache,ofl,ufl}/*
 
 set -e -o pipefail
 
@@ -49,15 +54,17 @@ Readme: $tmp/readme"
     done
 
     find "${input_dir}/" -type f \
-      '(' -iname "copyright*" -or -iname "license*" -or -iname "licence*" -or -iname "authors*" -or -iname "copying*" ')' \
-      -exec cat '{}' ';' >"$tmp/copyright"
-    find "${input_dir}/" -type f '(' -iname "readme*" -or -name 'OFL.txt' ')' \
-      -exec cat '{}' ';' >"$tmp/readme"
+      "(" -iname "copyright*" -or -iname "license*" -or -iname "licence*" -or \
+          -iname "authors*" -or -iname "copying*" -or -iname "OFL.txt" -or \
+          -name "UFL.txt" ")" \
+      -exec cat "{}" ";" >"$tmp/copyright"
+    find "${input_dir}/" -type f "(" -iname "readme*" -or -iname "FONTLOG.txt" ")" \
+      -exec cat "{}" ";" >"$tmp/readme"
   }
 
   gen >"$tmp/control"
 
-  if ! egrep -q 'Files: .*(ttf|otf|eot|woff|woff2) /usr/' "$tmp/control"; then
+  if ! egrep -q "Files: .*(ttf|otf|eot|woff|woff2) /usr/" "$tmp/control"; then
     echo "No font files found in $dir"
     exit 1
   fi
@@ -76,8 +83,8 @@ Readme: $tmp/readme"
 }
 
 
-if [[ $# == 0 ]]; then
-  head ${BASH_SOURCE[0]} | grep '^# ' | sed -e 's/^# *//'
+if [[ $# == 0 || "$1" == "--help" ]]; then
+  head ${BASH_SOURCE[0]} | egrep "^#( |$)" | sed -Ee "s/^# ?//"
   exit
 fi
 
