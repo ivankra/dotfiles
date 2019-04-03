@@ -46,6 +46,8 @@ add_argdirs() {
     shift 1
   fi
 
+  need_chdir=0
+
   for arg in "$@"; do
     if [[ "$arg" == --* ]]; then
       continue
@@ -57,10 +59,17 @@ add_argdirs() {
     if [[ -f "$dir" ]]; then
       dir="$(dirname -- "$dir")"
     fi
+    if ! [[ "$arg" == /* ]]; then
+      need_chdir=1
+    fi
     if [[ -d "$dir" ]]; then
       FLAGS+=("$flag" "$dir" "$dir")
     fi
   done
+
+  if ((need_chdir)); then
+    FLAGS+=(--chdir "$(realpath -s -- ".")")
+  fi
 }
 
 add_argdirs_ro() {
