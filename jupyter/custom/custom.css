@@ -7,7 +7,7 @@ html, body, .CodeMirror, .rendered_html table {
   line-height: 150%;
   max-width: 1000px;
   font-size: 15px;
-  font-family: Merriweather, Roboto, "Helvetica Neue", sans-serif;
+  font-family: Bitter, "Charis SIL", Merriweather, Georgia, Roboto, "Helvetica Neue", sans-serif;
 }
 .rendered_html h1 { font-size: 28px; }
 .rendered_html h2 { font-size: 21px; }
