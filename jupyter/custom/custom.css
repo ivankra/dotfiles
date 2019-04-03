@@ -1,35 +1,40 @@
 html, body, .CodeMirror, .rendered_html table {
-  font-family: Roboto, sans-serif;
-  font-size: 16px;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 15px;
 }
 
-.rendered_html p {
+.text_cell div {
   line-height: 150%;
-  max-width: 1000px;
+  max-width: 750px;
   font-size: 15px;
-  font-family: Bitter, "Charis SIL", Merriweather, Georgia, Roboto, "Helvetica Neue", sans-serif;
+  font-family: Bitter, "Roboto Slab", Georgia, Roboto, "Helvetica Neue", sans-serif;
+}
+.rendered_html h1, h2, h3, h4, h5, h6 {
+  font-weight: 500 !important;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 .rendered_html h1 { font-size: 28px; }
 .rendered_html h2 { font-size: 21px; }
 .rendered_html h3 { font-size: 18px; }
 .rendered_html h4, h5, h6 { font-size: 16px; }
-.rendered_html h1, h2, h3, h4, h5, h6 { font-weight: 500 !important; }
 
 .CodeMirror pre, .CodeMirror-dialog, .CodeMirror-dialog .CodeMirror-search-field,
 .terminal-app .terminal, .output_text pre, .ipython_tooltip .tooltiptext pre, table.dataframe thead,
 .rendered_html code {
-  font-family: "Iosevka Term SS04", "Roboto Mono", monospace;
-  font-size: 15px;
+  font-family: "Iosevka Term SS04", "Iosevka Term", Iosevka, "Roboto Mono", monospace;
+  font-size: 16px;
 }
 .CodeMirror .cm-keyword { font-weight: 500 !important; }
 .CodeMirror .cm-operator { font-weight: 500 !important; }
 
 /* Hide header, move filename box into menubar */
 div#header-container { position: absolute; left: 0px; top: 0px; }
-span.save_widget { padding-top: 3px; width: auto; }
+span.save_widget { padding-top: 3px; width: auto; align-items: center; }
 span.save_widget span.filename { font-size: 15px; font-weight: 500; color: #505050; padding-left: 5px; padding-right: 5px; height: 20px; }
-span.checkpoint_status { font-size: 12px; color: #808080; }
-span.autosave_status { font-size: 12px; color: #808080; }
+span.checkpoint_status, span.autosave_status {
+  font-size: 10px; font-family: "Roboto Condensed", inherit; color: #808080;
+}
+.nav li a { padding: 10px 10px; }
 
 /* Expand notebook area to full page width */
 .container { width: 100% !important; }
@@ -37,7 +42,7 @@ div#notebook { padding-top: 0px; }
 
 /* Fix oversided buttons in tooltips */
 .ui-button { padding: 0px; font-size: 10px; height: 14px; }
-tooltipbuttons { font-size: 10px; }
+tooltipbuttons { font-size: 12px; }
 
 /* Tooltip size */
 .ipython_tooltip { max-width: 1000px; }
