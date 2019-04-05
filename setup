@@ -41,6 +41,7 @@ if [[ $UID != 0 ]]; then
   if [[ -x /usr/bin/virt-manager ]]; then
     copy virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
   fi
+  copy gnome-system-monitor.desktop ~/.local/share/applications/gnome-system-monitor.desktop
 fi
 
 if ! [[ -d ~/.local/bin ]]; then
