@@ -2,6 +2,8 @@
 SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
+export GTK_CSD=1  # fix titlebar hiding in cinnamon
+
 FLAGS=(
   ${MIN_X11_FLAGS[@]}
   --share-net
