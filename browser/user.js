@@ -33,6 +33,8 @@ user_pref("privacy.window.maxInnerHeight", 1200);
 user_pref("privacy.window.maxInnerWidth", 1900);
 user_pref("toolkit.cosmeticAnimations.enabled", false);
 
+user_pref("pdfjs.disabled", true);  // blurry rendering, https://github.com/mozilla/pdf.js/issues/10509
+
 // ghkacs/pyllyukko overrides
 user_pref("app.update.enabled", false);
 user_pref("browser.display.use_document_fonts", 1);

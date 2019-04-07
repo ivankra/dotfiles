@@ -1,0 +1,25 @@
+{
+   "defaultHandlersVersion" : {
+      "en-US" : 4
+   },
+   "mimeTypes" : {
+      "application/pdf" : {
+         "action" : 4,
+         "extensions" : [
+            "pdf"
+         ]
+      }
+   },
+   "schemes" : {
+      "mailto" : {
+         "handlers" : [
+            null,
+            {
+               "name" : "Gmail",
+               "uriTemplate" : "https://mail.google.com/mail/?extsrc=mailto&url=%s"
+            }
+         ],
+         "action" : 4
+      }
+   }
+}
