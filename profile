@@ -28,6 +28,10 @@ if [ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ]; then
   . "$HOME/.bashrc"
 fi
 
+if [ -f "$HOME/.private/profile" ]; then
+  . "$HOME/.private/profile"
+fi
+
 if [ -z "$HIDPI" ] && [ -f "/run/user/$(id -u)/dconf/user" ]; then
   if [ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" = "uint32 2" ]; then
     export HIDPI=1
