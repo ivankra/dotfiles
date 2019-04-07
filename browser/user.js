@@ -57,6 +57,7 @@ user_pref("privacy.clearOnShutdown.cookies", false);
 user_pref("privacy.clearOnShutdown.history", false);
 user_pref("privacy.clearOnShutdown.sessions", false);
 user_pref("privacy.sanitize.sanitizeOnShutdown", false);
+user_pref("security.dialog_enable_delay", 10);
 user_pref("security.mixed_content.block_display_content", false);
 
 // ESR
