@@ -30,6 +30,7 @@ APPS=(
   p7zip:none
   qpdfview
   rar:none
+  unzip:none
   vlc
 )
 

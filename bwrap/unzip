@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
+source "${SCRIPT%/*}/lib.sh"
+
+FLAGS=(
+  ${MIN_FLAGS[@]}
+  --ro-bind /usr/bin/unzip /usr/bin/unzip
+)
+add_argdirs "$@" "$(pwd)"
+
+exec bwrap "${FLAGS[@]}" /usr/bin/unzip "$@"
