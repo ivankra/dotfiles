@@ -23,11 +23,6 @@ gen() {
     shift
   fi
 
-  local dstdir=$(dirname -- "$dst")
-  if ! [[ -d "$dstdir" ]]; then
-    mkdir -p "$dstdir"
-  fi
-
   local dst="$2"
   local tmp="$(basename -- "$dst").tmp"
   cat "$1" >"$tmp"
@@ -49,6 +44,10 @@ gen() {
 
   if ! cmp --silent "$dst" "$tmp"; then
     echo "Generated $dst"
+    local dstdir=$(dirname -- "$dst")
+    if ! [[ -d "$dstdir" ]]; then
+      mkdir -p "$dstdir"
+    fi
     mv -f "$tmp" "$dst"
   else
     rm -f "$tmp"
