@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [[ "$HIDPI" == "1" ]]; then
+  export GDK_SCALE=1
+fi
+
+if [[ -d /usr/share/themes/Yaru ]]; then
+  export GTK_THEME=Yaru:dark
+fi
+
+/usr/bin/gvimdiff "$@"
+exit $?
