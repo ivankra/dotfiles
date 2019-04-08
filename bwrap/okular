@@ -12,6 +12,8 @@ FLAGS=(
   --ro-bind /etc /etc
   --ro-bind /var/cache/fontconfig /var/cache/fontconfig
   --unsetenv SESSION_MANAGER
+  --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR
+  --setenv QT_FONT_DPI 163
 )
 add_argdirs_ro "$@" /share ~/Downloads /s/study ~/.config/qt5ct ~/.icons ~/.fonts
 

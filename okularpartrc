@@ -1,0 +1,9 @@
+[Core General]
+ObeyDRM=false
+
+[Core Performance]
+MemoryLevel=Aggressive
+TextHinting=Enabled
+
+[Main View]
+ShowLeftPanel=false

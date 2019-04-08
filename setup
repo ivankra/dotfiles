@@ -33,6 +33,8 @@ if [[ $UID != 0 ]]; then
   gen <(./mpv/mpv.conf.sh) ~/.config/mpv/mpv.conf
   copy mpv/input.conf ~/.config/mpv/input.conf
   copy qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
+  gen <(./qpdfview.sh) ~/.config/qpdfview/qpdfview.conf
+  copy okularpartrc ~/.config/okularpartrc
   copy vlcrc ~/.config/vlc/vlcrc
   link tkdiffrc
   link xinitrc

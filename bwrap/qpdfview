@@ -13,6 +13,7 @@ FLAGS=(
   --ro-bind ~/.fonts ~/.fonts
   --unsetenv SESSION_MANAGER
   --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR  # causes blurry rendering on 4K
+  --setenv QT_FONT_DPI 163
 )
 add_argdirs_ro "$@"
 
