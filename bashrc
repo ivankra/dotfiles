@@ -6,7 +6,6 @@ export LESS=-FRSXi
 export LESSHISTFILE=-
 export PAGER=less
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
-export QT_STYLE_OVERRIDE=adwaita
 
 if [[ -z "$CUDA_ROOT" && -z "$CUDA_PATH" && -d /usr/local/cuda ]]; then
   export CUDA_ROOT=/usr/local/cuda

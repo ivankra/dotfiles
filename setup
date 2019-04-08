@@ -29,8 +29,9 @@ link vim
 link vimrc
 
 if [[ $UID != 0 ]]; then
-  copy mpv/input.conf ~/.config/mpv/input.conf
+  gen <(./qt5ct.sh) ~/.config/qt5ct/qt5ct.conf
   gen <(./mpv/mpv.conf.sh) ~/.config/mpv/mpv.conf
+  copy mpv/input.conf ~/.config/mpv/input.conf
   copy qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
   copy vlcrc ~/.config/vlc/vlcrc
   link tkdiffrc

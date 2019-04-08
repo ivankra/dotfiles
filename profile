@@ -1,5 +1,4 @@
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
-export QT_STYLE_OVERRIDE=adwaita
 
 if ! (echo "$PATH" | grep -q ".dotfiles/bin"); then
   if [ -z "$CUDA_ROOT" ] && [ -z "$CUDA_PATH" ] && [ -d /usr/local/cuda ]; then
@@ -39,3 +38,5 @@ if [ -z "$HIDPI" ] && [ -f "/run/user/$(id -u)/dconf/user" ]; then
     export HIDPI=0
   fi
 fi
+
+# vim: ft=sh
