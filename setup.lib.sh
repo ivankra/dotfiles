@@ -132,7 +132,7 @@ link_or_copy() {
 link() { link_or_copy link "$@"; }
 copy() { link_or_copy copy "$@"; }
 
-rm_dotfiles_symlinks() {
+remove_dotfiles_symlinks() {
   for f in "$@"; do
     if [[ -L "$f" ]] && (readlink -f -- "$f" | fgrep -q /.dotfiles/); then
       rm -rf "$f"

@@ -9,7 +9,13 @@ if ! [[ -f "$HOME/.dotfiles/setup" && "$HOME/.dotfiles/setup" -ef "$0" ]]; then
 fi
 cd ~/.dotfiles
 
-rm_dotfiles_symlinks ~/.config/mpv ~/.config/mpv/input.conf ~/.config/qpdfview ~/.config/qpdfview/shortcuts.conf ~/.gdb
+remove_dotfiles_symlinks \
+  ~/.config/autostart/gnome-keyring-ssh.desktop \
+  ~/.config/mpv \
+  ~/.config/mpv/input.conf \
+  ~/.config/qpdfview \
+  ~/.config/qpdfview/shortcuts.conf \
+  ~/.gdb
 
 gen -c <(./gitconfig.sh) ~/.gitconfig
 gen -c <(./hgrc.sh) ~/.hgrc
@@ -82,27 +88,6 @@ fi
 if [[ -d ~/.gnupg/ ]]; then
   chmod og-rwx ~/.gnupg/
 fi
-
-# Fix gnome-keyring pre 3.28 for ed25519 keys {{{
-if [[ -f ~/.ssh/id_ed25519 &&
-      -x /usr/bin/gnome-keyring-daemon &&
-      -x /usr/bin/gnome-keyring &&
-      "$(/usr/bin/gnome-keyring version | egrep -o '[0-9.]+')" < 3.28 ]]; then
-  if ! [[ assets/keychain-ssh.desktop -ef ~/.config/autostart/gnome-keyring-ssh.desktop ]]; then
-    mkdir -p ~/.config/autostart
-    ln -sf ../../.dotfiles/assets/keychain-ssh.desktop ~/.config/autostart/gnome-keyring-ssh.desktop
-    echo "Fixed up gnome-keyring-ssh"
-  fi
-
-  if ! [[ -x /usr/bin/keychain ]]; then
-    echo -e "Action required: sudo apt-get install keychain"
-  fi
-
-  if [[ -f /etc/xdg/autostart/gnome-keyring-ssh.desktop ]]; then
-    echo -e "Action required: sudo rm -f /etc/xdg/autostart/gnome-keyring-ssh.desktop"
-  fi
-fi
-# }}}
 
 if [[ -x /usr/bin/byobu && ! -f ~/.byobu/.welcome-displayed ]]; then
   mkdir -p ~/.byobu
