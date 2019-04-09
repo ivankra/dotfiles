@@ -11,7 +11,7 @@ FLAGS=(
   --bind ~/.cache/mozilla ~/.cache/mozilla
   --bind ~/.mozilla ~/.mozilla
   --ro-bind /etc /etc
-  --ro-bind ~/.config/pulse ~/.config/pulse
+  --ro-bind ~/.config ~/.config
   --unsetenv DBUS_SESSION_BUS_ADDRESS
   --unsetenv SESSION_MANAGER
 

@@ -6,6 +6,7 @@ FLAGS=(
   ${MIN_X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
+  --ro-bind ~/.config ~/.config
   --bind ~/.config/qpdfview ~/.config/qpdfview
   --ro-bind /etc /etc
   --ro-bind /usr/bin/qpdfview /usr/bin/qpdfview
