@@ -1,12 +1,57 @@
 #!/usr/bin/env python3
 
 import collections
+import json
 import os
 import re
 import shutil
 import subprocess
+import sys
 
 from pathlib import Path
+
+try:
+    from lz4.block import compress as lz4_compress
+    from lz4.block import decompress as lz4_decompress
+except:
+    lz4_compress = None
+    lz4_decompress = None
+    sys.stderr.write('Warning: lz4 python module missing, install python3-lz4')
+
+
+def mozlz4_decompress(data):
+    if len(data) < 8 or data[:8] != b'mozLz40\0':
+        raise Exception('Invalid mozlz4 header')
+    return lz4_decompress(data[8:])
+
+
+def mozlz4_compress(data):
+    return b'mozLz40\0' + lz4_compress(data)
+
+
+def tweak_search(filename):
+    with open(filename, 'rb') as fp:
+        data = fp.read()
+
+    data = json.loads(mozlz4_decompress(data))
+
+    n = 2
+    for e in data.get('engines', []):
+        if 'Google' not in e.get('_name'):
+            e['_metaData'] = { 'order': n, 'alias': None, 'hidden': True }
+            n += 1
+            continue
+
+        e['_metaData'] = { 'order': 1 }
+        for u in e.get('_urls', []):
+            for p in u.get('params', []):
+                if p.get('name', '') == 'client':
+                    p['name'] = 'hl'
+                    p['value'] = 'en'
+
+    data = mozlz4_compress(json.dumps(data).encode('utf-8'))
+    with open(filename, 'wb') as fp:
+        fp.write(data)
 
 
 def read_prefs(filename):
@@ -53,6 +98,10 @@ def tweak_profile(profile_path, prefs):
 
     shutil.copy('handlers.json', profile_path / 'handlers.json')
     print('Wrote %s/handlers.json' % profile_path)
+
+    if lz4_compress is not None:
+        tweak_search(profile_path / 'search.json.mozlz4')
+        print('Wrote %s/search.json.mozlz4' % profile_path)
 
     cmd = ['sqlite3', str(profile_path / 'places.sqlite'),
            'DELETE FROM moz_bookmarks WHERE id IN (' +
