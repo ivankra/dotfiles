@@ -26,7 +26,7 @@ FLAGS=(
   --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR
   --setenv QT_FONT_DPI 163
 )
-add_argdirs ~/Downloads /share
+add_argdirs "$(realpath ~/Downloads)" /share
 add_argdirs_ro "$@"
 
 mkdir -m 0700 -p ~/.cache/mozilla
