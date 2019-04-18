@@ -16,7 +16,7 @@ try:
 except:
     lz4_compress = None
     lz4_decompress = None
-    sys.stderr.write('Warning: lz4 python module missing, install python3-lz4')
+    sys.stderr.write('Warning: lz4 python module missing, install python3-lz4\n')
 
 
 def mozlz4_decompress(data):
