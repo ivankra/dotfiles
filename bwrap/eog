@@ -11,6 +11,6 @@ FLAGS=(
   --ro-bind ~/.fonts ~/.fonts
   --unsetenv SESSION_MANAGER
 )
-add_argdirs_ro "$@"
+add_argdirs "$@"
 
 exec bwrap "${FLAGS[@]}" /usr/bin/eog "$@"
