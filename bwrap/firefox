@@ -14,18 +14,22 @@ FLAGS=(
   --ro-bind ~/.config ~/.config
   --unsetenv DBUS_SESSION_BUS_ADDRESS
   --unsetenv SESSION_MANAGER
-
-  # qpdfview
-  --bind /run/user/$UID/bus /run/user/$UID/bus
-  --bind /run/user/$UID/dconf /run/user/$UID/dconf
-  --bind ~/.config/qpdfview ~/.config/qpdfview
-  --ro-bind /usr/bin/qpdfview /usr/bin/qpdfview
-  --ro-bind /var/cache/fontconfig /var/cache/fontconfig
-  --ro-bind ~/.fonts ~/.fonts
-  --unsetenv SESSION_MANAGER
-  --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR
-  --setenv QT_FONT_DPI 163
 )
+
+if [[ -x /usr/bin/qpdfview ]]; then
+  FLAGS+=(
+    --bind /run/user/$UID/bus /run/user/$UID/bus
+    --bind /run/user/$UID/dconf /run/user/$UID/dconf
+    --bind ~/.config/qpdfview ~/.config/qpdfview
+    --ro-bind /usr/bin/qpdfview /usr/bin/qpdfview
+    --ro-bind /var/cache/fontconfig /var/cache/fontconfig
+    --ro-bind ~/.fonts ~/.fonts
+    --unsetenv SESSION_MANAGER
+    --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR
+    --setenv QT_FONT_DPI 163
+  )
+fi
+
 add_argdirs "$(realpath ~/Downloads)" /share
 add_argdirs_ro "$@"
 
