@@ -57,7 +57,7 @@ if has("autocmd")
   autocmd BufNewFile,BufRead Dockerfile.* set ft=dockerfile
 
   autocmd FileType c,cpp,java,ragel,proto,vala set sts=2 sw=2 et ai cin cino=j1,+2s,g1,h1,(0,l1
-  autocmd FileType asm,perl,lua    set sts=2 sw=2 et ai
+  autocmd FileType asm,perl,lua,yaml    set sts=2 sw=2 et ai
   autocmd FileType make       set sts=0 sw=8 noet nowrap
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
   autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
