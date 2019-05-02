@@ -76,6 +76,7 @@ alias py3=ipython3
 alias py=ipython
 alias rm='rm -i'
 alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
+alias sqlite3='sqlite3 -header -column'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
@@ -338,26 +339,29 @@ if [[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
 fi
 
 if [[ -d ~/.history ]]; then
-  move_to_history() {
-    local name="$1"
-    local src="$2"
+  link_to_history() {
+    local src="$1"
+    local name="$2"
     if [[ -f "$src" && ! -L "$src" && ! -f ~/.history/"$name" ]]; then
       local history_rel="$(realpath --relative-to="$(dirname "$src")" ~/.history)"
       mv "$src" ~/.history/"$name" && ln -s "$history_rel/$name" "$src"
     fi
   }
-  move_to_history sqlite ~/.sqlite_history sqlite
-  move_to_history python ~/.python_history python
-  move_to_history julia ~/.julia/logs/repl_history.jl julia
-  unset -f move_to_history
+  link_to_history ~/.python_history python
+  link_to_history ~/.julia/logs/repl_history.jl julia
+  unset -f link_to_history
+
+  if [[ -f ~/.sqlite_history && ! -L ~/.sqlite_history ]]; then
+    cat ~/.sqlite_history >>~/.history/sqlite && rm -f ~/.sqlite_history
+  elif [[ -L ~/.sqlite_history ]]; then
+    rm -f ~/.sqlite_history
+  fi
+  if [[ -f ~/.history/sqlite ]]; then
+    export SQLITE_HISTORY=~/.history/sqlite
+  fi
 fi
 
-for _f in \
-  ~/.lesshst \
-  ~/.wget-hsts \
-  ~/.xsel.log \
-  ~/.xsession-errors \
-  ~/.xsession-errors.old; do
+for _f in ~/.lesshst ~/.wget-hsts ~/.xsel.log ~/.xsession-errors ~/.xsession-errors.old; do
   if [[ -f "$_f" ]]; then
     rm -f "$_f"
   fi
