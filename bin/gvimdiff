@@ -8,5 +8,4 @@ if [[ -d /usr/share/themes/Yaru ]]; then
   export GTK_THEME=Yaru:dark
 fi
 
-/usr/bin/gvimdiff "$@"
-exit $?
+exec /usr/bin/gvimdiff "$@"
