@@ -242,7 +242,10 @@ function __guess_colorfgbg() {
 
   unset COLORBG_GUESS
   if [[ "$TERM" == "linux" ||
+        "$TERM" == "screen" ||
+        "$TERM" == "screen-256color" ||
         "$TERM" == "screen.linux" ||
+        "$TERM" == "xterm-256color" ||
         "$TERM" == "cygwin" ||
         "$TERM" == "putty" ||
         -n "$GUAKE_TAB_UUID" ||      # guake
