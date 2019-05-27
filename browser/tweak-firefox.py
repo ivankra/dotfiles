@@ -38,16 +38,22 @@ def tweak_search(filename):
     n = 2
     for e in data.get('engines', []):
         if 'Google' not in e.get('_name'):
-            e['_metaData'] = { 'order': n, 'alias': None, 'hidden': True }
+            e['_metaData'] = {'order': n, 'alias': None, 'hidden': True}
             n += 1
             continue
 
-        e['_metaData'] = { 'order': 1 }
+        e['_metaData'] = {'order': 1}
         for u in e.get('_urls', []):
+            client = False
+            hl = False
             for p in u.get('params', []):
                 if p.get('name', '') == 'client':
-                    p['name'] = 'hl'
-                    p['value'] = 'en'
+                    client = True
+                if p.get('name', '') == 'hl':
+                    hl = True
+
+            if client and not hl:
+                u.setdefault('params', []).append({'name': 'hl', 'value': 'en'})
 
     data = mozlz4_compress(json.dumps(data).encode('utf-8'))
     with open(filename, 'wb') as fp:
