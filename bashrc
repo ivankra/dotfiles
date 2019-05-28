@@ -181,6 +181,8 @@ __setup_ps1() {
   if [[ -z "$PS1_COLOR" ]]; then
     if [[ $UID == 0 ]]; then
       PS1_COLOR=31
+    elif (id -nG | fgrep -qw sudo) && ! (id -nG | fgrep -qw audio); then
+      PS1_COLOR=31
     elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | grep -v /init.scope | egrep -q "(pids:/.|hypervisor)"; then
       PS1_COLOR=36
     else
