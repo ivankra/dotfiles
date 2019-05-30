@@ -59,6 +59,7 @@ alias fgrep='fgrep --color=auto'
 alias g=git
 alias gdb='gdb --quiet'
 alias got=git
+alias gti=git
 alias grep='grep --color=auto'
 alias gt=git
 alias ju=jupyter-notebook
