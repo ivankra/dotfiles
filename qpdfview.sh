@@ -6,14 +6,14 @@ gen() {
 continuousMode=true
 parallelSearchExecution=false
 prefetch=true
-prefetchDistance=2
+prefetchDistance=15
 scaleMode=1
 
 [mainWindow]
 exitAfterLastTab=true
 
 [pageItem]
-cacheSize=1048576K
+cacheSize=1073741824
 EOF
 }
 
