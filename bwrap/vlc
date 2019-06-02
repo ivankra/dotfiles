@@ -4,7 +4,6 @@ source "${SCRIPT%/*}/lib.sh"
 
 FLAGS=(
   ${MIN_X11_FLAGS[@]}
-  --share-net
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.config/vlc ~/.config/vlc
@@ -16,5 +15,12 @@ FLAGS=(
 )
 add_nvidia
 add_argdirs_ro "$@" ~/Downloads /share
+
+for arg in "$@"; do
+  if [[ "$arg" =~ ^https?://.* ]]; then
+    FLAGS+=(--share-net)
+    break
+  fi
+done
 
 exec bwrap "${FLAGS[@]}" /usr/bin/vlc "$@"
