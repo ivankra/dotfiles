@@ -13,7 +13,7 @@ import dotfiles.lazyimport
 def _import_bashrc_aliases():
     global aliases
     for line in open(os.environ['HOME'] + '/.bashrc'):
-        m = re.match('^alias (\w+)=(.+)$', line)
+        m = re.match(r'^alias (\w+)=(.+)$', line)
         if not m: continue
         key = m.group(1)
         val = m.group(2)
@@ -55,9 +55,8 @@ _import_bashrc_aliases()
     mpl='matplotlib',
     plt='matplotlib.pyplot',
     sns='seaborn',
-    ET='xml.etree.ElementTree',
+    etree='lxml.etree',
 ))
-
 
 $PROMPT = (
     '{env_name:{} }{BOLD_GREEN}{user}@{hostname}{NO_COLOR}:{BOLD_CYAN}{cwd}'
@@ -66,5 +65,11 @@ $PROMPT = (
 
 dotfiles.dracula.set_xonsh()
 $XONSH_COLOR_STYLE = 'dracula'
+
+mkdir -p -m 0700 "$HOME/.history/xonsh"
+$XONSH_DATA_DIR = $HOME + '/.history/xonsh'
+
+if os.path.exists($HOME + '/.local/share/xonsh'):
+    rm -rf "$HOME/.local/share/xonsh"
 
 # vim: ft=python
