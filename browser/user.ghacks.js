@@ -1,7 +1,7 @@
 /******
 * name: ghacks user.js
-* date: 15 April 2019
-* version 67-alpha: Barbie Pants
+* date: 28 May 2019
+* version 67-beta: Barbie Pants
 *   "I'm a Barbie pants in a Barbie world. Life in plastic, it's fantastic"
 * authors: v52+ github | v51- www.ghacks.net
 * url: https://github.com/ghacksuserjs/ghacks-user.js
@@ -230,7 +230,6 @@ user_pref("toolkit.telemetry.unified", false);
 user_pref("toolkit.telemetry.enabled", false); // see [NOTE] above FF58+
 user_pref("toolkit.telemetry.server", "data:,");
 user_pref("toolkit.telemetry.archive.enabled", false);
-user_pref("toolkit.telemetry.cachedClientID", "");
 user_pref("toolkit.telemetry.newProfilePing.enabled", false); // [FF55+]
 user_pref("toolkit.telemetry.shutdownPingSender.enabled", false); // [FF55+]
 user_pref("toolkit.telemetry.updatePing.enabled", false); // [FF56+]
@@ -784,19 +783,10 @@ user_pref("security.insecure_connection_text.enabled", true); // [FF60+]
 /*** [SECTION 1400]: FONTS ***/
 user_pref("_user.js.parrot", "1400 syntax error: the parrot's bereft of life!");
 /* 1401: disable websites choosing fonts (0=block, 1=allow)
- * [WARNING] Blocking fonts can *sometimes* reduce JS font enumeration, but not entropy.
- * There are also other methods to fingerprint fonts. Wait for RFP (4500) to cover this.
+ * This can limit most (but not all) JS font enumeration which is a high entropy fingerprinting vector
+ * [SETUP-WEB] Disabling fonts can uglify the web a fair bit.
  * [SETTING] General>Language and Appearance>Fonts & Colors>Advanced>Allow pages to choose... ***/
-   // user_pref("browser.display.use_document_fonts", 0);
-/* 1402: set more legible default fonts
- * [NOTE] Example below for Windows/Western only
- * [SETTING] General>Language and Appearance>Fonts & Colors>Advanced>Serif|Sans-serif|Monospace ***/
-   // user_pref("font.name.serif.x-unicode", "Georgia");
-   // user_pref("font.name.serif.x-western", "Georgia"); // default: Times New Roman
-   // user_pref("font.name.sans-serif.x-unicode", "Arial");
-   // user_pref("font.name.sans-serif.x-western", "Arial"); // default: Arial
-   // user_pref("font.name.monospace.x-unicode", "Lucida Console");
-   // user_pref("font.name.monospace.x-western", "Lucida Console"); // default: Courier New
+user_pref("browser.display.use_document_fonts", 0);
 /* 1403: disable icon fonts (glyphs) and local fallback rendering
  * [1] https://bugzilla.mozilla.org/789788
  * [2] https://trac.torproject.org/projects/tor/ticket/8455 ***/
@@ -807,13 +797,6 @@ user_pref("_user.js.parrot", "1400 syntax error: the parrot's bereft of life!");
 user_pref("gfx.font_rendering.opentype_svg.enabled", false);
 /* 1405: disable WOFF2 (Web Open Font Format) [FF35+] ***/
    // user_pref("gfx.downloadable_fonts.woff2.enabled", false);
-/* 1406: disable CSS Font Loading API
- * [NOTE] Disabling fonts can uglify the web a fair bit. ***/
-user_pref("layout.css.font-loading-api.enabled", false);
-/* 1407: disable special underline handling for a few fonts which you will probably never use [RESTART]
- * Any of these fonts on your system can be enumerated for fingerprinting.
- * [1] http://kb.mozillazine.org/Font.blacklist.underline_offset ***/
-user_pref("font.blacklist.underline_offset", "");
 /* 1408: disable graphite which FF49 turned back on by default
  * In the past it had security issues. Update: This continues to be the case, see [1]
  * [1] https://www.mozilla.org/security/advisories/mfsa2017-15/#CVE-2017-7778 ***/
@@ -1087,14 +1070,11 @@ user_pref("javascript.options.asmjs", false);
 /* 2422: disable WebAssembly [FF52+] [SETUP-PERF]
  * [1] https://developer.mozilla.org/docs/WebAssembly ***/
 user_pref("javascript.options.wasm", false);
-/* 2426: disable Intersection Observer API [FF53+]
- * Almost a year to complete, three versions late to stable (as default false),
- * number #1 cause of crashes in nightly numerous times, and is (primarily) an
- * ad network API for "ad viewability checks" down to a pixel level
+/* 2426: disable Intersection Observer API [FF55+]
  * [1] https://developer.mozilla.org/docs/Web/API/Intersection_Observer_API
  * [2] https://w3c.github.io/IntersectionObserver/
  * [3] https://bugzilla.mozilla.org/1243846 ***/
-user_pref("dom.IntersectionObserver.enabled", false);
+   // user_pref("dom.IntersectionObserver.enabled", false);
 /* 2429: enable (limited but sufficient) window.opener protection [FF65+]
  * Makes rel=noopener implicit for target=_blank in anchor and area elements when no rel attribute is set ***/
 user_pref("dom.targetBlankNoOpener.enabled", true);
@@ -1212,6 +1192,9 @@ user_pref("pdfjs.disabled", false); // [DEFAULT: false]
 /* 2621: disable links launching Windows Store on Windows 8/8.1/10 [WINDOWS]
  * [1] https://www.ghacks.net/2016/03/25/block-firefox-chrome-windows-store/ ***/
 user_pref("network.protocol-handler.external.ms-windows-store", false);
+/* 2622: disable middlemouse paste leaking on Linux
+ * [1] https://bugzilla.mozilla.org/1528289 */
+user_pref("middlemouse.paste", false); // [DEFAULT: false on Windows]
 
 /** DOWNLOADS ***/
 /* 2650: discourage downloading to desktop

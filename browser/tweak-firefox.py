@@ -118,5 +118,5 @@ def tweak_profile(profile_path, prefs):
 
 
 prefs = gen_prefs()
-for profile_path in Path('~/.mozilla/firefox').expanduser().glob('*.default'):
+for profile_path in Path('~/.mozilla/firefox').expanduser().glob('*.default*'):
     tweak_profile(profile_path, prefs)
