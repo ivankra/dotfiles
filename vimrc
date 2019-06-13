@@ -33,7 +33,13 @@ set pastetoggle=<F12>
 set history=100                         " remember more then the default 20 commands
 set noautoindent
 
+set nomodeline
+augroup nomodeline_bufreadpre
+  autocmd BufReadPre * set nomodeline
+augroup END
+
 let g:netrw_dirhistmax=0
+let g:dracula_italic=0
 
 if has("syntax")
   let g:is_bash=1
@@ -177,9 +183,6 @@ endif
 cabbr <expr> %% expand('%:p:h')
 
 " Make yank/put operations by default work with system's clipboard.
-if has("win32")
-  set clipboard=unnamed
-endif
 if has("unnamedplus")  " for Vim 7.3.074 and above on X11
   " Makes 'yank' copy into + and * registers, and 'put' copy from + register.
   set clipboard=unnamed,unnamedplus
@@ -312,11 +315,6 @@ else
   if $TERM == "xterm" || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "screen"
     set t_Co=256
   endif
-  "if $TERM == "xterm" || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "screen"
-  "  set t_Co=256
-  "else
-  "  set background=dark
-  "endif
 endif
 
 " Colors
