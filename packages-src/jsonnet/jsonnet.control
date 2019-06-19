@@ -1,0 +1,12 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: jsonnet
+Version: $VERSION
+Maintainer: none
+Architecture: all
+Description: Jsonnet data templating language
+
+Files: jsonnet /usr/bin/
+ jsonnetfmt /usr/bin/
