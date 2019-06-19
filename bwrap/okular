@@ -3,8 +3,9 @@ SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
 BINARY=/usr/bin/okular
+
 FLAGS=(
-  ${MIN_X11_FLAGS[@]}
+  ${X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --bind ~/.config ~/.config

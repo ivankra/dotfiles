@@ -2,9 +2,9 @@
 SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
-CMD="${BASH_SOURCE[0]##*/}"
+BINARY="/usr/lib/p7zip/${BASH_SOURCE[0]##*/}"
 
 FLAGS=(${MIN_FLAGS[@]})
 add_argdirs "$@" "$(pwd)"
 
-exec bwrap "${FLAGS[@]}" "/usr/lib/p7zip/$CMD" "$@"
+exec bwrap "${FLAGS[@]}" "$BINARY" "$@"

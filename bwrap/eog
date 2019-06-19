@@ -3,7 +3,7 @@ SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
 FLAGS=(
-  ${MIN_X11_FLAGS[@]}
+  ${X11_FLAGS[@]}
   --ro-bind /etc /etc
   --ro-bind /usr/bin/eog /usr/bin/eog
   --ro-bind /var/cache/fontconfig /var/cache/fontconfig

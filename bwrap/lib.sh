@@ -92,9 +92,15 @@ MIN_FLAGS=(
   --ro-bind /lib64 /lib64
 )
 
-MIN_X11_FLAGS=(
+X11_FLAGS=(
   ${MIN_FLAGS[@]}
-  --ro-bind /tmp/.X11-unix/X0 /tmp/.X11-unix/X0
-  --ro-bind ~/.Xauthority ~/.Xauthority
-  --setenv DISPLAY :0
+  --setenv DISPLAY "$DISPLAY"
 )
+if [[ "$DISPLAY" == ":0" ]]; then
+  X11_FLAGS+=(--ro-bind /tmp/.X11-unix/X0 /tmp/.X11-unix/X0)
+elif [[ "$DISPLAY" =~ ^localhost:[0-9.]+$ ]]; then
+  X11_FLAGS+=(--share-net)
+fi
+if [[ -f ~/.Xauthority ]]; then
+  X11_FLAGS+=(--ro-bind ~/.Xauthority ~/.Xauthority)
+fi

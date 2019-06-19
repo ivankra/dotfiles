@@ -5,7 +5,7 @@ source "${SCRIPT%/*}/lib.sh"
 BINARY=/usr/bin/geeqie
 
 FLAGS=(
-  ${MIN_X11_FLAGS[@]}
+  ${X11_FLAGS[@]}
   --bind ~/.config/geeqie ~/.config/geeqie
   --ro-bind "$BINARY" "$BINARY"
   --ro-bind /etc /etc

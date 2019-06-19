@@ -5,7 +5,7 @@ source "${SCRIPT%/*}/lib.sh"
 export GTK_CSD=1  # fix titlebar hiding in cinnamon
 
 FLAGS=(
-  ${MIN_X11_FLAGS[@]}
+  ${X11_FLAGS[@]}
   --share-net
   --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.cache/mozilla ~/.cache/mozilla

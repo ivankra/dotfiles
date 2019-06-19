@@ -3,7 +3,7 @@ SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
 FLAGS=(
-  ${MIN_X11_FLAGS[@]}
+  ${X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --bind ~/.config/evince ~/.config/evince

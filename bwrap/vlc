@@ -2,8 +2,10 @@
 SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
+mkdir -m 0700 -p ~/.config/vlc ~/.local/share/vlc
+
 FLAGS=(
-  ${MIN_X11_FLAGS[@]}
+  ${X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.config/vlc ~/.config/vlc
@@ -14,7 +16,7 @@ FLAGS=(
   --unsetenv SESSION_MANAGER
 )
 add_nvidia
-add_argdirs_ro "$@" ~/Downloads /share
+add_argdirs_ro "$@"
 
 for arg in "$@"; do
   if [[ "$arg" =~ ^https?://.* ]]; then

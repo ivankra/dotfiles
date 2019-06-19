@@ -2,8 +2,6 @@
 # Installs bubblewrapped launchers for the current user into ~/.local/share/applications/
 # as well as symlinks into ~/.local/bin/ for the terminal.
 #
-#
-#
 # Usage: ./setup.sh [app ...]
 
 set -e -o pipefail
