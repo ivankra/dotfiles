@@ -16,7 +16,8 @@ try:
 except:
     lz4_compress = None
     lz4_decompress = None
-    sys.stderr.write('Warning: lz4 python module missing, install python3-lz4\n')
+    sys.stderr.write('Error: lz4 python module missing, apt-get install python3-lz4\n')
+    sys.exit(1)
 
 
 def mozlz4_decompress(data):
@@ -105,7 +106,8 @@ def tweak_profile(profile_path, prefs):
     shutil.copy('handlers.json', profile_path / 'handlers.json')
     print('Wrote %s/handlers.json' % profile_path)
 
-    if lz4_compress is not None:
+    if lz4_compress is not None and \
+            (profile_path / 'search.json.mozlz4').exists():
         tweak_search(profile_path / 'search.json.mozlz4')
         print('Wrote %s/search.json.mozlz4' % profile_path)
 

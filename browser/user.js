@@ -32,10 +32,9 @@ user_pref("permissions.default.microphone", 2);
 user_pref("privacy.window.maxInnerHeight", 1200);
 user_pref("privacy.window.maxInnerWidth", 1900);
 user_pref("toolkit.cosmeticAnimations.enabled", false);
+user_pref("pdfjs.disabled", true);  // due to blurry rendering on zoom, https://github.com/mozilla/pdf.js/issues/10509
 
-user_pref("pdfjs.disabled", true);  // blurry rendering, https://github.com/mozilla/pdf.js/issues/10509
-
-// ghkacs/pyllyukko overrides
+// ghacks/pyllyukko overrides
 user_pref("app.update.enabled", false);
 user_pref("browser.display.use_document_fonts", 1);
 user_pref("browser.download.useDownloadDir", true);
@@ -61,6 +60,7 @@ user_pref("privacy.clearOnShutdown.sessions", false);
 user_pref("privacy.sanitize.sanitizeOnShutdown", false);
 user_pref("security.dialog_enable_delay", 10);
 user_pref("security.mixed_content.block_display_content", false);
+user_pref("privacy.resistFingerprinting.letterboxing", false);  // fugly
 
 // ESR
 user_pref("browser.onboarding.state", "watermark");

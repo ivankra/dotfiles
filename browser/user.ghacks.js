@@ -657,10 +657,7 @@ user_pref("security.ssl.require_safe_negotiation", true);
 /* 1202: control TLS versions with min and max
  * 1=TLS 1.0, 2=TLS 1.1, 3=TLS 1.2, 4=TLS 1.3
  * [WARNING] Leave these at default, otherwise you alter your TLS fingerprint.
- * Firefox telemetry (April 2019) shows only 0.5% of TLS web traffic uses 1.0 or 1.1
- * [1] http://kb.mozillazine.org/Security.tls.version.*
- * [2] https://www.ssl.com/how-to/turn-off-ssl-3-0-and-tls-1-0-in-your-browser/
- * [2] archived: https://archive.is/hY2Mm ***/
+ * Firefox telemetry (April 2019) shows only 0.5% of TLS web traffic uses 1.0 or 1.1 ***/
    // user_pref("security.tls.version.min", 3);
    // user_pref("security.tls.version.max", 4);
 /* 1203: disable SSL session tracking [FF36+]
@@ -1455,7 +1452,7 @@ user_pref("privacy.firstparty.isolate.restrict_opener_access", true); // [DEFAUL
  ** 1485266 - disable exposure of system colors to CSS or canvas (see 4615) (FF67+)
  ** 1407366 - enable inner window letterboxing (see 4504) (FF67+)
  ** 1540726 - return "light" with prefers-color-scheme (FF67+)
-        [1] https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
+      [1] https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
 ***/
 user_pref("_user.js.parrot", "4500 syntax error: the parrot's popped 'is clogs");
 /* 4501: enable privacy.resistFingerprinting [FF41+]
