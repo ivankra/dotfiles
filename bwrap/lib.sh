@@ -99,7 +99,7 @@ X11_FLAGS=(
 if [[ "$DISPLAY" == ":0" ]]; then
   X11_FLAGS+=(--ro-bind /tmp/.X11-unix/X0 /tmp/.X11-unix/X0)
 elif [[ "$DISPLAY" =~ ^localhost:[0-9.]+$ ]]; then
-  X11_FLAGS+=(--share-net)
+  X11_FLAGS+=(--share-net --hostname "$(hostname)")
 fi
 if [[ -f ~/.Xauthority ]]; then
   X11_FLAGS+=(--ro-bind ~/.Xauthority ~/.Xauthority)
