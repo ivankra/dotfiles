@@ -295,7 +295,7 @@ if has("gui_running")
     if $HIDPI == "1"
       set guifont=Iosevka\ Term\ SS04\ Medium\ 13
     else
-      set guifont=Iosevka\ Term\ SS04\ Medium\ 13
+      set guifont=Iosevka\ Term\ SS04\ Semibold\ 14
     endif
   else
     set guifont=M+\ 1mn\ Medium\ 13
