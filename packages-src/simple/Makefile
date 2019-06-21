@@ -5,12 +5,12 @@ all: $(PACKAGES)
 clean:
 	rm -rf *.deb
 
-version = $(shell cat $(1).control | grep ^Version: | sed -e 's/.*: \(.*\)/\1/')
+get_version = $(shell cat $(1).control | grep ^Version: | sed -e 's/.*: \(.*\)/\1/')
 
 define tmpl
-$(1): $(1)_$(call version,$(1))_all.deb
+$(1): $(1)_$(call get_version,$(1))_all.deb
 
-$(1)_$(call version,$(1))_all.deb: $(1).control
+$(1)_$(call get_version,$(1))_all.deb: $(1).control
 	equivs-build $(1).control
 endef
 

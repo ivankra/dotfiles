@@ -7,6 +7,8 @@ Version: $VERSION
 Maintainer: none
 Architecture: all
 Description: Jsonnet data templating language
+Copyright: LICENSE
+Readme: README.md
 
-Files: jsonnet /usr/bin/
- jsonnetfmt /usr/bin/
+Files: jsonnet /usr/local/bin/
+ jsonnetfmt /usr/local/bin/

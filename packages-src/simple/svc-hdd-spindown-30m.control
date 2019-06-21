@@ -1,0 +1,43 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: svc-hdd-spindown-30m
+Provides: svc-hdd-spindown
+Conflicts: svc-hdd-spindown
+Replaces: svc-hdd-spindown
+Version: 1.0
+Maintainer: none
+Depends: bash, coreutils, hdparm, systemd
+Architecture: all
+Description: Set spindown timeout for hard disks to 30m on boot
+
+File: postinst
+ #!/bin/bash
+ systemctl enable svc-hdd-spindown.service
+ systemctl restart svc-hdd-spindown.service
+
+File: prerm
+ #!/bin/bash
+ systemctl disable svc-hdd-spindown.service
+
+File: /etc/systemd/system/svc-hdd-spindown.service 0644
+ [Unit]
+ Description=Set spindown timeout for hard disks to 30m on boot
+ After=local-fs.target
+ .
+ [Service]
+ ExecStart=/usr/local/sbin/svc-hdd-spindown.sh
+ Type=simple
+ .
+ [Install]
+ WantedBy=multi-user.target
+
+File: /usr/local/sbin/svc-hdd-spindown.sh 0755
+ #!/bin/bash
+ for dev in /dev/sd*; do
+   short=$(basename "$dev")
+   if [[ "$(cat /sys/block/$short/queue/rotational 2>/dev/null || true)" == "1" ]]; then
+     (set -x; hdparm -S 241 "$dev")  # 241=30m
+   fi
+ done

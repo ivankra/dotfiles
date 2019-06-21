@@ -1,7 +1,9 @@
-build:
-	docker build -t tmp-jsonnet-build .
-	rm -f cid
-	docker run --cidfile cid tmp-jsonnet-build
-	docker cp "$$(cat cid):/build/jsonnet/output" ./
-	mv -f output/*.deb ./
-	rm -rf cid output
+jsonnet:
+	docker build -t tmp-builder-$@ .
+	rm -f $@.cid
+	docker run --cidfile $@.cid tmp-builder-$@
+	docker cp "$$(cat $@.cid):/dist/." ./
+	docker rm "$$(cat $@.cid)" && rm -f $@.cid
+
+clean:
+	rm -rf *.deb
