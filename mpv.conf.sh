@@ -11,6 +11,10 @@ if [[ -x /usr/bin/mpv && -f /usr/lib/x86_64-linux-gnu/nvidia/current/libvdpau_nv
   fi
 fi
 
-echo scale=ewa_lanczossharp
-echo cscale=ewa_lanczossharp
-echo cache=131072
+cat <<EOF
+scale=ewa_lanczossharp
+cscale=ewa_lanczossharp
+cache=262144
+demuxer-thread=yes
+demuxer-readahead-secs=20
+EOF
