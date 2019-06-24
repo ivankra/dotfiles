@@ -2,6 +2,8 @@
 SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
+mkdir -p -m 0700 ~/.config/evince ~/.cache/fontconfig
+
 FLAGS=(
   ${X11_FLAGS[@]}
   --bind /run/user/$UID/bus /run/user/$UID/bus

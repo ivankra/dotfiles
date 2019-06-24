@@ -2,35 +2,6 @@
 
 set -e -o pipefail
 
-BWRAP_ETC="/run/user/$UID/bwrap-etc"
-
-create_bwrap_etc() {
-  if ! [[ -f "$BWRAP_ETC/passwd" ]]; then
-    echo "Creating $BWRAP_ETC"
-    rm -rf "$BWRAP_ETC"
-    mkdir -p "$BWRAP_ETC"
-    cp -a -f \
-      /etc/resolv.conf \
-      /etc/hosts \
-      /etc/ld.so.* \
-      /etc/fonts \
-      /etc/nvidia \
-      /etc/alternatives \
-      /etc/timezone \
-      /etc/alsa \
-      /etc/pulse \
-      /etc/mpv \
-      "$BWRAP_ETC/"
-    egrep "^[^:]+:x:$UID:.*" /etc/passwd >"$BWRAP_ETC/passwd"
-    egrep "^[^:]+:x:$(id -g):.*" /etc/group >"$BWRAP_ETC/group"
-  fi
-}
-
-add_etc() {
-  create_bwrap_etc
-  FLAGS+=(--ro-bind "$BWRAP_ETC" /etc)
-}
-
 add_nvidia() {
   for f in /dev/dri /dev/nvidia-modeset /dev/nvidia0 /dev/nvidiactl; do
     if [[ -e "$f" ]]; then
