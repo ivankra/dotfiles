@@ -21,6 +21,7 @@ get_version = $(shell cat $(1).control | grep ^Version: | sed -e 's/.*: \(.*\)/\
 # Build a package out of each *.control file with equivs-build
 define equivs_tmpl
 $(1): $(1)_$(call get_version,$(1))_all.deb
+	echo "Built $(1)_$(call get_version,$(1))_all.deb"
 
 $(1)_$(call get_version,$(1))_all.deb: $(1).control
 	equivs-build $(1).control
