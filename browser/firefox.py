@@ -5,19 +5,12 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
-import sys
 
+from lz4.block import compress as lz4_compress
+from lz4.block import decompress as lz4_decompress
 from pathlib import Path
-
-try:
-    from lz4.block import compress as lz4_compress
-    from lz4.block import decompress as lz4_decompress
-except:
-    lz4_compress = None
-    lz4_decompress = None
-    sys.stderr.write('Error: lz4 python module missing, apt-get install python3-lz4\n')
-    sys.exit(1)
 
 
 def mozlz4_decompress(data):
@@ -68,7 +61,7 @@ def read_prefs(filename):
         line = line.strip()
         if line == '' or line.startswith('#'): continue
 
-        m = re.match(r'^user_pref\("([^"]+)",\s+(.*)\);(\s+//.*|)$', line)
+        m = re.match(r'^user_pref\("([^"]+)",\s+("(?:[^"\\]|\\")*"|[^") ]+)\);(\s+//.*|)$', line)
         if m is None:
             raise Exception('Bad pref line: %s' % line)
 
@@ -78,10 +71,18 @@ def read_prefs(filename):
 
 def gen_prefs():
     prefs = collections.OrderedDict()
-    prefs['browser.download.dir'] = '"%s"' % Path('~/Downloads').expanduser().resolve()
+
+    downloads_path = Path('~/Downloads').expanduser().resolve()
+    prefs['browser.download.dir'] = '"%s"' % downloads_path
+
+    if os.environ.get('HIDPI') == '1':
+        prefs['browser.uidensity'] = '1'
+    else:
+        prefs['browser.uidensity'] = '0'
 
     for filename in ['user.pyllyukko.js', 'user.ghacks.js', 'user.js']:
         print(filename)
+        count = 0
         for key, val in read_prefs(filename):
             if key == '_user.js.parrot': continue
 
@@ -91,10 +92,37 @@ def gen_prefs():
                         print('  redundant %s: %s' % (key, val))
                     continue
                 print('  override %s: %s -> %s' % (key, prefs[key], val))
+                prefs[key] = val
+            else:
+                prefs[key] = val
+                count += 1
 
-            prefs[key] = val
+        print('  +%d prefs' % count)
 
     return prefs
+
+
+def sanitize_cookies(cookies_sqlite_path):
+    con = sqlite3.connect(cookies_sqlite_path)
+    cur = con.cursor()
+
+    def get_domains():
+        return set(row[0] for row in
+                   cur.execute('SELECT DISTINCT baseDomain FROM moz_cookies'))
+    old_domains = get_domains()
+
+    badcookies = [[line.strip()] for line in open('badcookies.txt')]
+    cur.executemany('DELETE FROM moz_cookies WHERE baseDomain = ?;', badcookies)
+    con.commit()
+
+    new_domains = get_domains()
+    if new_domains != old_domains:
+        print('Removed cookies from domains: %s' %
+              ' '.join(sorted(old_domains - new_domains)))
+
+    if len(new_domains) > 0:
+        print('\033[33mWARNING:\033[0m remaining cookie domains: %s' %
+              ' '.join(sorted(new_domains)))
 
 
 def tweak_profile(profile_path, prefs):
@@ -106,17 +134,25 @@ def tweak_profile(profile_path, prefs):
     shutil.copy('handlers.json', profile_path / 'handlers.json')
     print('Wrote %s/handlers.json' % profile_path)
 
-    if lz4_compress is not None and \
-            (profile_path / 'search.json.mozlz4').exists():
+    if (profile_path / 'search.json.mozlz4').exists():
         tweak_search(profile_path / 'search.json.mozlz4')
         print('Wrote %s/search.json.mozlz4' % profile_path)
 
-    cmd = ['sqlite3', str(profile_path / 'places.sqlite'),
-           'DELETE FROM moz_bookmarks WHERE id IN (' +
-           'SELECT moz_bookmarks.id ' +
-           'FROM moz_bookmarks INNER JOIN moz_places ON moz_places.id = moz_bookmarks.fk ' +
-           'WHERE url LIKE "%%mozilla.org/%%");']
-    subprocess.check_call(cmd)
+    if (profile_path / 'places.sqlite').exists():
+        con = sqlite3.connect((profile_path / 'places.sqlite').as_posix())
+        con.execute('''
+            DELETE FROM moz_bookmarks WHERE id IN (
+                SELECT moz_bookmarks.id
+                FROM moz_bookmarks
+                INNER JOIN moz_places ON moz_places.id = moz_bookmarks.fk
+                WHERE url LIKE "%%mozilla.org/%%"
+            );
+            ''')
+        con.close()
+        print('Cleaned bookmarks in %s/places.sqlite' % profile_path)
+
+    if (profile_path / 'cookies.sqlite').exists():
+        sanitize_cookies((profile_path / 'cookies.sqlite').as_posix())
 
 
 prefs = gen_prefs()
