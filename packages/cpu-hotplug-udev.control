@@ -9,5 +9,5 @@ Depends: systemd
 Architecture: all
 Description: Automatically bring on-line processors hot added to a VM via udev rule
 
-File: /etc/udev/rules.d/99-cpu-hotplug-udev.rules
+File: /lib/udev/rules.d/98-cpu-hotplug-udev.rules
  SUBSYSTEM=="cpu", ACTION=="add", ATTR{online}="1"

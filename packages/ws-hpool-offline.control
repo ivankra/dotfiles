@@ -13,7 +13,7 @@ File: postinst
  #!/bin/bash
  systemctl enable ws-hpool-offline.service
 
-File: /etc/systemd/system/ws-hpool-offline.service 0644
+File: /lib/systemd/system/ws-hpool-offline.service 0644
  [Unit]
  Description=Offlines ws-hpool on startup
  After=local-fs.target

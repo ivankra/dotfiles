@@ -21,7 +21,7 @@ File: prerm
  #!/bin/bash
  systemctl disable svc-hdd-spindown.service
 
-File: /etc/systemd/system/svc-hdd-spindown.service 0644
+File: /lib/systemd/system/svc-hdd-spindown.service 0644
  [Unit]
  Description=Set spindown timeout for hard disks to 2h on boot
  After=local-fs.target

@@ -18,7 +18,7 @@ File: prerm
  #!/bin/bash
  systemctl stop iperf3.service
 
-File: /etc/systemd/system/iperf3.service 0644
+File: /lib/systemd/system/iperf3.service 0644
  [Unit]
  Description=iperf3 service
  After=syslog.target network.target
