@@ -7,13 +7,13 @@ RUN apt-get update && \
 	equivs \
         git
 
-RUN git clone --depth=1 https://github.com/google/jsonnet.git /src && \
+RUN git clone https://github.com/google/jsonnet.git /src && \
     cd /src && make -j && strip jsonnet jsonnetfmt
 
 COPY jsonnet.control.in /src/jsonnet.control.in
 
 RUN cd /src && \
-    export VERSION=$(./jsonnet --version | egrep -o '[0-9.]+$') && \
+    export VERSION=$(git describe --tags HEAD | cut -c 2-) && \
     envsubst <jsonnet.control.in >jsonnet.control && \
     equivs-build jsonnet.control && \
     mkdir /dist && mv *.deb /dist/
