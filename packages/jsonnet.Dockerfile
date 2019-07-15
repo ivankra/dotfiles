@@ -2,9 +2,9 @@ FROM debian:stable
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-	build-essential \
+        build-essential \
         ca-certificates \
-	equivs \
+        equivs \
         git
 
 RUN git clone https://github.com/google/jsonnet.git /src && \
