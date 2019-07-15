@@ -40,6 +40,7 @@ user_pref("privacy.trackingprotection.fingerprinting.enabled", true);
 user_pref("privacy.window.maxInnerHeight", 1200);
 user_pref("privacy.window.maxInnerWidth", 1900);
 user_pref("toolkit.cosmeticAnimations.enabled", false);
+user_pref("ui.context_menus.after_mouseup", true);  // fix right click menu behaviour
 
 // ghacks/pyllyukko overrides
 user_pref("app.update.enabled", false);
