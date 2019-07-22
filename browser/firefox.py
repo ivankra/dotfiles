@@ -23,31 +23,43 @@ def mozlz4_compress(data):
     return b'mozLz40\0' + lz4_compress(data)
 
 
+def tweak_google(engine_json):
+    engine_json['_metaData'] = {'order': 1}
+    for u in engine_json.get('_urls', []):
+        client = False
+        hl = False
+        for p in u.get('params', []):
+            if p.get('name', '') == 'client':
+                client = True
+            if p.get('name', '') == 'hl':
+                hl = True
+
+        if client and not hl:
+            u.setdefault('params', []).append({'name': 'hl', 'value': 'en'})
+
+
 def tweak_search(filename):
     with open(filename, 'rb') as fp:
         data = fp.read()
 
     data = json.loads(mozlz4_decompress(data))
 
-    n = 2
-    for e in data.get('engines', []):
-        if 'Google' not in e.get('_name'):
-            e['_metaData'] = {'order': n, 'alias': None, 'hidden': True}
+    visible = ['Google', 'Bing', 'DuckDuckGo']
+    n = 0
+
+    for name in visible:
+        for engine in data.get('engines', []):
+            if engine.get('_name') == name:
+                if name == 'Google':
+                    tweak_google(engine)
+                n += 1
+                engine.setdefault('_metaData', {})
+                engine['_metaData']['order'] = n
+
+    for engine in data.get('engines', []):
+        if engine.get('_name') not in visible:
             n += 1
-            continue
-
-        e['_metaData'] = {'order': 1}
-        for u in e.get('_urls', []):
-            client = False
-            hl = False
-            for p in u.get('params', []):
-                if p.get('name', '') == 'client':
-                    client = True
-                if p.get('name', '') == 'hl':
-                    hl = True
-
-            if client and not hl:
-                u.setdefault('params', []).append({'name': 'hl', 'value': 'en'})
+            engine['_metaData'] = {'order': n, 'alias': None, 'hidden': True}
 
     data = mozlz4_compress(json.dumps(data).encode('utf-8'))
     with open(filename, 'wb') as fp:
@@ -74,6 +86,7 @@ def gen_prefs():
 
     downloads_path = Path('~/Downloads').expanduser().resolve()
     prefs['browser.download.dir'] = '"%s"' % downloads_path
+    prefs['print.print_to_filename'] = '"%s""' % (downloads_path / 'mozilla.pdf')
 
     if os.environ.get('HIDPI') == '1':
         prefs['browser.uidensity'] = '1'
