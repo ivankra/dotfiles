@@ -17,4 +17,5 @@ cscale=ewa_lanczossharp
 cache=262144
 demuxer-thread=yes
 demuxer-readahead-secs=200
+volume-max=200
 EOF
