@@ -869,7 +869,6 @@ user_pref("privacy.userContext.enabled", true);
 user_pref("privacy.usercontext.about_newtab_segregation.enabled", true); // [DEFAULT: true in FF61+]
 /* 1704: set behaviour on "+ Tab" button to display container menu [FF53+] [SETUP-CHROME]
  * 0=no menu (default), 1=show when clicked, 2=show on long press
- * [NOTE] The menu does not contain a non-container tab option (use Ctrl+T to open non-container tab)
  * [1] https://bugzilla.mozilla.org/1328756 ***/
 user_pref("privacy.userContext.longPressBehavior", 2);
 
@@ -942,6 +941,8 @@ user_pref("media.autoplay.enabled.user-gestures-needed", false);
 /* 2032: disable audio autoplay in non-active tabs [FF51+]
  * [1] https://www.ghacks.net/2016/11/14/firefox-51-blocks-automatic-audio-playback-in-non-active-tabs/ ***/
 user_pref("media.block-autoplay-until-in-foreground", true); // [DEFAULT: true]
+/* 2033: disable autoplay for muted videos [FF63+] ***/
+   // user_pref("media.autoplay.allow-muted", false);
 
 /*** [SECTION 2200]: WINDOW MEDDLING & LEAKS / POPUPS ***/
 user_pref("_user.js.parrot", "2200 syntax error: the parrot's 'istory!");

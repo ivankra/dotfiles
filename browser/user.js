@@ -20,6 +20,7 @@ user_pref("browser.tabs.drawInTitlebar", true);
 user_pref("browser.uiCustomization.state", "{\"placements\":{\"widget-overflow-fixed-list\":[\"fxa-toolbar-menu-button\",\"library-button\"],\"nav-bar\":[\"back-button\",\"forward-button\",\"stop-reload-button\",\"urlbar-container\",\"search-container\",\"downloads-button\"],\"toolbar-menubar\":[\"menubar-items\"],\"TabsToolbar\":[\"tabbrowser-tabs\",\"new-tab-button\",\"alltabs-button\"],\"PersonalToolbar\":[\"personal-bookmarks\"]},\"seen\":[\"developer-button\"],\"dirtyAreaCache\":[\"PersonalToolbar\",\"nav-bar\",\"TabsToolbar\",\"toolbar-menubar\",\"widget-overflow-fixed-list\"],\"currentVersion\":16,\"newElementCount\":9}");
 user_pref("browser.urlbar.delay", 0);
 user_pref("dom.ipc.processCount", 8);
+user_pref("extensions.privatebrowsing.notification", true);
 user_pref("general.smoothScroll", false);
 user_pref("general.warnOnAboutConfig", false);
 user_pref("gfx.downloadable_fonts.fallback_delay", 0);
