@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# Sums up decimal numbers with arbitrary precision
+# Input from stdin or X11 selection/clipboard (requires xsel)
+
+import argparse
+import decimal
+import os
+import re
+import subprocess
+import sys
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-o', '--only_matching', action='store_true',
+                    help='Find decimals by regex, parse and sum up only them')
+    parser.add_argument('-b', '--clipboard', action='store_true',
+                    help='Use X11 clipboard instead of selection buffer')
+    args = parser.parse_args()
+
+    input_it = sys.stdin
+
+    if os.isatty(0) and os.isatty(1) and os.environ.get('DISPLAY') and \
+            os.path.exists('/usr/bin/xsel'):
+        xsel = subprocess.check_output(['/usr/bin/xsel', '-b' if args.clipboard else '-p'])
+        xsel = xsel.strip().decode('utf-8').split('\n')
+        if len(xsel) > 0:
+            print('(read %d lines from %s)' % (len(xsel), 'clipboard' if args.clipboard else 'selection'))
+            input_it = xsel
+
+    find_regexp = re.compile('[-+]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+?)(?:e-?[0-9]+)?')
+    result = decimal.Decimal(0)
+
+    for line_no, line in enumerate(input_it):
+        tokens = []
+        for token in line.strip().split():
+            if args.only_matching:
+                tokens += find_regexp.findall(token)
+            else:
+                tokens += [token]
+
+        for token in tokens:
+            try:
+                val = decimal.Decimal(token.replace(',', '.'))
+            except decimal.InvalidOperation:
+                sys.stderr.write("Bad token on line %d: %s\n" % (line_no + 1, token))
+                sys.exit(1)
+
+            result += val
+
+    print(result)
+
+
+if __name__ == '__main__':
+    main()
