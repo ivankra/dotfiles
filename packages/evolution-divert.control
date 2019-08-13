@@ -1,0 +1,37 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: evolution-divert
+Version: 1.0
+Maintainer: none
+Depends: bash, dpkg
+Architecture: all
+Description: Disable GNOME Evolution services via dpkg-divert
+
+File: postinst
+ #!/bin/bash
+ /usr/local/sbin/evolution-divert.sh
+
+File: prerm
+ #!/bin/bash
+ /usr/local/sbin/evolution-divert.sh --remove
+
+File: /usr/local/sbin/evolution-divert.sh 0755
+ #!/bin/bash
+ flag="$1"
+ divert() {
+   if [[ "$flag" != "--remove" ]]; then
+     dpkg-divert --rename --add --divert "$1.bak" "$1"
+     mkdir -p -m 0755 "$(dirname "$1")"
+     ln -sf /dev/null "$1"
+   else
+     [[ -f "$1.bak" || "$1" -ef /dev/null ]] && rm -f "$1"
+     dpkg-divert --rename --remove "$1"
+   fi
+ }
+ divert /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
+ divert /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
+ divert /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
+ divert /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
+ divert /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
