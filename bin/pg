@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import sys
+
+
+def paginate_file(path, header=True):
+    if header:
+        print('\033[35;01m%s==> %s <==\033[m' %
+              ('      ' if FLAGS.number else '', path))
+
+    try:
+        f = open(path, 'rb')
+    except Exception as e:
+        print('\033[34;01mFailed to open file: %s\033[m\n' % str(e))
+        return
+
+    b = 0
+    for i, line in enumerate(f):
+        try:
+            line = line.decode('utf-8').rstrip('\n')
+            b = 0
+        except:
+            if b == 0:
+                line = '\033[34;01m<binary>\033[m'
+            else:
+                continue
+            b += 1
+
+        if FLAGS.number:
+            print('%5d %s' % (i + 1, line))
+        else:
+            print(line)
+
+    print()
+    sys.stdout.flush()
+    f.close()
+
+
+def pipe_to_less():
+    pr, pw = os.pipe()
+    if os.fork() != 0:
+        os.dup2(pr, 0)
+        os.environ['LESS'] = '-FRSXi'
+        os.chdir('/')
+        os.execv('/usr/bin/less', ['/usr/bin/less'])
+
+    os.dup2(pw, 2)
+    sys.stdout = os.fdopen(2, 'w')
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('paths', metavar='FILE', nargs='*', default=[])
+    parser.add_argument('-r', '--recurse', action='store_true')
+    parser.add_argument('-n', '--number', action='store_true')
+
+    global FLAGS
+    FLAGS = parser.parse_args()
+
+    if os.isatty(0) and len(FLAGS.paths) == 0:
+        sys.stderr.write('Missing filename\n')
+        return
+
+    if os.isatty(1):
+        pipe_to_less()
+
+    if len(FLAGS.paths) == 0:
+        paginate_file('/dev/stdin', header=False)
+    else:
+        for path in FLAGS.paths:
+            if os.path.isdir(path):
+                if FLAGS.recurse:
+                    for dirpath, dirs, files in os.walk(path):
+                        for filename in sorted(files):
+                            path2 = os.path.join(dirpath, filename)
+                            paginate_file(path2)
+            else:
+                paginate_file(path)
+
+
+if __name__ == '__main__':
+    main()
