@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+# Lowercase stdin unicode-aware
+import sys
+for line in sys.stdin:
+    sys.stdout.write(line.lower())

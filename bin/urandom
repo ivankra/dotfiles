@@ -1,0 +1,11 @@
+#!/bin/bash
+# Fast pseudorandom stream generator. Usage: urandom [seed phrase]
+export SEED="$*"
+if [[ -z "$SEED" ]]; then
+  export SEED="$(dd if=/dev/urandom bs=50 count=1 2>/dev/null | base64)"
+fi
+extra=""
+if openssl enc -iter 1 -pass env:SEED </dev/null >/dev/null 2>&1; then
+  extra=" -iter 1"  # for newer openssl versions
+fi
+openssl enc -aes-128-ctr -nosalt -pass env:SEED $extra </dev/zero
