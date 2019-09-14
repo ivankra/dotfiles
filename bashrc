@@ -62,9 +62,9 @@ alias got=git
 alias gti=git
 alias grep='grep --color=auto'
 alias gt=git
-alias ju=jupyter-notebook
 alias l='ls -l'
 alias la='ls -la'
+alias le='less'
 alias ll='ls -l -h'
 alias ls='ls --color=auto --group-directories-first'
 alias mv='mv -i'
@@ -77,6 +77,7 @@ alias py3=ipython3
 alias py=ipython
 alias rm='rm -i'
 alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
+alias sqlite='sqlite3 -header -column'
 alias sqlite3='sqlite3 -header -column'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
@@ -119,7 +120,7 @@ else
   if [[ -x ~/.dotfiles/bin/erasedups.py && -x /usr/bin/python ]]; then
     history -c
 
-    for _i in 9 8 7 6 5 4 3 2 1; do
+    for _i in 12 11 10 9 8 7 6 5 4 3 2 1; do
       _d="$(date -d "-$_i month" +%Y%m)"
       if [[ -f ~/.history/"bash.$_d" && ~/.history/"bash.$_d" != "$HISTFILE" ]]; then
         if [[ -w ~/.history/"bash.$_d" ]]; then
@@ -140,7 +141,7 @@ else
       history -c
       local _d
       local _i
-      for _i in 6 5 4 3 2 1; do
+      for _i in 12 11 10 9 8 7 6 5 4 3 2 1; do
         _d="$(date -d "-$_i month" +%Y%m)"
         if [[ -f ~/.history/"bash.$_d" ]]; then
           history -r ~/.history/"bash.$_d"
@@ -304,9 +305,9 @@ fi
 shopt -s autocd checkhash checkwinsize
 
 # Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
-if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
-  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
-fi
+#if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
+#  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
+#fi
 
 if [[ -z "$LS_COLORS" && -x /usr/bin/dircolors ]]; then
   eval $(dircolors ~/.dotfiles/dircolors)
@@ -362,8 +363,15 @@ if [[ -d ~/.history ]]; then
   elif [[ -L ~/.sqlite_history ]]; then
     rm -f ~/.sqlite_history
   fi
+
   if [[ -f ~/.history/sqlite ]]; then
     export SQLITE_HISTORY=~/.history/sqlite
+
+    # dedup
+    if ! cmp ~/.history/sqlite <(uniq <~/.history/sqlite) >/dev/null 2>&1; then
+      uniq <~/.history/sqlite >~/.history/.sqlite.tmp$$ && \
+        mv -f ~/.history/.sqlite.tmp$$ ~/.history/sqlite
+    fi
   fi
 fi
 
