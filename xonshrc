@@ -9,6 +9,7 @@ import sys
 sys.path.append(os.path.expanduser('~/.dotfiles/python'))
 import dotfiles.dracula
 import dotfiles.lazyimport
+import dotfiles.goo
 
 def _import_bashrc_aliases():
     global aliases
