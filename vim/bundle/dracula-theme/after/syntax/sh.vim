@@ -4,3 +4,5 @@ endif
 
 hi! link shCommandSub NONE
 hi! link shEscape     DraculaRed
+hi! link shParen      NONE
+hi! link shParenError NONE
