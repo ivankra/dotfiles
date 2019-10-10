@@ -3,8 +3,10 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 import importlib
 import os
+import pathlib
 import re
 import sys
+from pathlib import Path
 
 sys.path.append(os.path.expanduser('~/.dotfiles/python'))
 import dotfiles.dracula
