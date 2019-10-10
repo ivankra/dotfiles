@@ -15,6 +15,10 @@ user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", 
 user_pref("browser.newtabpage.activity-stream.migrationExpired", true);
 user_pref("browser.preferences.defaultPerformanceSettings.enabled", false);
 user_pref("browser.safebrowsing.enabled", false);  // tracking cookie concerns
+user_pref("browser.safebrowsing.malware.enabled", false);
+user_pref("browser.safebrowsing.phishing.enabled", false);
+user_pref("browser.safebrowsing.downloads.enabled", false);
+
 user_pref("browser.search.widget.inNavBar", true);
 user_pref("browser.tabs.drawInTitlebar", true);
 user_pref("browser.uiCustomization.state", "{\"placements\":{\"widget-overflow-fixed-list\":[\"fxa-toolbar-menu-button\",\"library-button\"],\"nav-bar\":[\"back-button\",\"forward-button\",\"stop-reload-button\",\"urlbar-container\",\"search-container\",\"downloads-button\"],\"toolbar-menubar\":[\"menubar-items\"],\"TabsToolbar\":[\"tabbrowser-tabs\",\"new-tab-button\",\"alltabs-button\"],\"PersonalToolbar\":[\"personal-bookmarks\"]},\"seen\":[\"developer-button\"],\"dirtyAreaCache\":[\"PersonalToolbar\",\"nav-bar\",\"TabsToolbar\",\"toolbar-menubar\",\"widget-overflow-fixed-list\"],\"currentVersion\":16,\"newElementCount\":9}");
@@ -42,6 +46,7 @@ user_pref("privacy.window.maxInnerHeight", 1200);
 user_pref("privacy.window.maxInnerWidth", 1900);
 user_pref("toolkit.cosmeticAnimations.enabled", false);
 user_pref("ui.context_menus.after_mouseup", true);  // fix right click menu behaviour
+user_pref("ui.key.menuAccessKeyFocuses", false);  // disable window menu on alt press
 
 // ghacks/pyllyukko overrides
 user_pref("app.update.enabled", false);
