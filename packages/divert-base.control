@@ -1,0 +1,22 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: divert-base
+Version: 1.1
+Maintainer: none
+Depends: bash, dpkg
+Architecture: all
+Description: Scripts for divert-* packages
+
+File: /usr/local/sbin/divert-file.sh 0755
+ #!/bin/bash
+ dpkg-divert --rename --add --divert "$1.bak" "$1"
+ mkdir -p -m 0755 "$(dirname "$1")"
+ ln -sf /dev/null "$1"
+
+File: /usr/local/sbin/divert-undo.sh 0755
+ if [[ -f "$1.bak" || "$1" -ef /dev/null ]]; then
+   rm -f "$1"
+ fi
+ dpkg-divert --rename --remove "$1"

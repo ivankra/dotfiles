@@ -1,0 +1,28 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: divert-gvfs
+Version: 1.1
+Maintainer: none
+Depends: divert-base
+Architecture: all
+Description: Disable junk GVFS Volume Monitor services via dpkg-divert
+Replaces: gvfs-volume-monitor-divert
+Breaks: gvfs-volume-monitor-divert
+
+File: postinst
+ #!/bin/bash
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gtk.vfs.AfcVolumeMonitor.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gtk.vfs.GPhoto2VolumeMonitor.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gtk.vfs.GoaVolumeMonitor.service
+ #/usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service
+ #/usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service
+
+File: prerm
+ #!/bin/bash
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gtk.vfs.AfcVolumeMonitor.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gtk.vfs.GPhoto2VolumeMonitor.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gtk.vfs.GoaVolumeMonitor.service
+ #/usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service
+ #/usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service

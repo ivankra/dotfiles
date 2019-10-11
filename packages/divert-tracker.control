@@ -1,0 +1,28 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: divert-tracker
+Version: 1.1
+Maintainer: none
+Depends: divert-base
+Architecture: all
+Description: Disable Tracker services via dpkg-divert
+Replaces: tracker-divert
+Breaks: tracker-divert
+
+File: postinst
+ #!/bin/bash
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
+
+File: prerm
+ #!/bin/bash
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service

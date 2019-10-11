@@ -1,0 +1,28 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: divert-evolution
+Version: 1.1
+Maintainer: none
+Depends: divert-base
+Architecture: all
+Description: Disable GNOME Evolution services via dpkg-divert
+Replaces: evolution-divert
+Breaks: evolution-divert
+
+File: postinst
+ #!/bin/bash
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
+ /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
+ /usr/local/sbin/divert-file.sh /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
+
+File: prerm
+ #!/bin/bash
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
+ /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
+ /usr/local/sbin/divert-undo.sh /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
