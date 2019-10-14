@@ -1,4 +1,4 @@
-FROM debian:sid
+FROM debian:buster
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -20,6 +20,7 @@ RUN { \
       echo; \
       echo "Package: aptly"; \
       echo "Version: $(git describe --tags HEAD | cut -c 2-)"; \
+      echo "Depends: bzip2, gnupg, gnupg1, gpgv, gpgv1, xz-utils"; \
       echo "Maintainer: none"; \
       echo "Architecture: amd64"; \
       echo "Description: aptly"; \
