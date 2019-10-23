@@ -9,12 +9,12 @@ clean:
 # Build a package out of each *.Dockerfile using docker.
 # Assumes that the container will place final product into /dist/
 %: %.Dockerfile
-	docker build -f $< -t tmp-builder-$@ .
+	docker build -f $< -t builder-$@ .
 	rm -f $@.cid
-	docker run --cidfile $@.cid tmp-builder-$@
+	docker run --cidfile $@.cid builder-$@
 	docker cp "$$(cat $@.cid):/dist/." ./
 	docker rm "$$(cat $@.cid)" && rm -f $@.cid
-	docker image rm tmp-builder-$@
+	docker image rm builder-$@
 
 get_version = $(shell cat $(1).control | grep ^Version: | sed -e 's/.*: \(.*\)/\1/')
 
