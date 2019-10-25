@@ -86,7 +86,7 @@ def gen_prefs():
 
     downloads_path = Path('~/Downloads').expanduser().resolve()
     prefs['browser.download.dir'] = '"%s"' % downloads_path
-    prefs['print.print_to_filename'] = '"%s""' % (downloads_path / 'mozilla.pdf')
+    prefs['print.print_to_filename'] = '"%s"' % (downloads_path / 'mozilla.pdf')
 
     if os.environ.get('HIDPI') == '1':
         prefs['browser.uidensity'] = '1'
@@ -169,5 +169,5 @@ def tweak_profile(profile_path, prefs):
 
 
 prefs = gen_prefs()
-for profile_path in Path('~/.mozilla/firefox').expanduser().glob('*.default*'):
+for profile_path in Path('~/.mozilla/firefox').expanduser().glob('*default*'):
     tweak_profile(profile_path, prefs)

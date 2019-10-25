@@ -47,6 +47,7 @@ user_pref("privacy.window.maxInnerWidth", 1900);
 user_pref("toolkit.cosmeticAnimations.enabled", false);
 user_pref("ui.context_menus.after_mouseup", true);  // fix right click menu behaviour
 user_pref("ui.key.menuAccessKeyFocuses", false);  // disable window menu on alt press
+user_pref("layout.css.text-decoration-skip-ink.enabled", false);  // fugly
 
 // ghacks/pyllyukko overrides
 user_pref("app.update.enabled", false);
@@ -75,6 +76,7 @@ user_pref("privacy.sanitize.sanitizeOnShutdown", false);
 user_pref("security.dialog_enable_delay", 10);
 user_pref("security.mixed_content.block_display_content", false);
 user_pref("privacy.resistFingerprinting.letterboxing", false);  // fugly
+user_pref("privacy.donottrackheader.enabled", false);  // entropy
 
 // ESR
 user_pref("browser.onboarding.state", "watermark");
