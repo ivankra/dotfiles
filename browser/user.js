@@ -18,6 +18,7 @@ user_pref("browser.safebrowsing.enabled", false);  // tracking cookie concerns
 user_pref("browser.safebrowsing.malware.enabled", false);
 user_pref("browser.safebrowsing.phishing.enabled", false);
 user_pref("browser.safebrowsing.downloads.enabled", false);
+user_pref("browser.search.separatePrivateDefault.ui.enabled", true);
 
 user_pref("browser.search.widget.inNavBar", true);
 user_pref("browser.tabs.drawInTitlebar", true);

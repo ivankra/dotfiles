@@ -30,6 +30,8 @@ if [[ -x /usr/bin/qpdfview ]]; then
   )
 fi
 
+add_nvidia
+
 add_argdirs "$(realpath ~/Downloads)" /share
 add_argdirs_ro "$@"
 

@@ -79,7 +79,7 @@ with JsonWrapper('~/.config/chromium/Default/Preferences') as w:
     w['browser.check_default_browser'] = False
     w['browser.has_seen_welcome_page'] = True
     w['dns_prefetching.enabled'] = False
-    w['enable_do_not_track'] = True
+    #w['enable_do_not_track'] = True
     w['intl.accept_languages'] = 'en-US,en'
     w['net.network_prediction_options'] = 2
     w['profile.default_content_setting_values.background_sync'] = 2
@@ -87,15 +87,23 @@ with JsonWrapper('~/.config/chromium/Default/Preferences') as w:
     w['signin.allowed'] = False
     w['signin.allowed_on_next_startup'] = False
     w['translate.enabled'] = False
+    del w['gaia_cookie']
+    del w['google']  #w['google.services.signin_scoped_device_id']
+    del w['protection.macs.google']
+    del w['media.device_id_salt']
+    del w['protection.macs.media']
+    w['safebrowsing.enabled'] = False
+    del w['protection.macs.safebrowsing']
+    del w['invalidator.client_id']
     if 'debian' in w.get('homepage', ''):
         w['homepage'] = ''
         del w['protection.macs.homepage']
 
 with JsonWrapper('~/.config/chromium/Local State') as w:
-    l = w.setdefault('browser.enabled_labs_experiments', [])
-    if 'smooth-scrolling@2' not in l:
-        print('Disabling smooth scrolling')
-        l.append('smooth-scrolling@2')
+    w['browser.enabled_labs_experiments'] = [
+        'enable-webrtc-hide-local-ips-with-mdns@1',
+        'smooth-scrolling@2',
+    ]
 
 with JsonWrapper('~/.config/chromium/Default/Bookmarks') as w:
     if w['roots'] is not None:

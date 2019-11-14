@@ -13,7 +13,7 @@ fi
 
 if ! [[ -f /usr/share/chromium/extensions/no-skip-ink/no-skip-ink.css ]]; then
   if ! (set -x; sudo apt-get install chromium-no-skip-ink); then
-    echo -e "\e[33mWWARNING:\e[0m skipped installation of chromium-no-skip-ink"
+    echo -e "\e[33mWARNING:\e[0m skipped installation of chromium-no-skip-ink"
   fi
 fi
 

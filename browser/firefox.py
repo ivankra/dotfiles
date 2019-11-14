@@ -85,13 +85,11 @@ def gen_prefs():
     prefs = collections.OrderedDict()
 
     downloads_path = Path('~/Downloads').expanduser().resolve()
-    prefs['browser.download.dir'] = '"%s"' % downloads_path
-    prefs['print.print_to_filename'] = '"%s"' % (downloads_path / 'mozilla.pdf')
-
+    if downloads_path.exists():
+        prefs['browser.download.dir'] = '"%s"' % downloads_path
+        prefs['print.print_to_filename'] = '"%s"' % (downloads_path / 'mozilla.pdf')
     if os.environ.get('HIDPI') == '1':
         prefs['browser.uidensity'] = '1'
-    else:
-        prefs['browser.uidensity'] = '0'
 
     for filename in ['user.pyllyukko.js', 'user.ghacks.js', 'user.js']:
         print(filename)
