@@ -41,5 +41,9 @@ BINARY=/usr/lib/firefox/firefox
 if ! [[ -x "$BINARY" ]]; then
   BINARY=/usr/lib/firefox-esr/firefox-esr
 fi
+if [[ -x ~/.local/firefox/firefox ]]; then
+  BINARY=~/.local/firefox/firefox
+  FLAGS+=(--ro-bind ~/.local/firefox ~/.local/firefox)
+fi
 
 exec bwrap "${FLAGS[@]}" "$BINARY" "$@"

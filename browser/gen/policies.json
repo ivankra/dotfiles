@@ -1,0 +1,25 @@
+{
+   "policies": {
+      "AppUpdateURL": "https://127.0.0.1/",
+      "DisableAppUpdate": true,
+      "DisableFeedbackCommands": true,
+      "DisableFirefoxAccounts": true,
+      "DisableFirefoxStudies": true,
+      "DisableMasterPasswordCreation": true,
+      "DisablePocket": true,
+      "DisableProfileImport": true,
+      "DisableProfileRefresh": true,
+      "DisableSetDesktopBackground": true,
+      "DisableSystemAddonUpdate": true,
+      "DisableTelemetry": true,
+      "DontCheckDefaultBrowser": true,
+      "Extensions": {
+         "Install": [
+            "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin"
+         ]
+      },
+      "NetworkPrediction": false,
+      "NoDefaultBookmarks": true,
+      "SearchSuggestEnabled": false
+   }
+}

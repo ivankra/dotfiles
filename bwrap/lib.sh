@@ -3,7 +3,7 @@
 set -e -o pipefail
 
 add_nvidia() {
-  if [[ -f /dev/nvidiactl ]]; then
+  if [[ -c /dev/nvidiactl ]]; then
     for f in /dev/dri /dev/nvidia-modeset /dev/nvidia[0-9] /dev/nvidiactl; do
       if [[ -e "$f" ]]; then
         FLAGS+=(--dev-bind "$f" "$f")

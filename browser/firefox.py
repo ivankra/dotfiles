@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-
-import collections
+import argparse
+import base64
+import hashlib
 import json
 import os
-import re
 import shutil
 import sqlite3
-import subprocess
+import sys
 
 from lz4.block import compress as lz4_compress
 from lz4.block import decompress as lz4_decompress
@@ -23,7 +23,57 @@ def mozlz4_compress(data):
     return b'mozLz40\0' + lz4_compress(data)
 
 
-def tweak_google(engine_json):
+# c.f. getVerificationHash in
+# https://hg.mozilla.org/mozilla-central/file/tip/toolkit/components/search/SearchEngine.jsm
+def get_verification_hash(name, profile_basename, app_name='Firefox'):
+    boilerplate = (
+        "{profile_basename}{name}By modifying this file, I agree that I"
+        " am doing so only within {app_name} itself, using official, us"
+        "er-driven search engine selection processes, and in a way whic"
+        "h does not circumvent user consent. I acknowledge that any att"
+        "empt to change this file from outside of {app_name} is a malic"
+        "ious act, and will be responded to accordingly."
+    )
+    text = boilerplate.format(**locals())
+    digest = hashlib.sha256(text.encode('utf-8')).digest()
+    res = base64.encodebytes(digest).decode('utf-8').strip()
+    return res
+
+
+def configure_search(path):
+    with open(path, 'rb') as fp:
+        data = fp.read()
+
+    data = json.loads(mozlz4_decompress(data))
+
+    visible = ['Google', 'Bing', 'DuckDuckGo']
+    n = 0
+
+    for name in visible:
+        for engine in data.get('engines', []):
+            if engine.get('_name') == name:
+                if name == 'Google':
+                    configure_search_google(engine)
+                n += 1
+                engine.setdefault('_metaData', {})
+                engine['_metaData']['order'] = n
+
+    for engine in data.get('engines', []):
+        if engine.get('_name') not in visible:
+            n += 1
+            engine['_metaData'] = {'order': n, 'alias': None, 'hidden': True}
+
+    data.setdefault('metaData', {}).update({
+        'private': 'DuckDuckGo',
+        'privateHash': get_verification_hash('DuckDuckGo', path.parent.name),
+    })
+
+    data = mozlz4_compress(json.dumps(data).encode('utf-8'))
+    with open(path, 'wb') as fp:
+        fp.write(data)
+
+
+def configure_search_google(engine_json):
     engine_json['_metaData'] = {'order': 1}
     for u in engine_json.get('_urls', []):
         client = False
@@ -38,134 +88,87 @@ def tweak_google(engine_json):
             u.setdefault('params', []).append({'name': 'hl', 'value': 'en'})
 
 
-def tweak_search(filename):
-    with open(filename, 'rb') as fp:
-        data = fp.read()
+def configure_installation(path):
+    print('\nConfiguring installation %s' % path)
 
-    data = json.loads(mozlz4_decompress(data))
+    try:
+        if (path / 'distribution' / 'policies.json').read_text() == Path('gen/policies.json').read_text():
+            print('policies.json up to date')
+            return
+    except:
+        pass
 
-    visible = ['Google', 'Bing', 'DuckDuckGo']
-    n = 0
+    try:
+        os.makedirs(path / 'distribution', exist_ok=True)
+        shutil.copy('gen/policies.json', path / 'distribution' / 'policies.json')
+        print('Created %s/distribution/policies.json' % path)
+    except:
+        print('\033[31mWarning: failed to create or overwrite %s/distribution/policies.json\033[m' % path)
 
-    for name in visible:
-        for engine in data.get('engines', []):
-            if engine.get('_name') == name:
-                if name == 'Google':
-                    tweak_google(engine)
-                n += 1
-                engine.setdefault('_metaData', {})
-                engine['_metaData']['order'] = n
-
-    for engine in data.get('engines', []):
-        if engine.get('_name') not in visible:
-            n += 1
-            engine['_metaData'] = {'order': n, 'alias': None, 'hidden': True}
-
-    data = mozlz4_compress(json.dumps(data).encode('utf-8'))
-    with open(filename, 'wb') as fp:
-        fp.write(data)
+        if str(path).startswith('/usr'):
+            cmd = 'sudo dpkg -i gen/firefox-policies-json_1.0_all.deb'
+            print('Installing policies.json with: %s' % cmd)
+            os.system(cmd)
 
 
-def read_prefs(filename):
-    out = subprocess.check_output(['cpp', '-fpreprocessed', filename])
+def configure_profile(path):
+    print('\nConfiguring profile %s' % path)
 
-    for line in out.decode('utf-8').split('\n'):
-        line = line.strip()
-        if line == '' or line.startswith('#'): continue
+    shutil.copy('gen/user.js', path / 'user.js')
+    print('Wrote %s/user.js' % path)
 
-        m = re.match(r'^user_pref\("([^"]+)",\s+("(?:[^"\\]|\\")*"|[^") ]+)\);(\s+//.*|)$', line)
-        if m is None:
-            raise Exception('Bad pref line: %s' % line)
+    shutil.copy('gen/handlers.json', path / 'handlers.json')
+    print('Wrote %s/handlers.json' % path)
 
-        key, val = m.group(1), m.group(2)
-        yield key, val
-
-
-def gen_prefs():
-    prefs = collections.OrderedDict()
-
-    downloads_path = Path('~/Downloads').expanduser().resolve()
-    if downloads_path.exists():
-        prefs['browser.download.dir'] = '"%s"' % downloads_path
-        prefs['print.print_to_filename'] = '"%s"' % (downloads_path / 'mozilla.pdf')
-    if os.environ.get('HIDPI') == '1':
-        prefs['browser.uidensity'] = '1'
-
-    for filename in ['user.pyllyukko.js', 'user.ghacks.js', 'user.js']:
-        print(filename)
-        count = 0
-        for key, val in read_prefs(filename):
-            if key == '_user.js.parrot': continue
-
-            if key in prefs:
-                if prefs[key] == val:
-                    if filename == 'user.js':
-                        print('  redundant %s: %s' % (key, val))
-                    continue
-                print('  override %s: %s -> %s' % (key, prefs[key], val))
-                prefs[key] = val
-            else:
-                prefs[key] = val
-                count += 1
-
-        print('  +%d prefs' % count)
-
-    return prefs
+    if (path / 'search.json.mozlz4').exists():
+        configure_search(path / 'search.json.mozlz4')
+        print('Wrote %s/search.json.mozlz4' % path)
 
 
-def sanitize_cookies(cookies_sqlite_path):
-    con = sqlite3.connect(cookies_sqlite_path)
-    cur = con.cursor()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--installation', action='append', default=[],
+                        help='Installation directories to configure')
+    parser.add_argument('-p', '--profile', action='append', default=[],
+                        help='Profile directories to configure')
+    args = parser.parse_args()
 
-    def get_domains():
-        return set(row[0] for row in
-                   cur.execute('SELECT DISTINCT baseDomain FROM moz_cookies'))
-    old_domains = get_domains()
+    if len(args.installation) == 0:
+        check = [
+            '/usr/lib/firefox',
+            '/usr/lib/firefox-esr',
+            '~/.firefox',
+            '~/.local/firefox',
+            '~/.local/lib/firefox',
+            '~/.mozilla/firefox',
+        ]
+        for path in check:
+            path = Path(path).expanduser()
+            if (path / 'omni.ja').exists() and (path / 'browser' / 'omni.ja').exists():
+                print('Found installation %s' % path)
+                args.installation.append(path)
 
-    badcookies = [[line.strip()] for line in open('badcookies.txt')]
-    cur.executemany('DELETE FROM moz_cookies WHERE baseDomain = ?;', badcookies)
-    con.commit()
+    if len(args.profile) == 0:
+        for path in Path('~/.mozilla/firefox').expanduser().glob('*/prefs.js'):
+            path = path.parent
+            print('Found profile %s' % path)
+            args.profile.append(path)
 
-    new_domains = get_domains()
-    if new_domains != old_domains:
-        print('Removed cookies from domains: %s' %
-              ' '.join(sorted(old_domains - new_domains)))
+    if len(args.installation) == 0:
+        print('Warning: no firefox installation detected, specify path with -i')
 
-    if len(new_domains) > 0:
-        print('\033[33mWARNING:\033[0m remaining cookie domains: %s' %
-              ' '.join(sorted(new_domains)))
+    if len(args.profile) == 0:
+        print(
+            'Warning: no firefox profiles found. '
+            'Run firefox to create one or specify explicit path with -p.'
+        )
 
+    for path in args.installation:
+        configure_installation(path)
 
-def tweak_profile(profile_path, prefs):
-    with (profile_path / 'user.js').open('w') as fp:
-        for key, val in prefs.items():
-            fp.write('user_pref("%s", %s);\n' % (key, val))
-    print('Wrote %s/user.js' % profile_path)
-
-    shutil.copy('handlers.json', profile_path / 'handlers.json')
-    print('Wrote %s/handlers.json' % profile_path)
-
-    if (profile_path / 'search.json.mozlz4').exists():
-        tweak_search(profile_path / 'search.json.mozlz4')
-        print('Wrote %s/search.json.mozlz4' % profile_path)
-
-    if (profile_path / 'places.sqlite').exists():
-        con = sqlite3.connect((profile_path / 'places.sqlite').as_posix())
-        con.execute('''
-            DELETE FROM moz_bookmarks WHERE id IN (
-                SELECT moz_bookmarks.id
-                FROM moz_bookmarks
-                INNER JOIN moz_places ON moz_places.id = moz_bookmarks.fk
-                WHERE url LIKE "%%mozilla.org/%%"
-            );
-            ''')
-        con.close()
-        print('Cleaned bookmarks in %s/places.sqlite' % profile_path)
-
-    if (profile_path / 'cookies.sqlite').exists():
-        sanitize_cookies((profile_path / 'cookies.sqlite').as_posix())
+    for path in args.profile:
+        configure_profile(path)
 
 
-prefs = gen_prefs()
-for profile_path in Path('~/.mozilla/firefox').expanduser().glob('*default*'):
-    tweak_profile(profile_path, prefs)
+if __name__ == '__main__':
+    main()
