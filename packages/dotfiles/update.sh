@@ -23,18 +23,10 @@ fi
 
 PKG_REV=$(cd "$PKG_REPO" && git show-ref --hash refs/heads/master)
 
-for USER in $(getent passwd | cut -d : -f 1); do
-  if [[ "$USER" != "root" && "$(id -u "$USER" || echo 0)" -lt 1000 ]]; then
-    continue
-  fi
-
-  USER_SHELL="$(getent passwd "$USER" | cut -d : -f 7)"
-  if [[ "$USER_SHELL" == "/bin/false" || "$USER_SHELL" == *nologin ]]; then
-    continue
-  fi
-
-  USER_HOME="$(getent passwd "$USER" | cut -d : -f 6)"
-  if [[ -f "$USER_HOME/.dotfiles-update-optout" || ! -d "$USER_HOME" ]]; then
+getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
+  if [[ ( "$USER" != "root" && "$USER_UID" -lt 1000 ) ||
+        "$USER_SHELL" == "/bin/false" || "$USER_SHELL" == *nologin ||
+        ! -d "$USER_HOME" || -f "$USER_HOME/.dotfiles-update-optout" ]]; then
     continue
   fi
 
