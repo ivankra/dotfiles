@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e -u -o pipefail
 
 cat <<EOF
 [Appearance]
@@ -23,7 +24,7 @@ wheel_scroll_lines=3
 
 EOF
 
-if [[ "$HIDPI" == "1" ]]; then
+if [[ "${HIDPI:-}" == "1" ]]; then
   cat <<'EOF'
 [Fonts]
 fixed=@Variant(\0\0\0@\0\0\0\"\0I\0o\0s\0\x65\0v\0k\0\x61\0 \0T\0\x65\0r\0m\0 \0S\0S\0\x30\0\x34@$\0\0\0\0\0\0\xff\xff\xff\xff\x5\x1\0\x39\x10)

@@ -20,7 +20,7 @@ if [[ -z "$CONDA_ROOT" ]]; then
   fi
 fi
 
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin; do
   if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
     PATH="$_d:$PATH"
   fi
@@ -41,8 +41,8 @@ if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
 fi
 
 # Aliases
-alias ..='cd ..'
 alias ...='cd ...'
+alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
 alias b=byobu-tmux
 alias bc='bc -q'
@@ -50,8 +50,8 @@ alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
 alias d=docker
-alias diff='diff -u'
 alias df='df -h'
+alias diff='diff -u'
 alias dokcer=docker
 alias du='du -h'
 alias egrep='egrep --color=auto'
@@ -59,9 +59,10 @@ alias fgrep='fgrep --color=auto'
 alias g=git
 alias gdb='gdb --quiet'
 alias got=git
-alias gti=git
 alias grep='grep --color=auto'
 alias gt=git
+alias gti=git
+alias json_pp='python -m json.tool'
 alias l='ls -l'
 alias la='ls -la'
 alias le='less'
@@ -72,19 +73,27 @@ alias nb=jupyter-notebook
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
-alias json_pp='python -m json.tool'
 alias py3=ipython3
 alias py=ipython
 alias rm='rm -i'
-alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
-alias sqlite='sqlite3 -header -column'
+alias rsyncp='rsync --info=progress2'
 alias sqlite3='sqlite3 -header -column'
+alias sqlite='sqlite3 -header -column'
+alias ssh-insecure='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ControlMaster=no'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
+
+ts() {
+  if [[ "$1" == "" ]]; then
+    /usr/bin/ts "%.T"
+  else
+    /usr/bin/ts "$@"
+  fi
+}
 
 # History {{{
 # * keep deduped in ~/.history/bash.YYYYMM files

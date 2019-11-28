@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e -u -o pipefail
 
 if [[ -x /usr/bin/mpv && -f /usr/lib/x86_64-linux-gnu/nvidia/current/libvdpau_nvidia.so.1 ]]; then
   if /usr/bin/mpv --profile=help | grep -qw gpu-hq; then

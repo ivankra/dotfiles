@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e -u -o pipefail
 
 gen() {
   cat <<EOF
