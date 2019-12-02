@@ -185,17 +185,16 @@ __prompt_print_status() {
 # Parameter: PS1_COLOR.
 __setup_ps1() {
   # set variable identifying the chroot you work in (used in the prompt below)
-  if [[ -z "$debian_chroot" ]] && [[ -r /etc/debian_chroot ]]; then
+  if [[ -z "$debian_chroot" && -r /etc/debian_chroot ]]; then
     debian_chroot=$(cat /etc/debian_chroot)
   fi
 
   if [[ -z "$PS1_COLOR" ]]; then
+    local groups=" $(id -nG) "
     if [[ $UID == 0 ]]; then
       PS1_COLOR=31
-    elif (id -nG | fgrep -qw sudo) && ! (id -nG | fgrep -qw audio); then
+    elif [[ "$groups" == *" sudo " && ! "$groups" == *" audio "* ]]; then
       PS1_COLOR=31
-    elif cat /proc/cpuinfo /proc/1/cgroup 2>/dev/null | grep -v /init.scope | egrep -q "(pids:/.|hypervisor)"; then
-      PS1_COLOR=36
     else
       PS1_COLOR=32
     fi
