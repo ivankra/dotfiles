@@ -104,11 +104,8 @@ def configure_installation(path):
         print('Created %s/distribution/policies.json' % path)
     except:
         print('\033[31mWarning: failed to create or overwrite %s/distribution/policies.json\033[m' % path)
-
         if str(path).startswith('/usr'):
-            cmd = 'sudo dpkg -i gen/firefox-policies-json_1.0_all.deb'
-            print('Installing policies.json with: %s' % cmd)
-            os.system(cmd)
+            print('Build and install dotfiles package')
 
 
 def configure_profile(path):

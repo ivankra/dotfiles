@@ -112,7 +112,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "schemes": {}
   },
 
-  // To be installed system-wide via firefox-policies-json package.
+  // Installed system-wide via dotfiles packages.
   // Manually: copy to <firefox installation>/distribution/policies.json
   // Ref: https://github.com/mozilla/policy-templates
   "policies.json": {

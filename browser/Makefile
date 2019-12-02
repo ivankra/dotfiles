@@ -3,11 +3,9 @@ all: dep gen firefox chromium
 # Install prerequisite packages
 dep:
 	python3 -c 'import lz4' >/dev/null 2>&1 || \
-	  sudo apt-get install python3-lz3; \
+	  sudo apt-get install python3-lz4; \
 	[ -x /usr/bin/cpp ] || \
 	  sudo apt-get install cpp; \
-	[ -x /usr/bin/equivs-build ] || \
-	  sudo apt-get install equivs; \
 	[ -x /usr/bin/jsonnet ] || \
 	  sudo apt-get install jsonnet || \
 	  sudo apt-get install ../packages-deb/jsonnet_0.14.0_amd64.deb; \
@@ -42,13 +40,9 @@ gen/user.js: firefox.jsonnet gen/ghacks.json gen/pyllyukko.json
 	cat gen/user.json | sed -Ene 's/^ *("[^"]+"): (.*[^,]),?$$/user_pref(\1, \2);/p' >gen/user.js.tmp
 	mv -f gen/user.js.tmp gen/user.js
 
-gen/firefox-policies-json_1.0_all.deb: gen/user.js ../packages/firefox-policies-json.control
-	equivs-build ../packages/firefox-policies-json.control
-	mv firefox-policies-json_1.0_all.deb gen/firefox-policies-json_1.0_all.deb
-
 # Configure firefox/chromium
 
-firefox: gen/user.js gen/firefox-policies-json_1.0_all.deb
+firefox: gen/user.js
 	./firefox.py
 
 chromium:

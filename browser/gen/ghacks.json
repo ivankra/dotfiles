@@ -134,6 +134,7 @@
   "media.peerconnection.enabled": false,
   "media.peerconnection.ice.default_address_only": true,
   "media.peerconnection.ice.no_host": true,
+  "media.peerconnection.ice.proxy_only_if_behind_proxy": true,
   "middlemouse.contentLoadURL": false,
   "middlemouse.paste": false,
   "network.IDN_show_punycode": true,
