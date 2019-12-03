@@ -4,9 +4,9 @@ all: dep gen firefox chromium
 dep:
 	python3 -c 'import lz4' >/dev/null 2>&1 || \
 	  sudo apt-get install python3-lz4; \
-	[ -x /usr/bin/cpp ] || \
+	which cpp >/dev/null 2>&1 || \
 	  sudo apt-get install cpp; \
-	[ -x /usr/bin/jsonnet ] || \
+	which jsonnet >/dev/null 2>&1 || \
 	  sudo apt-get install jsonnet || \
 	  sudo apt-get install ../packages-deb/jsonnet_0.14.0_amd64.deb; \
 	[ -f /usr/share/chromium/extensions/no-skip-ink/no-skip-ink.css ] || \

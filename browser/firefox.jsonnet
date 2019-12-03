@@ -2,6 +2,12 @@ local ghacks_user_js = import "gen/ghacks.json";
 local pyllyukko_user_js = import "gen/pyllyukko.json";
 
 {
+  "config.json": {
+    search_visible: ['Google', 'Bing', 'DuckDuckGo'],
+    search_current: 'DuckDuckGo',
+    search_private: 'DuckDuckGo',
+  },
+
   "user.json.static": pyllyukko_user_js + ghacks_user_js + {
     "browser.cache.memory.capacity": -1,
     "browser.cache.memory.enable": true,
@@ -29,6 +35,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "identity.fxaccounts.enabled": false,
     "image.decode-immediately.enabled": true,
     "layers.acceleration.disabled": false,
+    "layers.acceleration.force-enabled": true,
     "layout.css.text-decoration-skip-ink.enabled": false,  // fugly
     "mousewheel.default.delta_multiplier_y": 150,
     "mousewheel.min_line_scroll_amount": 40,
@@ -66,7 +73,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "gfx.font_rendering.opentype_svg.enabled": true,
     "gfx.offscreencanvas.enabled": true,
     "keyword.enabled": true,
-    "network.cookie.lifetimePolicy": 0,  // 0=The cookie"s lifetime is supplied by the server
+    "network.cookie.lifetimePolicy": 0,  // 0=The cookie's lifetime is supplied by the server
     "places.history.enabled": true,
     "privacy.clearOnShutdown.cookies": false,
     "privacy.clearOnShutdown.history": false,
@@ -94,7 +101,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "general.warnOnAboutConfig": false,
     "privacy.trackingprotection.introCount": 20,
 
-    //"network.security.esni.enabled": true,
+    "network.security.esni.enabled": true,
   },
 
   "user.json": self["user.json.static"] + {
@@ -119,7 +126,6 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "policies": {
       "AppUpdateURL": "https://127.0.0.1/",
       "DisableAppUpdate": true,
-      "DisableFeedbackCommands": true,
       "DisableFirefoxAccounts": true,
       "DisableFirefoxStudies": true,
       "DisableMasterPasswordCreation": true,

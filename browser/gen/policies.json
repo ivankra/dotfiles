@@ -2,7 +2,6 @@
    "policies": {
       "AppUpdateURL": "https://127.0.0.1/",
       "DisableAppUpdate": true,
-      "DisableFeedbackCommands": true,
       "DisableFirefoxAccounts": true,
       "DisableFirefoxStudies": true,
       "DisableMasterPasswordCreation": true,

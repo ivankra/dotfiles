@@ -40,32 +40,37 @@ def get_verification_hash(name, profile_basename, app_name='Firefox'):
     return res
 
 
-def configure_search(path):
+def configure_search(path, config):
     with open(path, 'rb') as fp:
         data = fp.read()
 
     data = json.loads(mozlz4_decompress(data))
 
-    visible = ['Google', 'Bing', 'DuckDuckGo']
     n = 0
-
-    for name in visible:
+    for name in config['search_visible']:
         for engine in data.get('engines', []):
             if engine.get('_name') == name:
                 if name == 'Google':
                     configure_search_google(engine)
                 n += 1
-                engine.setdefault('_metaData', {})
-                engine['_metaData']['order'] = n
+                engine.setdefault('_metaData', {}).update({
+                    'order': n,
+                    'hidden': False
+                })
 
     for engine in data.get('engines', []):
-        if engine.get('_name') not in visible:
+        if engine.get('_name') not in config['search_visible']:
             n += 1
-            engine['_metaData'] = {'order': n, 'alias': None, 'hidden': True}
+            engine.setdefault('_metaData', {}).update({
+                'order': n,
+                'hidden': True
+            })
 
     data.setdefault('metaData', {}).update({
-        'private': 'DuckDuckGo',
-        'privateHash': get_verification_hash('DuckDuckGo', path.parent.name),
+        'current': config['search_current'],
+        'hash': get_verification_hash(config['search_current'], path.parent.name),
+        'private': config['search_private'],
+        'privateHash': get_verification_hash(config['search_private'], path.parent.name),
     })
 
     data = mozlz4_compress(json.dumps(data).encode('utf-8'))
@@ -111,6 +116,8 @@ def configure_installation(path):
 def configure_profile(path):
     print('\nConfiguring profile %s' % path)
 
+    config = json.load(open('gen/config.json'))
+
     shutil.copy('gen/user.js', path / 'user.js')
     print('Wrote %s/user.js' % path)
 
@@ -118,7 +125,7 @@ def configure_profile(path):
     print('Wrote %s/handlers.json' % path)
 
     if (path / 'search.json.mozlz4').exists():
-        configure_search(path / 'search.json.mozlz4')
+        configure_search(path / 'search.json.mozlz4', config)
         print('Wrote %s/search.json.mozlz4' % path)
 
 
