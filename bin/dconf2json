@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+# Converts dconf dump output to json as a dict of strings and back.
+
+import argparse
+import collections
+import io
+import json
+import os
+import sys
+
+
+def read_dconf(fp):
+    conf = collections.OrderedDict()
+    section = None
+    for line in fp:
+        line = line.rstrip()
+        if len(line) >= 3 and line.startswith('[') and line.endswith(']'):
+            section = line[1:-1]
+        elif len(line) == 0:
+            section = None
+            continue
+        elif section and '=' in line and line[0] != '=':
+            key, val = line.split('=', 1)
+            conf['%s/%s' % (section, key.strip())] = val.strip()
+        else:
+            raise ValueError('Bad dconf input on line: %s' % line)
+    return conf
+
+
+def read_json(fp):
+    conf = json.load(fp, object_pairs_hook=collections.OrderedDict)
+    if type(conf) is not collections.OrderedDict:
+        raise ValueError('Expected json dict')
+    return conf
+
+
+def write_dconf(conf, fp):
+    sections = collections.OrderedDict()
+    for path, val in conf.items():
+        section, key = path.rsplit('/', 1)
+        if section not in sections:
+            sections[section] = collections.OrderedDict()
+        sections[section][key] = val
+
+    for section, values in sections.items():
+        fp.write('[%s]\n' % section)
+        for key, val in values.items():
+            fp.write('%s=%s\n' % (key, val))
+        fp.write('\n')
+
+
+def write_json(conf, fp):
+    json.dump(conf, fp, indent=2)
+    fp.write('\n')
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-t', '--to-format', default='auto',
+        help='json, dconf or auto (based on program name or opposite of input)'
+    )
+    parser.add_argument('-s', '--sort', action='store_true', help='Sort keys')
+    args = parser.parse_args()
+
+    text = sys.stdin.read()
+    try:
+        conf = read_dconf(io.StringIO(text))
+        from_format = 'dconf'
+    except ValueError:
+        try:
+            conf = read_json(io.StringIO(text))
+            from_format = 'json'
+        except ValueError:
+            sys.stderr.write('Failed to parse input - neither as json nor dconf\n')
+            sys.exit(1)
+
+    if args.sort:
+        sorted_conf = collections.OrderedDict()
+        for key in sorted(conf.keys()):
+            sorted_conf[key] = conf[key]
+        conf = sorted_conf
+
+    if args.to_format == 'auto':
+        basename = os.path.basename(sys.argv[0])
+        if 'dconf2json' in basename:
+            args.to_format = 'json'
+        elif 'json2dconf' in basename:
+            args.to_format = 'dconf'
+        elif from_format == 'dconf':
+            args.to_format = 'json'
+        else:
+            args.to_format = 'dconf'
+
+    if args.to_format == 'json':
+        write_json(conf, sys.stdout)
+    elif args.to_format == 'dconf':
+        write_dconf(conf, sys.stdout)
+    else:
+        sys.stderr.write('Unknown output format - %s\n' % args.to_format)
+        sys.exit(3)
+
+
+if __name__ == '__main__':
+    main()
