@@ -1,6 +1,5 @@
 {
    "accessibility.force_disabled": 1,
-   "alerts.showFavicons": false,
    "app.normandy.api_url": "",
    "app.normandy.enabled": false,
    "app.shield.optoutstudies.enabled": false,
@@ -132,7 +131,6 @@
    "devtools.chrome.enabled": false,
    "devtools.debugger.force-local": true,
    "devtools.debugger.remote-enabled": false,
-   "devtools.webide.autoinstallADBExtension": false,
    "devtools.webide.autoinstallADBHelper": false,
    "devtools.webide.autoinstallFxdtAdapters": false,
    "devtools.webide.enabled": false,
@@ -307,7 +305,6 @@
    "network.proxy.socks_remote_dns": true,
    "network.security.esni.enabled": true,
    "network.stricttransportsecurity.preloadlist": true,
-   "offline-apps.allow_by_default": false,
    "pdfjs.disabled": false,
    "permissions.default.camera": 2,
    "permissions.default.desktop-notification": 2,
