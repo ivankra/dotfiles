@@ -1,14 +1,22 @@
 #!/bin/bash
 # Wrapper to call FUSE umount command when running under unprivileged user.
 
-export PATH="$(echo $PATH | tr : '\n' | grep -v dotfiles | tr '\n' ':' | sed -e 's/:$//')"
+export PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 
-if [[ $UID != 0 && "$#" == 1 && -d "$1" ]]; then
+if [[ $UID == 0 ]]; then
+  umount "$@"
+  exit $?
+fi
+
+if [[ "$#" == 1 ]] &&
+   which mountpoint >/dev/null 2>&1 &&
+   which fusermount >/dev/null 2>&1; then
+  if ! mountpoint "$1" >/dev/null 2>&1; then
+    echo "$1 is not mounted"
+    exit 1
+  fi
   fusermount -u "$1" && exit 0
 fi
 
-if [[ $UID != 0 ]]; then
-  (set -x; sudo umount "$@")
-else
-  umount "$@"
-fi
+set -e -x
+sudo umount "$@"
