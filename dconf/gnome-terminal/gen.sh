@@ -85,7 +85,7 @@ help='disabled'
 menu-accelerator-enabled=false
 schema-version=uint32 3
 default-show-menubar=false
-theme-variant='system'
+theme-variant='dark'
 EOF
 }
 
