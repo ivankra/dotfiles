@@ -3,8 +3,6 @@
 set -e -u -o pipefail
 
 cat <<EOF
-scale=ewa_lanczossharp
-cscale=ewa_lanczossharp
 demuxer-thread=yes
 demuxer-readahead-secs=200
 volume-max=200
@@ -14,8 +12,9 @@ if [[ -x /usr/bin/mpv ]]; then
   # Run in parallel as each call takes nontrivial time.
   tmp=$(mktemp -d)
   /usr/bin/mpv --version >"$tmp/version" 2>&1 &
-  /usr/bin/mpv --profile=help >"$tmp/profile-help" 2>&1 &
+  #/usr/bin/mpv --profile=help >"$tmp/profile-help" 2>&1 &
   /usr/bin/mpv --vo=help >"$tmp/vo-help" 2>&1 &
+  /usr/bin/mpv --hwdec=help >"$tmp/hwdec-help" 2>&1 &
   wait
 
   VERSION=$(sed -Ene 's/^mpv ([0-9.]+) .*/\1/p' "$tmp/version")
@@ -31,14 +30,13 @@ if [[ -x /usr/bin/mpv ]]; then
   fi
 
   if [[ -f /usr/lib/x86_64-linux-gnu/nvidia/current/libvdpau_nvidia.so.1 ]]; then
-    if grep -qw gpu-hq "$tmp/profile-help"; then
-      echo profile=gpu-hq
+    if grep -qw '^  vdpau ' "$tmp/hwdec-help"; then
+      echo hwdec=vdpau
     fi
+  fi
 
-    # For smooth 4K
-    if grep -qw vdpau "$tmp/vo-help"; then
-      echo vo=vdpau
-    fi
+  if grep -qw '^  gpu ' "$tmp/vo-help"; then
+    echo vo=gpu
   fi
 
   rm -rf "$tmp"
