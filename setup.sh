@@ -55,6 +55,18 @@ if [[ $UID != 0 ]]; then
   fi
 fi
 
+if [[ $UID == 0 ]]; then
+  mkdir -m 0700 ~/.synaptic
+  setup_cp synaptic.conf ~/.synaptic/synaptic.conf
+  if [[ -f /var/lib/synaptic/preferences ]]; then
+    if ! [[ -s /var/lib/synaptic/preferences ]]; then
+      rm -f /var/lib/synaptic/preferences || true
+    else
+      chmod 0644 /var/lib/synaptic/preferences || true
+    fi
+  fi
+fi
+
 mkdir -p -m 0700 ~/.ssh
 setup_gen -c <(./ssh-config.sh) ~/.ssh/config
 chmod 0700 ~/.ssh
