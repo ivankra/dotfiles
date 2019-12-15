@@ -1,7 +1,8 @@
 EQUIVS_PACKAGES = $(patsubst %.control,%,$(wildcard *.control))
 DOCKER_PACKAGES = $(patsubst %.Dockerfile,%,$(wildcard *.Dockerfile))
+SHELL_PACKAGES = $(patsubst %.sh,%,$(wildcard *.sh))
 
-all: $(EQUIVS_PACKAGES) $(DOCKER_PACKAGES)
+all: $(EQUIVS_PACKAGES) $(DOCKER_PACKAGES) $(SHELL_PACKAGES)
 
 clean:
 	rm -rf *.deb
@@ -15,6 +16,9 @@ clean:
 	docker cp "$$(cat $@.cid):/dist/." ./
 	docker rm "$$(cat $@.cid)" && rm -f $@.cid
 	docker image rm builder-$@
+
+%: %.sh
+	./$<
 
 get_version = $(shell cat $(1).control | grep ^Version: | sed -e 's/.*: \(.*\)/\1/')
 
