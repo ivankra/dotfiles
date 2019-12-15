@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+# uniq order preserving
+
+import sys
+
+seen = set()
+
+for line in sys.stdin:
+    if line not in seen:
+        sys.stdout.write(line)
+        seen.add(line)
+
+# awk '!seen[$0]++'
