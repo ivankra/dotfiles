@@ -1,7 +1,7 @@
 /******
 * name: ghacks user.js
-* date: 03 December 2019
-* version 71-alpha: Dancing Pants
+* date: 06 December 2019
+* version 71-beta: Dancing Pants
 *   "Ooh-ooh, see that girl, watch that scene, dig in the dancing pants"
 * authors: v52+ github | v51- www.ghacks.net
 * url: https://github.com/ghacksuserjs/ghacks-user.js
@@ -208,7 +208,8 @@ user_pref("app.update.auto", false);
  * used when installing/updating an extension, and in daily background update checks: if false, it
  * hides the expanded text description (if it exists) when you "show more details about an addon" ***/
    // user_pref("extensions.getAddons.cache.enabled", false);
-/* 0308: disable search update
+/* 0308: disable search engine updates (e.g. OpenSearch)
+ * [NOTE] This does not affect Mozilla's built-in or Web Extension search engines
  * [SETTING] General>Firefox Updates>Automatically update search engines ***/
 user_pref("browser.search.update", false);
 /* 0309: disable sending Flash crash reports ***/
@@ -640,8 +641,15 @@ user_pref("browser.shell.shortcutFavicons", false);
 ***/
 user_pref("_user.js.parrot", "1200 syntax error: the parrot's a stiff!");
 /** SSL (Secure Sockets Layer) / TLS (Transport Layer Security) ***/
-/* 1201: disable old SSL/TLS "insecure" negotiation (vulnerable to a MiTM attack)
- * [1] https://wiki.mozilla.org/Security:Renegotiation ***/
+/* 1201: require safe negotiation
+ * Blocks connections to servers that don't support RFC 5746 [2] as they're potentially
+ * vulnerable to a MiTM attack [3]. A server *without* RFC 5746 can be safe from the attack
+ * if it disables renegotiations but the problem is that the browser can't know that.
+ * Setting this pref to true is the only way for the browser to ensure there will be
+ * no unsafe renegotiations on the channel between the browser and the server.
+ * [1] https://wiki.mozilla.org/Security:Renegotiation
+ * [2] https://tools.ietf.org/html/rfc5746
+ * [3] https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3555 ***/
 user_pref("security.ssl.require_safe_negotiation", true);
 /* 1202: control TLS versions with min and max
  * 1=TLS 1.0, 2=TLS 1.1, 3=TLS 1.2, 4=TLS 1.3
@@ -747,8 +755,10 @@ user_pref("security.mixed_content.block_object_subrequest", true);
    // user_pref("security.ssl3.rsa_aes_256_sha", false);
 
 /** UI (User Interface) ***/
-/* 1270: display warning (red padlock) for "broken security" (see 1201)
- * [1] https://wiki.mozilla.org/Security:Renegotiation ***/
+/* 1270: display warning on the padlock for "broken security" (if 1201 is false)
+ * Bug: warning padlock not indicated for subresources on a secure page! [2]
+ * [1] https://wiki.mozilla.org/Security:Renegotiation
+ * [2] https://bugzilla.mozilla.org/1353705 ***/
 user_pref("security.ssl.treat_unsafe_negotiation_as_broken", true);
 /* 1271: control "Add Security Exception" dialog on SSL warnings
  * 0=do neither 1=pre-populate url 2=pre-populate url + pre-fetch cert (default)
@@ -926,9 +936,6 @@ user_pref("media.getusermedia.audiocapture.enabled", false);
    // user_pref("media.autoplay.default", 5);
 /* 2031: disable autoplay of HTML5 media if you interacted with the site [FF66+] ***/
 user_pref("media.autoplay.enabled.user-gestures-needed", false);
-/* 2032: disable autoplay of HTML5 media in non-active tabs [FF51+]
- * [1] https://www.ghacks.net/2016/11/14/firefox-51-blocks-automatic-audio-playback-in-non-active-tabs/ ***/
-user_pref("media.block-autoplay-until-in-foreground", true); // [DEFAULT: true]
 
 /*** [SECTION 2200]: WINDOW MEDDLING & LEAKS / POPUPS ***/
 user_pref("_user.js.parrot", "2200 syntax error: the parrot's 'istory!");
@@ -1352,7 +1359,7 @@ user_pref("privacy.sanitize.timeSpan", 0);
  ** 1542309 - isolate top-level domain URLs when host is in the public suffix list (FF68+)
  ** 1506693 - isolate pdfjs range-based requests (FF68+)
  ** 1330467 - isolate site permissions (FF69+)
- ** 1534339 - isolate IPv6 (coming soon)
+ ** 1534339 - isolate IPv6 (FF73+)
 ***/
 user_pref("_user.js.parrot", "4000 syntax error: the parrot's pegged out");
 /* 4001: enable First Party Isolation [FF51+]
@@ -1367,7 +1374,7 @@ user_pref("privacy.firstparty.isolate", true);
  * [1] https://bugzilla.mozilla.org/1319773#c22
  * [2] https://bugzilla.mozilla.org/1492607
  * [3] https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage ***/
-user_pref("privacy.firstparty.isolate.restrict_opener_access", true); // [DEFAULT: true]
+   // user_pref("privacy.firstparty.isolate.restrict_opener_access", true); // [DEFAULT: true]
    // user_pref("privacy.firstparty.isolate.block_post_message", true); // [HIDDEN PREF ESR]
 
 /*** [SECTION 4500]: RFP (RESIST FINGERPRINTING)

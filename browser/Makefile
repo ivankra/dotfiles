@@ -8,7 +8,7 @@ dep:
 	  sudo apt-get install cpp; \
 	which jsonnet >/dev/null 2>&1 || \
 	  sudo apt-get install jsonnet || \
-	  sudo apt-get install ../packages-deb/jsonnet_0.14.0_amd64.deb; \
+	  sudo apt-get install ../packages-deb/jsonnet*.deb; \
 	[ -f /usr/share/chromium/extensions/no-skip-ink/no-skip-ink.css ] || \
 	  sudo apt-get install chromium-no-skip-ink || \
 	  sudo apt-get install ../packages-deb/chromium-no-skip-ink_1.0_all.deb;
