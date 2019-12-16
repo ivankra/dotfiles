@@ -2,7 +2,7 @@
 # Create ~/.dotfiles directory for all users, cloning from system repository
 # installed by dotfiles package. If directory exists and HEAD does not match
 # system repository's revision, it will be erased and cloned from scratch.
-# Setup script is re-run on update for each user under the user's account.
+# On update, runs the setup script under the user's account.
 #
 # Created repositories will have an untracked MANAGED file that marks it as
 # updatable by this script. Deleting it stops further updates.
@@ -21,6 +21,11 @@ if [[ $UID != 0 ]]; then
   exit 1;
 fi
 
+FORCE=0
+if [[ "$#" != 0 && ("$1" == "-f" || "$1" == "--force") ]]; then
+  FORCE=1
+fi
+
 PKG_REV=$(cd "$PKG_REPO" && git show-ref --hash refs/heads/master)
 
 getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
@@ -37,7 +42,7 @@ getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
     fi
 
     USER_REV=$(cd "$USER_REPO" && git rev-parse HEAD || echo "<err>")
-    if [[ "$USER_REV" == "$PKG_REV" ]]; then
+    if [[ "$USER_REV" == "$PKG_REV" ]] && !((FORCE)); then
       continue
     fi
 
@@ -54,7 +59,7 @@ getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
 
   rm -rf "$USER_REPO/.git/hooks"
 
-  if ! (set -x; sudo -u "$USER" /bin/bash "$USER_REPO/setup.sh"); then
+  if ! (set -x; cd "$USER_REPO"; sudo -u "$USER" /bin/bash "$USER_REPO/setup.sh"); then
     echo "Warning: $USER_REPO/setup.sh failed"
     continue
   fi
