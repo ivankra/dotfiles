@@ -56,7 +56,7 @@ if [[ $UID != 0 ]]; then
 fi
 
 if [[ $UID == 0 ]]; then
-  mkdir -m 0700 ~/.synaptic
+  mkdir -m 0700 -p ~/.synaptic
   setup_cp synaptic.conf ~/.synaptic/synaptic.conf
   if [[ -f /var/lib/synaptic/preferences ]]; then
     if ! [[ -s /var/lib/synaptic/preferences ]]; then
