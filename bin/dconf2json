@@ -6,13 +6,15 @@ import collections
 import io
 import json
 import os
+import subprocess
 import sys
+import re
 
 
-def read_dconf(fp):
+def parse_dconf(text):
     conf = collections.OrderedDict()
     section = None
-    for line in fp:
+    for line in text.split('\n'):
         line = line.rstrip()
         if len(line) >= 3 and line.startswith('[') and line.endswith(']'):
             section = line[1:-1]
@@ -27,8 +29,12 @@ def read_dconf(fp):
     return conf
 
 
-def read_json(fp):
-    conf = json.load(fp, object_pairs_hook=collections.OrderedDict)
+def parse_json(text):
+    # Accept trailing comma.
+    text = ' '.join(text.split('\n')).strip()
+    text = re.sub(', *}$', '}', text)
+
+    conf = json.loads(text, object_pairs_hook=collections.OrderedDict)
     if type(conf) is not collections.OrderedDict:
         raise ValueError('Expected json dict')
     return conf
@@ -61,15 +67,27 @@ def main():
         help='json, dconf or auto (based on program name or opposite of input)'
     )
     parser.add_argument('-s', '--sort', action='store_true', help='Sort keys')
+    parser.add_argument(
+        'filename', nargs='?',
+        help='Input file. If missing: read stdin or dconf dump /'
+    )
     args = parser.parse_args()
 
-    text = sys.stdin.read()
+    if args.filename:
+        with open(args.filename) as fp:
+            text = fp.text()
+    elif os.isatty(0) and args.to_format in ('auto', 'json'):
+        text = subprocess.check_output(['dconf', 'dump', '/'])
+        text = text.decode('utf-8')
+    else:
+        text = sys.stdin.read()
+
     try:
-        conf = read_dconf(io.StringIO(text))
+        conf = parse_dconf(text)
         from_format = 'dconf'
     except ValueError:
         try:
-            conf = read_json(io.StringIO(text))
+            conf = parse_json(text)
             from_format = 'json'
         except ValueError:
             sys.stderr.write('Failed to parse input - neither as json nor dconf\n')
