@@ -14,7 +14,7 @@ if ! (echo "$PATH" | grep -q ".dotfiles/bin"); then
     fi
   fi
 
-  for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin ~/bin; do
+  for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.private/bin ~/.local/bin; do
     if [ -d "$_d" ] && ! (echo ":$PATH:" | fgrep -q ":$_d:"); then
       PATH="$_d:$PATH"
     fi
@@ -32,7 +32,9 @@ if [ -f "$HOME/.private/profile" ]; then
 fi
 
 if [ -z "$HIDPI" ] && [ -f "/run/user/$(id -u)/dconf/user" ]; then
-  if [ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" = "uint32 2" ]; then
+  if dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null | grep 2$; then
+    export HIDPI=1
+  elif dconf read /org/gnome/desktop/interface/text-scaling-factor 2>/dev/null | grep -q '^1[.][2-9]'; then
     export HIDPI=1
   else
     export HIDPI=0

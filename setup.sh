@@ -18,6 +18,10 @@ remove_dotfiles_symlinks \
   ~/.fonts \
   ~/.gdb
 
+if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
+  (set -x; rm -f ~/.bin)
+fi
+
 setup_gen -c <(./gitconfig.sh) ~/.gitconfig
 setup_gen -c <(./hgrc.sh) ~/.hgrc
 setup_gen <(./jupyter/jupyter_notebook_config.json.sh) jupyter/jupyter_notebook_config.json
@@ -82,10 +86,6 @@ fi
 
 if ! [[ -d ~/.local/bin ]]; then
   (set -x; mkdir -p ~/.local/bin)
-fi
-
-if ! [[ -d ~/.bin ]]; then
-  (set -x; ln -s .local/bin ~/.bin)
 fi
 
 if [[ -d ~/.gnupg/ ]]; then

@@ -20,7 +20,8 @@ if [[ -z "$CONDA_ROOT" ]]; then
   fi
 fi
 
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.local/bin ~/.bin; do
+# Also in ~/.profile
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.private/bin ~/.local/bin; do
   if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
     PATH="$_d:$PATH"
   fi
@@ -32,8 +33,11 @@ if [[ -z "$PS1" || -z "$HOME" ]]; then
   return
 fi
 
+# Also in ~/.profile
 if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
-  if [[ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == "uint32 2" ]]; then
+  if [[ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == *2 ]]; then
+    export HIDPI=1
+  elif [[ "$(dconf read /org/gnome/desktop/interface/text-scaling-factor 2>/dev/null)" == 1.[2-9]* ]]; then
     export HIDPI=1
   else
     export HIDPI=0
