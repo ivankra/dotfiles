@@ -1,0 +1,10 @@
+# Dummy config for ssh-insecure to prevent stupid questions when using jumper hosts.
+#
+# Problem: implicit ProxyCommand drops StrictHostKeyChecking/UserKnownHostsFile
+# But thankfully it still gets passed custom config paths (this).
+
+Host *
+StrictHostKeyChecking no
+UserKnownHostsFile /dev/null
+LogLevel QUIET
+ControlMaster no
