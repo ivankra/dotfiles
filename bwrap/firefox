@@ -10,6 +10,7 @@ FLAGS=(
   --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.cache/mozilla ~/.cache/mozilla
   --bind ~/.mozilla ~/.mozilla
+  --bind /tmp /tmp
   --ro-bind /etc /etc
   --ro-bind ~/.config ~/.config
   --unsetenv DBUS_SESSION_BUS_ADDRESS

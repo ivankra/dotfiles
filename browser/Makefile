@@ -15,11 +15,13 @@ dep:
 
 # Re-download external dependencies into vendor/
 vendor:
-	rm -f vendor tmp
+	rm -rf vendor tmp
 	mkdir -p tmp
 	curl -s -o tmp/pyllyukko.user.js 'https://raw.githubusercontent.com/pyllyukko/user.js/master/user.js'
 	curl -s -o tmp/ghacks.user.js 'https://raw.githubusercontent.com/ghacksuserjs/ghacks-user.js/master/user.js'
 	mv tmp vendor
+
+.PHONY: vendor
 
 # Regenerate files in gen/
 gen: gen-clean gen/user.js
@@ -27,11 +29,11 @@ gen: gen-clean gen/user.js
 gen-clean:
 	rm -rf gen
 
-gen/ghacks.json: vendor vendor/ghacks.user.js
+gen/ghacks.json: vendor/ghacks.user.js
 	mkdir -p gen
 	./userjs2json.py <vendor/ghacks.user.js | grep -v _user.js.parrot >gen/ghacks.json
 
-gen/pyllyukko.json: vendor vendor/pyllyukko.user.js
+gen/pyllyukko.json: vendor/pyllyukko.user.js
 	mkdir -p gen
 	./userjs2json.py <vendor/pyllyukko.user.js >gen/pyllyukko.json
 
