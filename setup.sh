@@ -47,7 +47,7 @@ if [[ $UID != 0 ]]; then
   setup_cp qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
   setup_cp vlcrc ~/.config/vlc/vlcrc
   setup_gen <(./mpv.conf.sh) ~/.config/mpv/mpv.conf
-  setup_gen <(./qpdfview.sh) ~/.config/qpdfview/qpdfview.conf
+  setup_gen --backup <(./qpdfview.sh) ~/.config/qpdfview/qpdfview.conf
   setup_gen <(./qt5ct.sh) ~/.config/qt5ct/qt5ct.conf
   setup_ln tkdiffrc
   setup_ln xinitrc
@@ -97,6 +97,15 @@ if ! [[ -e ~/.history ]]; then
 fi
 if [[ -d ~/.history ]]; then
   chmod 0700 ~/.history
+fi
+
+if [[ -f ~/.config/keepassxc/keepassxc.ini ]]; then
+  sed -i -e 's/^\(LastDatabases=[^,]*\), .*/\1/' ~/.config/keepassxc/keepassxc.ini
+fi
+
+if [[ -f ~/.bash_history && ! -L ~/.bash_history ]]; then
+  echo "Warning: orphan ~/.bash_history file"
+  chmod og-rwx ~/.bash_history
 fi
 
 rm -rf python/dotfiles/__pycache__
