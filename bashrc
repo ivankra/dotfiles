@@ -212,7 +212,10 @@ __setup_ps1() {
       PS1_COLOR=$((-PS1_COLOR))
       PS1_COLOR="38;5;${PS1_COLOR}"
     fi
-    PS1="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]"  # user@host:workdir
+    PS1="\[\033[01;36m\]\A\[\033[m "                    # HH:MM
+    PS1+="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}"  # user@host
+    PS1+="\[\033[00m\]:"                                # :
+    PS1+="\[\033[01;34m\]\w\[\033[00m\]"                # workdir
     if declare -f -F __git_ps1 >/dev/null; then
       PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'
     fi
