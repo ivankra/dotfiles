@@ -80,7 +80,7 @@ alias parallel='parallel --will-cite'
 alias py3=ipython3
 alias py=ipython
 alias rm='rm -i'
-alias rsyncp='rsync --info=progress2'
+alias rsync='rsync --info=progress2'
 alias sqlite3='sqlite3 -header -column'
 alias sqlite='sqlite3 -header -column'
 alias ssh-insecure='ssh -F ~/.dotfiles/ssh-config-insecure'
