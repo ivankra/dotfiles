@@ -8,11 +8,10 @@ if [[ $UID == 0 ]]; then
   exit $?
 fi
 
-if [[ "$#" == 1 ]] &&
-   which mountpoint >/dev/null 2>&1 &&
-   which fusermount >/dev/null 2>&1; then
-  if ! mountpoint "$1" >/dev/null 2>&1; then
-    echo "$1 is not mounted"
+if [[ "$#" == 1 ]] && hash mountpoint fusermount; then
+  out=$(mountpoint "$1" 2>&1)
+  if [[ $? != 0 && "$out" != *"Transport endpoint is not connected" ]]; then
+    echo "$out"
     exit 1
   fi
   fusermount -u "$1" && exit 0
