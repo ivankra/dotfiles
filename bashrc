@@ -12,6 +12,10 @@ if [[ -z "$CUDA_ROOT" && -z "$CUDA_PATH" && -d /usr/local/cuda ]]; then
   export CUDA_PATH=/usr/local/cuda
 fi
 
+if [[ -z "$GOPATH" && -d ~/.go ]]; then
+  export GOPATH=~/.go
+fi
+
 if [[ -z "$CONDA_ROOT" ]]; then
   if [[ -x ~/.conda/bin/conda && ! ~/.conda/bin/conda -ef /opt/conda/bin/conda ]]; then
     export CONDA_ROOT=~/.conda
