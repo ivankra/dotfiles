@@ -1,3 +1,9 @@
+# Usage:
+# $ make <package>
+#
+# Debugging docker builds: make <package>-sh to build and jump to shell
+# at the end of build script, before copying files out from it.
+
 EQUIVS_PACKAGES = $(patsubst %.control,%,$(wildcard *.control))
 DOCKER_PACKAGES = $(patsubst %.Dockerfile,%,$(wildcard *.Dockerfile))
 SHELL_PACKAGES = $(patsubst %.sh,%,$(wildcard *.sh))
@@ -16,6 +22,14 @@ clean:
 	docker cp "$$(cat $@.cid):/dist/." ./
 	docker rm "$$(cat $@.cid)" && rm -f $@.cid
 	docker image rm builder-$@
+
+%-sh: %.Dockerfile
+	docker build -f $< -t builder-$@ .
+	rm -f $@.cid
+	docker run --cidfile $@.cid builder-$@
+	docker run -it builder-$@ /bin/bash
+	docker cp "$$(cat $@.cid):/dist/." ./
+	docker rm "$$(cat $@.cid)" && rm -f $@.cid
 
 %: %.sh
 	./$<
