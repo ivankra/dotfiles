@@ -292,14 +292,14 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  if (filereadable(expand('~/.fonts/iosevka-term-ss04-medium.ttf')) || filereadable('/usr/share/fonts/truetype/iosevka-term-ss04/iosevka-term-ss04-medium.ttf'))
+  if filereadable('/usr/local/share/fonts/truetype/iosevka-custom/iosevka-custom-medium.ttf')
     if $HIDPI == "1"
-      set guifont=Iosevka\ Term\ SS04\ Medium\ 13
+      set guifont=Iosevka\ Custom\ Medium\ 13
     else
-      set guifont=Iosevka\ Term\ SS04\ Semibold\ 14
+      set guifont=Iosevka\ Custom\ Semibold\ 14
     endif
   else
-    set guifont=M+\ 1mn\ Medium\ 13
+    set guifont=Monospace\ Regular\ 13
   endif
   "set guifont=Fira\ Mono\ Medium\ 13
   "set guifont=Roboto\ Mono\ Medium\ 13
