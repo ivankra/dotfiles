@@ -13,7 +13,6 @@ APPS=(
   7zr:none
   eog
   evince:org.gnome.Evince.desktop
-  firefox
   geeqie
   libreoffice:libreoffice-calc.desktop
   libreoffice:libreoffice-draw.desktop
