@@ -15,6 +15,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons": false,
     "browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features": false,
     "browser.newtabpage.activity-stream.migrationExpired": true,
+    "browser.newtabpage.activity-stream.telemetry.ping.endpoint": "",
     "browser.preferences.defaultPerformanceSettings.enabled": false,
     "browser.safebrowsing.downloads.enabled": false,
     "browser.safebrowsing.enabled": false,  // tracking cookie
@@ -48,6 +49,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "privacy.trackingprotection.fingerprinting.enabled": true,
     "privacy.window.maxInnerHeight": 1200,
     "privacy.window.maxInnerWidth": 1900,
+    "toolkit.telemetry.hybridContent.enabled": false,
     "toolkit.cosmeticAnimations.enabled": false,
     "ui.context_menus.after_mouseup": true,  // fix right click menu behaviour
     "ui.key.menuAccessKeyFocuses": false,  // disable window menu on alt press
@@ -103,12 +105,15 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "privacy.trackingprotection.introCount": 20,
 
     "network.security.esni.enabled": true,
+    "security.OCSP.enabled": 0,
+    "security.OCSP.require": false,
+    "security.ssl.require_safe_negotiation": false,
   },
 
   "user.json": self["user.json.static"] + {
     // Environment-dependent params.
     "browser.download.dir": std.extVar("DOWNLOAD_DIR"),
-    "print.print_to_filename": std.extVar("DOWNLOAD_DIR") + "/mozilla.pdf",
+    "print.print_to_filename": std.extVar("DOWNLOAD_DIR") + "/firefox.pdf",
     "browser.uidensity": if std.extVar("HIDPI") == "1" then 1 /*compact*/ else 0 /*normal*/,
   },
 
