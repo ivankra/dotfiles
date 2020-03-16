@@ -83,6 +83,10 @@ add_argdirs() {
 add_argdirs "$(realpath ~/Downloads)" ~/Downloads /share
 add_argdirs --ro-bind "$@"
 
+if ! [[ -e "/tmp/mozilla_$(whoami)0" ]]; then
+  ln -s "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)0" || true
+fi
+
 export GTK_CSD=1  # fix titlebar hiding in cinnamon
 
 exec /usr/bin/bwrap "${FLAGS[@]}" "$BINARY" "$@"
