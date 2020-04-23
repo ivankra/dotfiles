@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [[ -t 1 ]]; then
+  echo "~/.dotfiles/bin/yes: not trashing tty" >&2
+  echo "${1:-y}"
+  exit 0
+fi
+
+if [[ -f /bin/yes ]]; then
+  exec /bin/yes "$@"
+else
+  exec /usr/bin/yes "$@"
+fi
