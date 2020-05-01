@@ -395,6 +395,10 @@ if [[ -d ~/.history ]]; then
   fi
 fi
 
+if hash bazel >/dev/null 2>&1 && [[ -d ~/.cache && ! -L ~/.cache/bazel && ! -d ~/.cache/bazel ]]; then
+  ln -s /var/tmp ~/.cache/bazel
+fi
+
 for _f in ~/.lesshst ~/.wget-hsts ~/.xsel.log ~/.xsession-errors ~/.xsession-errors.old; do
   if [[ -f "$_f" ]]; then
     rm -f "$_f"
