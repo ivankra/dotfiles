@@ -1,0 +1,5 @@
+#!/bin/bash
+export GTK_THEME=Adwaita:dark
+exec /usr/bin/code "$@"
+
+# XXX can't be packaged as /usr/local/bin/code as vs code deletes it from there

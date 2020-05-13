@@ -1,0 +1,2 @@
+#!/bin/bash -e
+[[ "$UID" != 0 && -x /usr/bin/code ]]
