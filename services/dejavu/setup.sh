@@ -1,5 +1,5 @@
 #!/bin/bash
-# install.sh [--copy] [--keyrings]
+# setup.sh [--copy] [--keyrings]
 #
 # Install dejavu service and create an initial ~/.dejavu.git if needed.
 #
@@ -73,7 +73,7 @@ if systemctl --user status dejavu.service >/dev/null 2>&1; then
 fi
 
 mkdir -p ~/.config/systemd/user
-envsubst <~/.dotfiles/browser/dejavu/dejavu.service >~/.config/systemd/user/dejavu.service
+envsubst <~/.dotfiles/services/dejavu/dejavu.service >~/.config/systemd/user/dejavu.service
 systemctl --user enable dejavu.service
 echo "Created dejavu.service"
 echo "Run 'systemctl --user start dejavu.service' to activate it"
