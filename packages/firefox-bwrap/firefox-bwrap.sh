@@ -28,6 +28,7 @@ FLAGS=(
   --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.cache/mozilla ~/.cache/mozilla
   --bind ~/.mozilla ~/.mozilla
+  --bind "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)0"
   --ro-bind /etc /etc
   --ro-bind ~/.config ~/.config
   --unsetenv DBUS_SESSION_BUS_ADDRESS
@@ -35,7 +36,11 @@ FLAGS=(
   --setenv DISPLAY "$DISPLAY"
 )
 
-mkdir -m 0700 -p ~/.cache/mozilla ~/.mozilla
+mkdir -m 0700 -p ~/.cache/mozilla ~/.mozilla "/tmp/mozilla_$(whoami)0"
+
+if ! [[ -e "/tmp/mozilla_$(whoami)1" ]]; then
+  ln -s "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)1" || true
+fi
 
 if [[ -f ~/.Xauthority ]]; then
   FLAGS+=(--ro-bind ~/.Xauthority ~/.Xauthority)
@@ -82,10 +87,6 @@ add_argdirs() {
 }
 add_argdirs "$(realpath ~/Downloads)" ~/Downloads /share
 add_argdirs --ro-bind "$@"
-
-if ! [[ -e "/tmp/mozilla_$(whoami)0" ]]; then
-  ln -s "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)0" || true
-fi
 
 export GTK_CSD=1  # fix titlebar hiding in cinnamon
 
