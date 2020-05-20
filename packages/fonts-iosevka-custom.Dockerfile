@@ -44,7 +44,7 @@ RUN npm install
 RUN { \
       echo '[buildPlans.iosevka-custom]'; \
       echo 'family = "Iosevka Custom"'; \
-      echo 'design = ["term", "ss04"]'; \
+      echo 'design = ["sp-fixed", "cv08", "cv36", "cv45", "cv61"]'; \
     } >private-build-plans.toml
 RUN npm run build -- contents::iosevka-custom
 RUN ls -l dist/iosevka-custom/ttf/iosevka-custom-regular.ttf
@@ -62,7 +62,7 @@ RUN { \
       echo; \
       echo -n "Files:"; \
       for f in dist/iosevka-custom/ttf/*.ttf; do \
-        echo " $f /usr/local/share/fonts/truetype/iosevka-custom/"; \
+        echo " $f /usr/share/fonts/truetype/iosevka-custom"; \
       done; \
     } >control && \
     equivs-build control && \

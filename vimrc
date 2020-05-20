@@ -292,7 +292,7 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  if filereadable('/usr/local/share/fonts/truetype/iosevka-custom/iosevka-custom-medium.ttf')
+  if (filereadable('/usr/share/fonts/truetype/iosevka-custom/iosevka-custom-medium.ttf') || filereadable('/usr/local/share/fonts/truetype/iosevka-custom/iosevka-custom-medium.ttf'))
     if $HIDPI == "1"
       set guifont=Iosevka\ Custom\ Medium\ 13
     else
