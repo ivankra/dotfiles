@@ -29,14 +29,16 @@ if [[ -x /usr/bin/mpv ]]; then
     echo "cache-secs=200"
   fi
 
-  if [[ -f /usr/lib/x86_64-linux-gnu/nvidia/current/libvdpau_nvidia.so.1 ]]; then
-    if grep -qw '^  vdpau ' "$tmp/hwdec-help"; then
-      echo hwdec=vdpau
+  if ls -A /dev/nvidia* >/dev/null 2>&1; then
+    if [[ -f /usr/lib/x86_64-linux-gnu/nvidia/current/libvdpau_nvidia.so.1 ]]; then
+      if grep -qw '^  vdpau ' "$tmp/hwdec-help"; then
+        echo hwdec=vdpau
+      fi
     fi
-  fi
 
-  if grep -qw '^  gpu ' "$tmp/vo-help"; then
-    echo vo=gpu
+    if grep -qw '^  gpu ' "$tmp/vo-help"; then
+      echo vo=gpu
+    fi
   fi
 
   rm -rf "$tmp"
