@@ -1,8 +1,6 @@
 [Unit]
 Description=Automatically reapplies redshift settings on any display connectivity change.
-
-redshiftomatic startup script
-After=basic.target
+After=display-manager.service
 
 [Service]
 ExecStart=$HOME/.dotfiles/services/redshiftomatic/redshiftomatic.sh
@@ -10,4 +8,4 @@ Type=simple
 Restart=always
 
 [Install]
-WantedBy=default.target
+WantedBy=default.target graphical-session.target
