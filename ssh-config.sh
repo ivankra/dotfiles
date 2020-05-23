@@ -23,13 +23,13 @@ Host *
   TCPKeepAlive no
 EOF
 
-if [[ $UID != 0 ]]; then
-  echo '  ControlMaster auto'
-  echo '  ControlPath ~/.ssh/socket/%r@%h:%p'
-  echo '  ControlPersist 300'
-  mkdir -p ~/.ssh/socket
-  chmod 0700 ~/.ssh ~/.ssh/socket
-fi
+#if [[ $UID != 0 ]]; then
+#  echo '  ControlMaster auto'
+#  echo '  ControlPath ~/.ssh/socket/%r@%h:%p'
+#  echo '  ControlPersist 300'
+#  mkdir -p ~/.ssh/socket
+#  chmod 0700 ~/.ssh ~/.ssh/socket
+#fi
 
 for name in id_ed25519 id_rsa; do
   if [[ -f ~/.ssh/$name ]]; then
