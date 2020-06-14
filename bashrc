@@ -322,7 +322,7 @@ if [[ $UID == 0 ]]; then
   umask 027
 fi
 
-shopt -s autocd checkhash checkwinsize
+shopt -s autocd checkhash checkwinsize no_empty_cmd_completion
 
 # Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
 #if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
