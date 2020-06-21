@@ -1,0 +1,6 @@
+Directory for scripts which should be conditionally installed in PATH.
+
+For each script with a companion *.cond script:
+  * we run *.cond script to test whether script should be installed
+  * on check success: symlink script into ~/.local/bin/
+  * on check failure: remove the symlink from ~/.local/bin/ if points to bin-cond

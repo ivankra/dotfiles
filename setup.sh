@@ -71,22 +71,7 @@ if [[ $UID == 0 ]]; then
   fi
 fi
 
-# Install conditional script symlinks
-for x in ~/.dotfiles/bin-extra/*.check; do
-  if [[ -x "$x" && -x "${x/.check}" ]]; then
-    name=$(basename "${x/.check}")
-    if "$x" >/dev/null; then
-      if ! [[ -L ~/.local/bin/"$name" ]]; then
-        mkdir -p -m 0700 ~/.local/bin
-
-        rel_path=$(realpath --relative-to=~/.local/bin ~/.dotfiles/bin-extra/"$name")
-        (set -x; ln -s "$rel_path" ~/.local/bin/"$name")
-      fi
-    elif [[ ~/.dotfiles/bin-extra/"$name" -ef ~/.local/bin/"$name" ]]; then
-      (set -x; rm -f ~/.local/bin/"$name")
-    fi
-  fi
-done
+~/.dotfiles/bin-cond/setup.sh
 
 mkdir -p -m 0700 ~/.ssh
 setup_gen -c <(./ssh-config.sh) ~/.ssh/config
