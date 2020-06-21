@@ -28,6 +28,8 @@ fi
 
 PKG_REV=$(cd "$PKG_REPO" && git show-ref --hash refs/heads/master)
 
+MANAGED_MSG="This repository is managed by /usr/local/share/dotfiles/update.sh script. Local changes will be lost. Delete this file to prevent automatic updates."
+
 getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
   if [[ ( "$USER" != "root" && "$USER_UID" -lt 1000 ) ||
         "$USER_SHELL" == "/bin/false" || "$USER_SHELL" == *nologin ||
@@ -55,7 +57,7 @@ getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
   (set -x; sudo -u "$USER" git clone --shared "$PKG_REPO" "$USER_REPO")
 
   sudo -u "$USER" touch "$USER_REPO/MANAGED"
-  echo "This repository is managed by /usr/local/share/dotfiles/update.sh script. Local changes will be lost. Delete this file to prevent automatic updates." >"$USER_REPO/MANAGED"
+  echo "$MANAGED_MSG" >"$USER_REPO/MANAGED"
 
   rm -rf "$USER_REPO/.git/hooks"
 
@@ -64,3 +66,24 @@ getent passwd | while IFS=':' read USER _ USER_UID _ _ USER_HOME USER_SHELL; do
     continue
   fi
 done
+
+# Update /etc/skel/
+SKEL_REV=$(cd /etc/skel/.dotfiles && git rev-parse HEAD || echo "<err>")
+if [[ "$SKEL_REV" != "$PKG_REV" ]]; then
+  echo "Regenerating /etc/skel/"
+  rm -rf /etc/skel_new
+  mkdir -p -m 0755 /etc/skel_new
+  USER_REPO=/etc/skel_new/.dotfiles
+  git clone --shared "$PKG_REPO" "$USER_REPO"
+  echo "$MANAGED_MSG" >"$USER_REPO/MANAGED"
+  chown -R nobody:nogroup /etc/skel_new
+  if ! (set -x; sudo -u nobody bash -c 'export HOME=/etc/skel_new; $HOME/.dotfiles/setup.sh'); then
+    echo "Warning: /etc/skel_new/.dotfiles/setup.sh failed"
+    rm -rf /etc/skel_new
+    continue
+  fi
+  chown -R root:root /etc/skel_new
+  rm -rf /etc/skel
+  mv /etc/skel_new /etc/skel
+  echo "Moved /etc/skel_new/ -> /etc/skel/"
+fi
