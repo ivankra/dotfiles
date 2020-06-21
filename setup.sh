@@ -24,7 +24,7 @@ fi
 
 setup_gen -c <(./gitconfig.sh) ~/.gitconfig
 setup_gen -c <(./hgrc.sh) ~/.hgrc
-setup_gen <(./jupyter/jupyter_notebook_config.json.sh) jupyter/jupyter_notebook_config.json
+setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
 setup_ln Rprofile
 setup_ln bash_logout
 setup_ln bashrc
@@ -77,8 +77,10 @@ for x in ~/.dotfiles/bin-extra/*.check; do
     name=$(basename "${x/.check}")
     if "$x" >/dev/null; then
       if ! [[ -L ~/.local/bin/"$name" ]]; then
-        mkdir -p ~/.local/bin
-        (set -x; ln -s ~/.dotfiles/bin-extra/"$name" ~/.local/bin/"$name")
+        mkdir -p -m 0700 ~/.local/bin
+
+        rel_path=$(realpath --relative-to=~/.local/bin ~/.dotfiles/bin-extra/"$name")
+        (set -x; ln -s "$rel_path" ~/.local/bin/"$name")
       fi
     elif [[ ~/.dotfiles/bin-extra/"$name" -ef ~/.local/bin/"$name" ]]; then
       (set -x; rm -f ~/.local/bin/"$name")

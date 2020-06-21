@@ -65,21 +65,8 @@ setup_gen() {
 
 link_or_copy() {
   local op="$1"; shift
-
-  local src="$1"
-  if ! [[ "$src" == /* ]]; then
-    src=".dotfiles/$src";
-  fi
-  local src_path=$(cd ~; readlink -f "$src")
-
-  local dst="${2:-.$(basename "$1")}"
-  local dst_path="$HOME/$dst"
-  if [[ "$dst" == */* ]]; then
-    src="$src_path"
-  fi
-  if [[ "$dst" == /* ]]; then
-    dst_path="$dst"
-  fi
+  local src_path=$(cd ~/.dotfiles; readlink -f "$1")
+  local dst_path="${2:-$HOME/.$(basename "$1")}"
 
   local dst_dir="$(dirname "$dst_path")"
   if ! [[ -d "$dst_dir" ]]; then
@@ -100,14 +87,14 @@ link_or_copy() {
 
     if [[ -L "$dst_path" ]]; then
       rm -f "$dst_path"
-      cp -a "$src" "$dst_path"
-      echo "Copied $src over symlink $dst_path"
+      cp -a "$src_path" "$dst_path"
+      echo "Copied $src_path over symlink $dst_path"
     elif ! [[ -f "$dst_path" ]]; then
-      cp -af "$src" "$dst_path"
-      echo "Copied $src to $dst_path"
-    elif ! cmp --silent "$src" "$dst_path"; then
-      cp -af "$src" "$dst_path"
-      echo "Copied $src over existing file $dst_path"
+      cp -af "$src_path" "$dst_path"
+      echo "Copied $src_path to $dst_path"
+    elif ! cmp --silent "$src_path" "$dst_path"; then
+      cp -af "$src_path" "$dst_path"
+      echo "Copied $src_path over existing file $dst_path"
     fi
     return
   fi
@@ -118,20 +105,20 @@ link_or_copy() {
         return 0
       elif [[ -d "$dst_path" ]]; then
         rm -rf "$dst_path"
-        ln -s "$src" "$dst_path"
-        echo "Replaced directory: $dst_path -> $src";
+        ln -s -r "$src_path" "$dst_path"
+        echo "Replaced directory: $dst_path -> $src_path";
       else
         rm -f "$dst_path"
-        ln -s "$src" "$dst_path"
-        echo "Replaced: $dst_path -> $src"
+        ln -s -r "$src_path" "$dst_path"
+        echo "Replaced: $dst_path -> $src_path"
       fi
     elif [[ -L "$dst_path" ]]; then
       rm -f "$dst_path"
-      ln -s "$src" "$dst_path"
-      echo "Fixed broken link: $dst_path -> $src"
+      ln -s -r "$src_path" "$dst_path"
+      echo "Fixed broken link: $dst_path -> $src_path"
     else
-      ln -s "$src" "$dst_path"
-      echo "Linked: $dst_path -> $src"
+      ln -s -r "$src_path" "$dst_path"
+      echo "Linked: $dst_path -> $src_path"
     fi
     return
   fi
