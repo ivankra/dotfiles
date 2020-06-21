@@ -25,7 +25,7 @@ if [[ -z "$CONDA_ROOT" ]]; then
 fi
 
 # Also in ~/.profile
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.dotfiles/bin ~/.private/bin ~/.local/bin; do
+for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.go/bin ~/.dotfiles/bin ~/.private/bin ~/.local/bin; do
   if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
     PATH="$_d:$PATH"
   fi
