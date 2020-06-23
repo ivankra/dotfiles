@@ -16,7 +16,8 @@ remove_dotfiles_symlinks \
   ~/.config/qpdfview \
   ~/.config/qpdfview/shortcuts.conf \
   ~/.fonts \
-  ~/.gdb
+  ~/.gdb \
+  ~/.sqliterc
 
 if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
@@ -35,7 +36,6 @@ setup_ln inputrc
 setup_ln ipython_config.py ~/.ipython/profile_default/ipython_config.py
 setup_ln jupyter
 setup_ln profile
-setup_ln sqliterc
 setup_ln tmux.conf
 setup_ln vim
 setup_ln vimrc
