@@ -6,6 +6,9 @@ install: uninstall
 	@echo
 	@echo Success - installed and started redshiftomatic service
 
+install-break:
+	FLAGS=--break make install
+
 uninstall:
 	if [ -f ~/.config/systemd/user/redshiftomatic.service ]; then \
 	  systemctl --user stop redshiftomatic.service || true; \

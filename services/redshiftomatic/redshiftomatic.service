@@ -3,7 +3,7 @@ Description=Automatically reapplies redshift settings on any display connectivit
 After=display-manager.service
 
 [Service]
-ExecStart=$HOME/.dotfiles/services/redshiftomatic/redshiftomatic.sh
+ExecStart=$HOME/.dotfiles/services/redshiftomatic/redshiftomatic.sh $FLAGS
 Type=simple
 Restart=always
 
