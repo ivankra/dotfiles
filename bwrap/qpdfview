@@ -4,6 +4,7 @@ source "${SCRIPT%/*}/lib.sh"
 
 FLAGS=(
   ${X11_FLAGS[@]}
+  --ro-bind /home /home
   --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --ro-bind ~/.config ~/.config
@@ -16,7 +17,7 @@ FLAGS=(
   --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR  # causes blurry rendering on 4K
   --setenv QT_FONT_DPI 163
 )
-add_argdirs_ro "$@"
+add_argdirs_ro "$@" /s /nfs
 
 mkdir -p -m 0700 ~/.config/qpdfview
 
