@@ -1,0 +1,28 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: go-apt-cacher
+Version: 1.4.1-8-g3f82d83
+Depends: go-apt-cacher-bin, bash, systemd
+Architecture: amd64
+Description: Caching reverse proxy built specially for Debian (APT) repositories (configs)
+
+File: postinst
+ #!/bin/bash
+ set -e
+ groupadd -f --system go-apt-cacher
+ id go-apt-cacher || useradd --system --gid go-apt-cacher --no-create-home --home /nonexistent --shell /bin/nologin go-apt-cacher
+ passwd --lock go-apt-cacher
+ mkdir -p /var/cache/go-apt-cacher /var/log/go-apt-cacher
+ chown go-apt-cacher:go-apt-cacher /var/cache/go-apt-cacher /var/log/go-apt-cacher /etc/go-apt-cacher.toml
+ systemctl enable go-apt-cacher.service
+ systemctl restart go-apt-cacher.service || true
+
+File: prerm
+ #!/bin/bash
+ systemctl stop go-apt-cacher.service || true
+ systemctl disable go-apt-cacher.service || true
+
+Files: go-apt-cacher.service /lib/systemd/system/
+ go-apt-cacher.toml /etc/

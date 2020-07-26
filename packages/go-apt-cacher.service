@@ -1,0 +1,35 @@
+[Unit]
+Description=Caching reverse proxy built for Debian (APT) repositories
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+User=go-apt-cacher
+ExecStart=/usr/local/bin/go-apt-cacher
+Restart=on-failure
+RestartSec=10
+KillMode=process
+TimeoutSec=60
+TimeoutStopSec=1
+
+# Sandboxing
+PrivateTmp=yes
+NoNewPrivileges=true
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+RestrictNamespaces=uts ipc pid user cgroup
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+PrivateDevices=yes
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+IPAddressAllow=192.168.0.0/16 localhost
+IPAddressDeny=all
+ReadWriteDirectories=/var/cache/go-apt-cacher /var/log/go-apt-cacher
+
+[Install]
+WantedBy=multi-user.target
