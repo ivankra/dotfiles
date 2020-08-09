@@ -86,6 +86,7 @@ alias py3=ipython3
 alias py=ipython
 alias rm='rm -i'
 alias rsync='rsync --info=progress2'
+alias rsyncp='rsync --info=progress2'
 alias sqlite3='sqlite3 -header -column'
 alias sqlite='sqlite3 -header -column'
 alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
