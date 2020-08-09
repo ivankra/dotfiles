@@ -5,7 +5,7 @@
 set -e
 
 reset_cmd() {
-  redshift -O 3500K -b 1 -P
+  redshift -O 3900K -b 1 -P
 }
 
 BREAK_INTERVAL_SEC=$((20 * 60 - 23))
