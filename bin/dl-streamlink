@@ -24,7 +24,7 @@ if ! which streamlink >/dev/null 2>&1; then
 fi
 
 BASENAME=streamlink
-if [[ "$URL" =~ .*/([-a-zA-Z0-9_]+)/*$ ]]; then
+if [[ "$URL" =~ .*/([-a-zA-Z0-9_]+)/*([?].*)?$ ]]; then
   BASENAME="${BASH_REMATCH[1]}"
 fi
 
@@ -53,7 +53,8 @@ while :; do
     --default-stream=best \
     --retry-open=1 \
     -o "$FILENAME" \
-    "$URL" "$@"
+    "$URL" "$@" \
+    </dev/null
 
   if [[ -f "$FILENAME" && "$(stat -c '%s' "$FILENAME" 2>/dev/null)" -le 1000 ]]; then
     rm -f "$FILENAME"
