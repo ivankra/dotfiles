@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 sys.path.append(os.path.expanduser('~/.dotfiles/python'))
-import dotfiles.dracula
 import dotfiles.lazyimport
 import dotfiles.goo
 
@@ -78,8 +77,7 @@ $PROMPT = (
     '{branch_color}{curr_branch: ({})}{NO_COLOR}{NO_COLOR}{prompt_end}{NO_COLOR} '
 )
 
-dotfiles.dracula.set_xonsh()
-$XONSH_COLOR_STYLE = 'dracula'
+$XONSH_COLOR_STYLE = 'monokai'
 
 mkdir -p -m 0700 "$HOME/.history/xonsh"
 $XONSH_DATA_DIR = $HOME + '/.history/xonsh'
