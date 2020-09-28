@@ -71,7 +71,7 @@ alias got=git
 alias grep='grep --color=auto'
 alias gt=git
 alias gti=git
-alias json_pp='python -m json.tool'
+alias json_pp='python3 -m json.tool'
 alias l='ls -l'
 alias la='ls -la'
 alias le='less'
@@ -82,8 +82,9 @@ alias nb=jupyter-notebook
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
+alias py2=ipython
 alias py3=ipython3
-alias py=ipython
+alias py=ipython3
 alias rm='rm -i'
 alias rsync='rsync --info=progress2'
 alias rsyncp='rsync --info=progress2'
@@ -93,6 +94,10 @@ alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
+
+if hash python3 >/dev/null 2>&1 && ! hash python >/dev/null 2>&1 ; then
+  alias python=python3
+fi
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
@@ -104,6 +109,7 @@ ts() {
     /usr/bin/ts "$@"
   fi
 }
+alias tsd='ts "%Y-%m-%d %.T"'
 
 # History {{{
 # * keep deduped in ~/.history/bash.YYYYMM files
@@ -136,14 +142,18 @@ else
     chmod 0600 "$HISTFILE"
   fi
 
-  if [[ -x ~/.dotfiles/bin/erasedups.py && -x /usr/bin/python ]]; then
+  if [[ -x ~/.dotfiles/bin/erasedups.py ]] && (hash python || hash python3) >/dev/null 2>&1; then
     history -c
 
     for _i in 12 11 10 9 8 7 6 5 4 3 2 1; do
       _d="$(date -d "-$_i month" +%Y%m)"
       if [[ -f ~/.history/"bash.$_d" && ~/.history/"bash.$_d" != "$HISTFILE" ]]; then
         if [[ -w ~/.history/"bash.$_d" ]]; then
-          ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
+          if hash python3 >/dev/null 2>&1; then
+            python3 ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
+          else
+            python ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
+          fi
           chmod 0400 ~/.history/"bash.$_d"
         fi
         history -r ~/.history/"bash.$_d"
@@ -370,9 +380,16 @@ if [[ -d ~/.history ]]; then
   link_to_history() {
     local src="$1"
     local name="$2"
-    if [[ -f "$src" && ! -L "$src" && ! -f ~/.history/"$name" ]]; then
+    if [[ -f "$src" && ! -L "$src" ]]; then
       local history_rel="$(realpath --relative-to="$(dirname "$src")" ~/.history)"
-      mv "$src" ~/.history/"$name" && ln -s "$history_rel/$name" "$src"
+      if [[ -f ~/.history/"$name" ]]; then
+        cat ~/.history/"$name" "$src" >>~/.history/"$name".$$ &&
+          mv -f ~/.history/"$name".$$ ~/.history/"$name" &&
+          rm -f "$src" &&
+          ln -s "$history_rel/$name" "$src"
+      else
+        mv "$src" ~/.history/"$name" && ln -s "$history_rel/$name" "$src"
+      fi
     fi
   }
   link_to_history ~/.python_history python

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Erases duplicates from command line history files with timestamps.
 
 import argparse
