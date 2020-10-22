@@ -1,3 +1,6 @@
+#!/bin/bash
+# Note: this file is also sourced from ~/.profile by non-bash shells
+
 export EDITOR=vim
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
@@ -7,37 +10,52 @@ export LESSHISTFILE=-
 export PAGER=less
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 
-if [[ -z "$CUDA_ROOT" && -z "$CUDA_PATH" && -d /usr/local/cuda ]]; then
+# Paths {{{
+
+if [ -z "$CUDA_ROOT$CUDA_PATH" ] && [ -d /usr/local/cuda ]; then
   export CUDA_ROOT=/usr/local/cuda
   export CUDA_PATH=/usr/local/cuda
 fi
 
-if [[ -z "$GOPATH" && -d ~/.go ]]; then
+if [ -z "$GOPATH" ] && [ -d ~/.go ]; then
   export GOPATH=~/.go
 fi
 
-if [[ -z "$CONDA_ROOT" ]]; then
-  if [[ -x ~/.conda/bin/conda && ! ~/.conda/bin/conda -ef /opt/conda/bin/conda ]]; then
+if [ -z "$CONDA_ROOT" ]; then
+  if [ -x ~/.conda/bin/conda ] && ! [ ~/.conda/bin/conda -ef /opt/conda/bin/conda ]; then
     export CONDA_ROOT=~/.conda
-  elif [[ -x /opt/conda/bin/conda ]]; then
+  elif [ -x /opt/conda/bin/conda ]; then
     export CONDA_ROOT=/opt/conda
   fi
 fi
 
-# Also in ~/.profile
-for _d in "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" ~/.go/bin ~/.dotfiles/bin ~/.private/bin ~/.local/bin; do
-  if [[ ":$PATH:" != *":$_d:"* && -d "$_d" ]]; then
-    PATH="$_d:$PATH"
-  fi
-done
-unset _d
+_maybe_prepend_path() {
+  case :$PATH: in *:$1:*) return;; esac  # for dash
+  if ! [ -d "$1" ]; then return; fi
+  PATH="$1:$PATH"
+}
+
+# higher priority last
+_maybe_prepend_path "$CUDA_ROOT/bin"
+_maybe_prepend_path "$CONDA_ROOT/bin"
+_maybe_prepend_path ~/.go/bin
+_maybe_prepend_path ~/.dotfiles/bin
+_maybe_prepend_path ~/.private/bin
+_maybe_prepend_path ~/.local/bin
+_maybe_prepend_path ~/.bin
+_maybe_prepend_path ~/bin
+
+# }}}
+
+if [ -z "$BASH_VERSION" ]; then
+  return
+fi
 
 if [[ -z "$PS1" || -z "$HOME" ]]; then
   # non interactive
   return
 fi
 
-# Also in ~/.profile
 if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
   if [[ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == *2 ]]; then
     export HIDPI=1
