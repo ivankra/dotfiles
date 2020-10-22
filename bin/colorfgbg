@@ -1,0 +1,71 @@
+#!/bin/bash
+# Can be sourced from bashrc (to set COLORFGBG) or run directly.
+
+# Determines/guesses terminal background colors and
+# sets or updates COLORFGBG variable.
+function __reset_colorfgbg() {
+  if [[ -n "$COLORFGBG" && -z "$COLORFGBG_GUESSED" ]]; then
+    # COLORFGBG was explicitly set (e.g. rxvt), rather than guessed here
+    return
+  fi
+
+  local guess=""
+  if [[ "$TERM" == "linux" ||
+        "$TERM" == "screen" ||
+        "$TERM" == "screen-256color" ||
+        "$TERM" == "screen.linux" ||
+        "$TERM" == "xterm-256color" ||
+        "$TERM" == "cygwin" ||
+        "$TERM" == "putty" ||
+        -n "$GUAKE_TAB_UUID" ||      # guake
+        -n "$PYXTERM_DIMENSIONS" ||  # jupyterlab
+        -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES"  # ssh applet
+       ]]; then
+    guess="dark"
+  else
+    local prev_stty="$(stty -g)"
+    stty raw -echo min 0 time 0
+    echo -e '\e]11;?\e\\'
+
+    # sometimes terminal can be slow to respond
+    local response=""
+    local i=0
+    while ((i < 15)); do
+      if [[ "$i" -le 10 ]]; then
+        sleep 0.01
+      else
+        sleep 0.1
+      fi
+      read -r response
+      if [[ "$response" != "" ]]; then
+        break
+      fi
+      i=$((i + 1))
+    done
+    stty "$prev_stty"
+
+    if [[ "$response" == *rgb:[0-8]* ]]; then
+      guess="dark"
+    else
+      guess="light"
+    fi
+  fi
+
+  if [[ "$guess" == "dark" ]]; then
+    export COLORFGBG="15;0"
+    export COLORFGBG_GUESSED=1
+  elif [[ "$guess" == "light" ]]; then
+    export COLORFGBG="0;15"
+    export COLORFGBG_GUESSED=1
+  fi
+}
+
+if [[ "$0" != "${BASH_SOURCE[0]}" ]]; then
+  # sourced
+  if [[ -z "$COLORFGBG" ]]; then
+    __reset_colorfgbg
+  fi
+else
+  __reset_colorfgbg
+  echo "$COLORFGBG"
+fi

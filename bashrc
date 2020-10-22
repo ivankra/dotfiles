@@ -187,7 +187,7 @@ else
 
   # Re-read history to synchronize with other shell instances
   # Also fix background color guess
-  h() { __run_erasedup; hash -r; __guess_colorfgbg; }
+  h() { __run_erasedup; hash -r; __reset_colorfgbg; }
 fi
 
 # }}}
@@ -267,81 +267,18 @@ unset PROMPT_COMMAND
 
 # }}}
 
-# __guess_colorfgbg {{{
-# Automatically determine terminal's background color and set rxvt's var for vim
-function __guess_colorfgbg() {
-  if [[ -n "$COLORFGBG" && -z "$COLORBG_GUESS" ]]; then
-    # rxvt like
-    return
-  fi
-
-  unset COLORBG_GUESS
-  if [[ "$TERM" == "linux" ||
-        "$TERM" == "screen" ||
-        "$TERM" == "screen-256color" ||
-        "$TERM" == "screen.linux" ||
-        "$TERM" == "xterm-256color" ||
-        "$TERM" == "cygwin" ||
-        "$TERM" == "putty" ||
-        -n "$GUAKE_TAB_UUID" ||      # guake
-        -n "$PYXTERM_DIMENSIONS" ||  # jupyterlab
-        -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES"  # ssh applet
-       ]]; then
-    export COLORBG_GUESS="dark"
-  else
-    local prev_stty="$(stty -g)"
-    stty raw -echo min 0 time 0
-    printf "\033]11;?\033\\"
-
-    # sometimes terminal can be slow to respond
-    local response=""
-    local i=0
-    while ((i < 15)); do
-      if [[ "$i" -le 10 ]]; then
-        sleep 0.01
-      else
-        sleep 0.1
-      fi
-      read -r response
-      if [[ "$response" != "" ]]; then
-        break
-      fi
-      i=$((i + 1))
-    done
-    stty "$prev_stty"
-
-    if [[ "$response" == *rgb:[0-8]* ]]; then
-      export COLORBG_GUESS="dark"
-    else
-      export COLORBG_GUESS="light"
-    fi
-  fi
-
-  if [[ "$COLORBG_GUESS" == "dark" ]]; then
-    export COLORFGBG="15;default;0"
-  elif [[ "$COLORBG_GUESS" == "light" ]]; then
-    export COLORFGBG="0;default;15"
-  else
-    unset COLORFGBG
-  fi
-}
-
-__guess_colorfgbg
-# }}}
-
 if [[ $UID == 0 ]]; then
   umask 027
 fi
 
 shopt -s autocd checkhash checkwinsize no_empty_cmd_completion
 
-# Fix for 'Could not add identity "~/.ssh/id_ed25519": communication with agent failed'
-#if [[ -x /usr/bin/keychain && -f ~/.ssh/id_ed25519 ]]; then
-#  eval $(/usr/bin/keychain --eval -Q --quiet --agents ssh)
-#fi
-
 if [[ -z "$LS_COLORS" && -x /usr/bin/dircolors ]]; then
   eval $(dircolors ~/.dotfiles/dircolors)
+fi
+
+if [[ -f ~/.dotfiles/bin/colorfgbg ]]; then
+  source ~/.dotfiles/bin/colorfgbg
 fi
 
 if [[ -n "$VTE_VERSION" ]]; then
@@ -372,7 +309,7 @@ declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
 unset __setup_prompt_command
 unset __setup_ps1
 
-if [[ ! -z "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
+if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
