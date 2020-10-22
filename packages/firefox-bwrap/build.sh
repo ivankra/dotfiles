@@ -49,16 +49,22 @@ ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox-bw
 ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox"
 
 ICON="firefox-esr"
-for path in /usr/share/icons/hicolor/128x128/apps/firefox-esr.png \
-            /usr/share/icons/hicolor/16x16/apps/firefox-esr.png \
-            /usr/share/icons/hicolor/32x32/apps/firefox-esr.png \
-            /usr/share/icons/hicolor/48x48/apps/firefox-esr.png \
-            /usr/share/icons/hicolor/64x64/apps/firefox-esr.png \
-            /usr/share/icons/hicolor/symbolic/apps/firefox-esr-symbolic.svg; do
-  if [[ -f "$path" ]]; then
-    install -D -m 0644 <(cat "$path") "$PKGDIR$(echo "$path" | sed -e "s/-esr/-bwrap/")"
-    ICON=firefox-bwrap
-  fi
+for path in /usr/share/icons/hicolor/128x128/apps/firefox.png \
+            /usr/share/icons/hicolor/16x16/apps/firefox.png \
+            /usr/share/icons/hicolor/32x32/apps/firefox.png \
+            /usr/share/icons/hicolor/48x48/apps/firefox.png \
+            /usr/share/icons/hicolor/64x64/apps/firefox.png \
+            /usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg; do
+  for product in firefox firefox-esr firefox-bwrap; do
+    spath=$(echo "$path" | sed -e "s/firefox/$product/")
+    dpath=$(echo "$path" | sed -e "s/firefox/firefox-bwrap/")
+    echo $spath $dpath
+    if [[ -f "$spath" ]]; then
+      install -D -m 0644 <(cat "$spath") "$PKGDIR$dpath"
+      ICON=firefox-bwrap
+      break
+    fi
+  done
 done
 
 install -D -m 0644 /dev/stdin "$PKGDIR/usr/share/applications/firefox-bwrap.desktop" <<EOF
