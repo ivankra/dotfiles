@@ -141,80 +141,58 @@ alias tsd='ts "%Y-%m-%d %.T"'
 
 shopt -s cmdhist histverify histreedit
 
-if [[ -f ~/.history ]]; then
-  HISTFILE=
+HISTFILE=
+if ! [[ -d ~/.history ]] && ([[ -f ~/.history ]] || ! mkdir -m 0700 -p ~/.history); then
+  # history disabled
   HISTCONTROL=ignoreboth
   HISTSIZE=100000
 else
-  if ! [[ -d ~/.history ]]; then
-    mkdir -m 0700 -p ~/.history
-  fi
-
   shopt -s histappend
-
-  HISTFILE=~/.history/bash."$(date +%Y%m)"
   HISTCONTROL=ignoreboth
-  HISTSIZE=100000
   HISTFILESIZE=-1
-  HISTTIMEFORMAT='[%F %T] '
   HISTIGNORE='bg:fg:clear:ls:pwd:history:exit'
+  HISTSIZE=100000
+  HISTTIMEFORMAT='[%F %T] '
 
-  if ! [[ -f "$HISTFILE" ]]; then
-    touch "$HISTFILE"
-    chmod 0600 "$HISTFILE"
-  fi
-
-  if [[ -x ~/.dotfiles/bin/erasedups.py ]] && (hash python || hash python3) >/dev/null 2>&1; then
-    history -c
-
-    for _i in 12 11 10 9 8 7 6 5 4 3 2 1; do
-      _d="$(date -d "-$_i month" +%Y%m)"
-      if [[ -f ~/.history/"bash.$_d" && ~/.history/"bash.$_d" != "$HISTFILE" ]]; then
-        if [[ -w ~/.history/"bash.$_d" ]]; then
-          if hash python3 >/dev/null 2>&1; then
-            python3 ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
-          else
-            python ~/.dotfiles/bin/erasedups.py -q ~/.history/"bash.$_d"
-          fi
-          chmod 0400 ~/.history/"bash.$_d"
-        fi
-        history -r ~/.history/"bash.$_d"
-      fi
-    done
-
-    ~/.dotfiles/bin/erasedups.py -q "$HISTFILE"
-
-    # Re-read history to synchronize with other shell instances
-    # Also fix background color guess
-    h() {
+  # Flush history, dedup and reread recent history files
+  __run_erasedup() {
+    if [[ -n "$HISTFILE" ]]; then
       history -a
-      ~/.dotfiles/bin/erasedups.py -q "$HISTFILE"
       history -c
-      local _d
-      local _i
-      for _i in 12 11 10 9 8 7 6 5 4 3 2 1; do
-        _d="$(date -d "-$_i month" +%Y%m)"
-        if [[ -f ~/.history/"bash.$_d" ]]; then
-          history -r ~/.history/"bash.$_d"
-        fi
-      done
-      history -r
-      hash -r
-      __guess_colorfgbg
-    }
+    fi
 
-    __prompt_history() { history -a; }
-  else
-    # Fallback
-    h() { history -a; history -c; history -r; hash -r; }
-    __prompt_history() { history -a; }
-  fi
+    local interp=""
+    if hash python2.7 >/dev/null 2>&1; then
+      interp=python2.7
+    elif hash python3 >/dev/null 2>&1; then
+      interp=python3
+    elif hash python >/dev/null 2>&1; then
+      interp=python
+    fi
+
+    if [[ -n "$interp" && -f ~/.dotfiles/bin/erasedups.py ]]; then
+      local histf
+      for histf in $($interp ~/.dotfiles/bin/erasedups.py --bashrc "$HOME/.history/bash.%Y%m"); do
+        history -r "$histf"
+        HISTFILE="$histf"    # last month
+      done
+    elif [[ -n "$HISTFILE" ]]; then
+      history -r
+    fi
+  }
+  __run_erasedup
+
+  # Hook for PROMPT_COMMAND
+  __prompt_history() { history -a; }
+
+  # Re-read history to synchronize with other shell instances
+  # Also fix background color guess
+  h() { __run_erasedup; hash -r; __guess_colorfgbg; }
 fi
 
-unset _i _d
 # }}}
 
-# Prompt setup functions {{{
+# Prompt {{{
 
 # For use in PROMPT_COMMAND: print last command's exit code if non zero.
 __prompt_print_status() {
@@ -401,37 +379,31 @@ fi
 if [[ -d ~/.history ]]; then
   link_to_history() {
     local src="$1"
-    local name="$2"
+    local dst="$HOME/.history/$2"
+    if [[ -L "$src" && ! -f "$src" ]]; then
+      # broken symlink
+      rm -f "$src"
+    fi
     if [[ -f "$src" && ! -L "$src" ]]; then
-      local history_rel="$(realpath --relative-to="$(dirname "$src")" ~/.history)"
-      if [[ -f ~/.history/"$name" ]]; then
-        cat ~/.history/"$name" "$src" >>~/.history/"$name".$$ &&
-          mv -f ~/.history/"$name".$$ ~/.history/"$name" &&
+      if [[ -f "$dst" ]]; then
+        cat "$dst" "$src" >>"$dst.$$" &&
+          mv -f "$dst.$$" "$dst" &&
           rm -f "$src" &&
-          ln -s "$history_rel/$name" "$src"
+          ln -s --relative "$dst" "$src"
       else
-        mv "$src" ~/.history/"$name" && ln -s "$history_rel/$name" "$src"
+        mv "$src" "$dst" && ln -s --relative "$dst" "$src"
       fi
     fi
   }
-  link_to_history ~/.python_history python
   link_to_history ~/.julia/logs/repl_history.jl julia
+  link_to_history ~/.mysql_history mysql
+  link_to_history ~/.psql_history psql
+  link_to_history ~/.python_history python
+  link_to_history ~/.sqlite_history sqlite
   unset -f link_to_history
-
-  if [[ -f ~/.sqlite_history && ! -L ~/.sqlite_history ]]; then
-    cat ~/.sqlite_history >>~/.history/sqlite && rm -f ~/.sqlite_history
-  elif [[ -L ~/.sqlite_history ]]; then
-    rm -f ~/.sqlite_history
-  fi
 
   if [[ -f ~/.history/sqlite ]]; then
     export SQLITE_HISTORY=~/.history/sqlite
-
-    # dedup
-    if ! cmp ~/.history/sqlite <(uniq <~/.history/sqlite) >/dev/null 2>&1; then
-      uniq <~/.history/sqlite >~/.history/.sqlite.tmp$$ && \
-        mv -f ~/.history/.sqlite.tmp$$ ~/.history/sqlite
-    fi
   fi
 fi
 
