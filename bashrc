@@ -66,7 +66,8 @@ if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
   fi
 fi
 
-# Aliases
+# Aliases {{{
+
 alias ...='cd ...'
 alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
@@ -81,14 +82,16 @@ alias df='df -h'
 alias diff='diff -u'
 alias dokcer=docker
 alias du='du -h'
+alias e=egrep
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
-alias g=git
+alias g=grep
 alias gdb='gdb --quiet'
 alias got=git
 alias grep='grep --color=auto'
 alias gt=git
 alias gti=git
+alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
 alias json_pp='python3 -m json.tool'
 alias l='ls -l'
 alias la='ls -la'
@@ -108,12 +111,11 @@ alias rsync='rsync --info=progress2'
 alias rsyncp='rsync --info=progress2'
 alias sqlite3='sqlite3 -header -column'
 alias sqlite='sqlite3 -header -column'
-alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
 
-if hash python3 >/dev/null 2>&1 && ! hash python >/dev/null 2>&1 ; then
+if hash python3 >/dev/null 2>&1 && ! hash python >/dev/null 2>&1; then
   alias python=python3
 fi
 
@@ -128,6 +130,8 @@ ts() {
   fi
 }
 alias tsd='ts "%Y-%m-%d %.T"'
+
+# }}}
 
 # History {{{
 # * keep deduped in ~/.history/bash.YYYYMM files
