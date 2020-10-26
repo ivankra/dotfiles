@@ -74,6 +74,7 @@ def process_file(filename, quiet=False):
 
 
 def process_for_bashrc(pattern):
+    # Expand pattern for last 12 months
     today = datetime.date.today()
     Y, m = today.year, today.month
     expanded = []
@@ -87,6 +88,18 @@ def process_for_bashrc(pattern):
 
     current_path = expanded[0]
 
+    # Create history directory / fix its permissions
+    histdir = os.path.dirname(current_path)
+    try:
+        if not os.path.exists(histdir):
+            os.mkdir(histdir, mode=0o700)
+        st = os.stat(histdir)
+        if (st.st_mode & 0o777) != 0o700:
+            os.chmod(histdir, 0o700)
+    except:
+        pass
+
+    # Dedup still writeable older history files and mark them read-only
     for path in sorted(set(expanded)):
         if path == current_path:
             continue
@@ -99,27 +112,20 @@ def process_for_bashrc(pattern):
             os.chmod(path, 0600)
         print(path)
 
-    try:
-        st = os.stat(current_path)
-    except FileNotFoundError:
+    if not os.path.exists(current_path):
         try:
             with open(current_path, 'w+') as fp:
                 pass
-            st = os.stat(current_path)
         except:
-            st = None
+            pass
 
-    if st:
-        if (st.st_mode & 0777) != 0600:
-            os.chmod(current_path, 0600)
-        process_file(current_path, quiet=True)
-
-    histdir = os.path.dirname(current_path)
+    # Dedup current month's history file
     try:
-        st = os.stat(histdir)
-        if (st.st_mode & 0777) != 0700:
-            os.chmod(histdir, 0700)
-    except FileNotFoundError:
+        st = os.stat(current_path)
+        if (st.st_mode & 0o777) != 0o600:
+            os.chmod(current_path, 0o600)
+        process_file(current_path, quiet=True)
+    except:
         pass
 
     print(current_path)
