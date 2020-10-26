@@ -58,7 +58,10 @@ if [[ -z "$PS1" || -z "$HOME" ]]; then
   return
 fi
 
-shopt -s autocd checkhash checkwinsize no_empty_cmd_completion
+shopt -s checkhash checkwinsize no_empty_cmd_completion
+if [[ "${BASH_VERSINFO[0]}" -gt 4 ]]; then
+  shopt -s autocd
+fi
 
 # Aliases {{{
 
@@ -190,14 +193,22 @@ else
       # broken symlink
       rm -f "$src"
     fi
+    ln_sr='ln -s -r'
+    if [[ "$OSTYPE" == darwin* ]]; then
+      if hash gln >/dev/null 2>&1; then
+        ln_sr='gln -s -r'
+      else
+        ln_sr='ln -s'
+      fi
+    fi
     if [[ -f "$src" && ! -L "$src" ]]; then
       if [[ -f "$dst" ]]; then
         cat "$dst" "$src" >>"$dst.$$" &&
           mv -f "$dst.$$" "$dst" &&
           rm -f "$src" &&
-          ln -s --relative "$dst" "$src"
+          $ln_sr "$dst" "$src"
       else
-        mv "$src" "$dst" && ln -s --relative "$dst" "$src"
+        mv "$src" "$dst" && $ln_sr "$dst" "$src"
       fi
     fi
   }
@@ -294,6 +305,10 @@ unset PROMPT_COMMAND
 
 if [[ "$OSTYPE" == darwin* ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
+
+  if hash gls >/dev/null 2>&1; then
+    alias ls='gls --color=auto --group-directories-first'
+  fi
 fi
 
 # }}}

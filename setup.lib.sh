@@ -7,11 +7,14 @@ if ! [[ -f "$HOME/.dotfiles/setup.sh" ]]; then
 fi
 
 # Common setup vars
+if [[ -f ~/.dotfiles/setup.vars ]]; then
+  source ~/.dotfiles/setup.vars
+fi
 if [[ -f ~/.private/setup.vars ]]; then
   source ~/.private/setup.vars
 fi
 export SCM_NAME=${SCM_NAME:-$(whoami)}
-export SCM_EMAIL=${SCM_EMAIL:-$(whoami)@$(hostname --short)}
+export SCM_EMAIL=${SCM_EMAIL:-$(whoami)@$(hostname -s)}
 
 
 # setup_gen [--backup] [-c|--check] <generated source file> <destination path>
@@ -63,9 +66,25 @@ setup_gen() {
   fi
 }
 
+ln_sr() {
+  if [[ "$OSTYPE" == darwin* ]]; then
+    if hash gln >/dev/null 2>&1; then
+      gln -s -r "$@"
+    else
+      ln -s "$@"
+    fi
+  else
+    ln -s -r "$@"
+  fi
+}
+
 link_or_copy() {
   local op="$1"; shift
-  local src_path=$(cd ~/.dotfiles; readlink -f "$1")
+  if [[ "$OSTYPE" == darwin* ]]; then
+    local src_path=$HOME/.dotfiles/"$1"
+  else
+    local src_path=$(cd ~/.dotfiles; readlink -f "$1")
+  fi
   local dst_path="${2:-$HOME/.$(basename "$1")}"
 
   local dst_dir="$(dirname "$dst_path")"
@@ -105,19 +124,19 @@ link_or_copy() {
         return 0
       elif [[ -d "$dst_path" ]]; then
         rm -rf "$dst_path"
-        ln -s -r "$src_path" "$dst_path"
+        ln_sr "$src_path" "$dst_path"
         echo "Replaced directory: $dst_path -> $src_path";
       else
         rm -f "$dst_path"
-        ln -s -r "$src_path" "$dst_path"
+        ln_sr "$src_path" "$dst_path"
         echo "Replaced: $dst_path -> $src_path"
       fi
     elif [[ -L "$dst_path" ]]; then
       rm -f "$dst_path"
-      ln -s -r "$src_path" "$dst_path"
+      ln_sr "$src_path" "$dst_path"
       echo "Fixed broken link: $dst_path -> $src_path"
     else
-      ln -s -r "$src_path" "$dst_path"
+      ln_sr "$src_path" "$dst_path"
       echo "Linked: $dst_path -> $src_path"
     fi
     return
