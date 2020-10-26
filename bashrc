@@ -29,21 +29,23 @@ if [ -z "$CONDA_ROOT" ]; then
   fi
 fi
 
-_maybe_prepend_path() {
+__maybe_prepend_path() {
   case :$PATH: in *:$1:*) return;; esac  # for dash
-  if ! [ -d "$1" ]; then return; fi
-  PATH="$1:$PATH"
+  if [ -d "$1" ]; then PATH="$1:$PATH"; fi
 }
 
 # higher priority last
-_maybe_prepend_path "$CUDA_ROOT/bin"
-_maybe_prepend_path "$CONDA_ROOT/bin"
-_maybe_prepend_path ~/.go/bin
-_maybe_prepend_path ~/.dotfiles/bin
-_maybe_prepend_path ~/.private/bin
-_maybe_prepend_path ~/.local/bin
-_maybe_prepend_path ~/.bin
-_maybe_prepend_path ~/bin
+__maybe_prepend_path /bin
+__maybe_prepend_path /usr/bin
+__maybe_prepend_path /usr/local/bin
+__maybe_prepend_path "$CUDA_ROOT/bin"
+__maybe_prepend_path "$CONDA_ROOT/bin"
+__maybe_prepend_path ~/.go/bin
+__maybe_prepend_path ~/.dotfiles/bin
+__maybe_prepend_path ~/.private/bin
+__maybe_prepend_path ~/.local/bin
+__maybe_prepend_path ~/.bin
+__maybe_prepend_path ~/bin
 
 # }}}
 
@@ -56,15 +58,7 @@ if [[ -z "$PS1" || -z "$HOME" ]]; then
   return
 fi
 
-if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
-  if [[ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == *2 ]]; then
-    export HIDPI=1
-  elif [[ "$(dconf read /org/gnome/desktop/interface/text-scaling-factor 2>/dev/null)" == 1.[2-9]* ]]; then
-    export HIDPI=1
-  else
-    export HIDPI=0
-  fi
-fi
+shopt -s autocd checkhash checkwinsize no_empty_cmd_completion
 
 # Aliases {{{
 
@@ -174,7 +168,7 @@ else
       local histf
       for histf in $($interp ~/.dotfiles/bin/erasedups.py --bashrc "$HOME/.history/bash.%Y%m"); do
         history -r "$histf"
-        HISTFILE="$histf"    # last month
+        HISTFILE="$histf"    # last month last
       done
     elif [[ -n "$HISTFILE" ]]; then
       history -r
@@ -188,6 +182,35 @@ else
   # Re-read history to synchronize with other shell instances
   # Also fix background color guess
   h() { __run_erasedup; hash -r; __reset_colorfgbg; }
+
+  __link_to_history() {
+    local src="$1"
+    local dst="$HOME/.history/$2"
+    if [[ -L "$src" && ! -f "$src" ]]; then
+      # broken symlink
+      rm -f "$src"
+    fi
+    if [[ -f "$src" && ! -L "$src" ]]; then
+      if [[ -f "$dst" ]]; then
+        cat "$dst" "$src" >>"$dst.$$" &&
+          mv -f "$dst.$$" "$dst" &&
+          rm -f "$src" &&
+          ln -s --relative "$dst" "$src"
+      else
+        mv "$src" "$dst" && ln -s --relative "$dst" "$src"
+      fi
+    fi
+  }
+  __link_to_history ~/.julia/logs/repl_history.jl julia
+  __link_to_history ~/.mysql_history mysql
+  __link_to_history ~/.psql_history psql
+  __link_to_history ~/.python_history python
+  __link_to_history ~/.sqlite_history sqlite
+  unset -f __link_to_history
+
+  if [[ -f ~/.history/sqlite ]]; then
+    export SQLITE_HISTORY=~/.history/sqlite
+  fi
 fi
 
 # }}}
@@ -267,18 +290,47 @@ unset PROMPT_COMMAND
 
 # }}}
 
+# OS X {{{
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  export BASH_SILENCE_DEPRECATION_WARNING=1
+fi
+
+# }}}
+
 if [[ $UID == 0 ]]; then
   umask 027
 fi
 
-shopt -s autocd checkhash checkwinsize no_empty_cmd_completion
+if ! [[ -d ~/.ssh/socket ]]; then
+  mkdir -p ~/.ssh/socket >/dev/null 2>&1
+  chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
+fi
 
-if [[ -z "$LS_COLORS" && -x /usr/bin/dircolors ]]; then
-  eval $(dircolors ~/.dotfiles/dircolors)
+if hash bazel >/dev/null 2>&1 && [[ -d ~/.cache && ! -L ~/.cache/bazel && ! -d ~/.cache/bazel ]]; then
+  ln -s /var/tmp ~/.cache/bazel
+fi
+
+if [[ -f ~/.lesshst || -f ~/.wget-hsts || -f ~/.xsel.log || -f ~/.xsession-errors || -f ~/.xsession-errors.old ]]; then
+  rm -f ~/.lesshst ~/.wget-hsts ~/.xsel.log ~/.xsession-errors ~/.xsession-errors.old
+fi
+
+if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
+  if [[ "$(dconf read /org/gnome/desktop/interface/scaling-factor 2>/dev/null)" == *2 ]]; then
+    export HIDPI=1
+  elif [[ "$(dconf read /org/gnome/desktop/interface/text-scaling-factor 2>/dev/null)" == 1.[2-9]* ]]; then
+    export HIDPI=1
+  else
+    export HIDPI=0
+  fi
 fi
 
 if [[ -f ~/.dotfiles/bin/colorfgbg ]]; then
   source ~/.dotfiles/bin/colorfgbg
+fi
+
+if [[ -z "$LS_COLORS" ]] && hash dircolors >/dev/null 2>&1; then
+  eval $(dircolors ~/.dotfiles/dircolors)
 fi
 
 if [[ -n "$VTE_VERSION" ]]; then
@@ -293,9 +345,16 @@ if [[ -f /usr/share/bash-completion/bash_completion ]]; then
   source /usr/share/bash-completion/bash_completion
 fi
 
-if ! [[ -d ~/.ssh/socket ]]; then
-  mkdir -p ~/.ssh/socket >/dev/null 2>&1
-  chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
+if [[ -f /usr/share/doc/fzf/examples/completion.bash ]]; then
+  source /usr/share/doc/fzf/examples/completion.bash
+fi
+
+if [[ -f /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
+  source /usr/share/doc/fzf/examples/key-bindings.bash
+fi
+
+if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
+  source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
 if [[ -f ~/.private/bashrc ]]; then
@@ -308,49 +367,5 @@ declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
 declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
 unset __setup_prompt_command
 unset __setup_ps1
-
-if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
-  source "$CONDA_ROOT/etc/profile.d/conda.sh"
-fi
-
-if [[ -d ~/.history ]]; then
-  link_to_history() {
-    local src="$1"
-    local dst="$HOME/.history/$2"
-    if [[ -L "$src" && ! -f "$src" ]]; then
-      # broken symlink
-      rm -f "$src"
-    fi
-    if [[ -f "$src" && ! -L "$src" ]]; then
-      if [[ -f "$dst" ]]; then
-        cat "$dst" "$src" >>"$dst.$$" &&
-          mv -f "$dst.$$" "$dst" &&
-          rm -f "$src" &&
-          ln -s --relative "$dst" "$src"
-      else
-        mv "$src" "$dst" && ln -s --relative "$dst" "$src"
-      fi
-    fi
-  }
-  link_to_history ~/.julia/logs/repl_history.jl julia
-  link_to_history ~/.mysql_history mysql
-  link_to_history ~/.psql_history psql
-  link_to_history ~/.python_history python
-  link_to_history ~/.sqlite_history sqlite
-  unset -f link_to_history
-
-  if [[ -f ~/.history/sqlite ]]; then
-    export SQLITE_HISTORY=~/.history/sqlite
-  fi
-fi
-
-if hash bazel >/dev/null 2>&1 && [[ -d ~/.cache && ! -L ~/.cache/bazel && ! -d ~/.cache/bazel ]]; then
-  ln -s /var/tmp ~/.cache/bazel
-fi
-
-for _f in ~/.lesshst ~/.wget-hsts ~/.xsel.log ~/.xsession-errors ~/.xsession-errors.old; do
-  if [[ -f "$_f" ]]; then
-    rm -f "$_f"
-  fi
-done
-unset _f
+unset __maybe_prepend_path
+unset __link_to_history
