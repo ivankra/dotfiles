@@ -76,6 +76,8 @@ if [[ "$SKEL_REV" != "$PKG_REV" ]]; then
   USER_REPO=/etc/skel_new/.dotfiles
   git clone --shared "$PKG_REPO" "$USER_REPO"
   echo "$MANAGED_MSG" >"$USER_REPO/MANAGED"
+  mkdir -p -m 0755 "$USER_REPO/.git/info"
+  echo "MANAGED" >"$USER_REPO/.git/info/ignore"
   chown -R nobody:nogroup /etc/skel_new
   if ! (set -x; sudo -u nobody bash -c 'export HOME=/etc/skel_new; $HOME/.dotfiles/setup.sh'); then
     echo "Warning: /etc/skel_new/.dotfiles/setup.sh failed"
