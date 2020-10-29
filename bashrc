@@ -69,6 +69,7 @@ alias ...='cd ...'
 alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
 alias b=byobu-tmux
+alias bat=batcat
 alias bc='bc -q'
 alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'

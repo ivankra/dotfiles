@@ -5,7 +5,14 @@ import os
 import sys
 
 
+def print_err(s):
+    print('\033[34;01m%s\033[m\n' % s)
+
+
 def paginate_file(path, header=True):
+    if len(path) >= 3 and path.startswith('./'):
+        path = path[2:]
+
     if header:
         print('\033[35;01m%s==> %s <==\033[m' %
               ('      ' if FLAGS.number else '', path))
@@ -13,7 +20,7 @@ def paginate_file(path, header=True):
     try:
         f = open(path, 'rb')
     except Exception as e:
-        print('\033[34;01mFailed to open file: %s\033[m\n' % str(e))
+        print_err('Failed to open file: %s' % str(e))
         return
 
     b = 0
@@ -70,12 +77,21 @@ def main():
         paginate_file('/dev/stdin', header=False)
     else:
         for path in FLAGS.paths:
-            if os.path.isdir(path):
+            if not os.path.exists(path):
+                print_err('%s does not exist' % path)
+            elif os.path.isdir(os.path.realpath(path)):
                 if FLAGS.recurse:
                     for dirpath, dirs, files in os.walk(path):
                         for filename in sorted(files):
                             path2 = os.path.join(dirpath, filename)
                             paginate_file(path2)
+                else:
+                    for filename in sorted(os.listdir(path)):
+                        path2 = os.path.join(path, filename)
+                        print(path2)
+                        if os.path.isfile(path2):
+                            paginate_file(path2)
+
             else:
                 paginate_file(path)
 
