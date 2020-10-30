@@ -59,7 +59,7 @@ if [[ -z "$PS1" || -z "$HOME" ]]; then
 fi
 
 shopt -s checkhash checkwinsize no_empty_cmd_completion
-if [[ "${BASH_VERSINFO[0]}" -gt 4 ]]; then
+if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
   shopt -s autocd
 fi
 
