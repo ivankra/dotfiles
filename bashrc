@@ -170,7 +170,7 @@ else
 
     if [[ -n "$interp" && -f ~/.dotfiles/bin/erasedups.py ]]; then
       local histf
-      for histf in $($interp ~/.dotfiles/bin/erasedups.py --bashrc "$HOME/.history/bash.%Y%m"); do
+      for histf in $($interp ~/.dotfiles/bin/erasedups.py --expand=12 "$HOME/.history/bash.%Y%m"); do
         history -r "$histf"
         HISTFILE="$histf"    # last month last
       done

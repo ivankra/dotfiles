@@ -10,76 +10,57 @@ import sys
 TIMESTAMP_RE = re.compile("^# *[0-9]+$")
 
 
-def process_file(filename, quiet=False):
+def process_file(filename):
+    if not os.path.exists(filename):
+        return
+    if os.path.islink(filename):
+        filename = os.readlink(filename)
+    f = open(filename, "r")
+
+    f_iter = iter(f)
     hashmap = dict()
     history = []
     ts = None
     entry = []
 
-    def add():
+    while True:
+        line = next(f_iter, None)
+        if line is not None and not TIMESTAMP_RE.match(line):
+            entry.append(line)
+            continue
+
         if len(entry) > 0:
             if ts is None:
-                if quiet:
-                    sys.exit(0)
-                sys.stderr.write("Error: need history file with timestamps\n")
-                sys.exit(1)
+                raise Exception("Need history file with timestamps")
             e = tuple(entry)
             hashmap[e] = len(history)
             history.append((ts, e))
-
-    if filename:
-        if not os.path.exists(filename):
-            return
-        if os.path.islink(filename):
-            filename = os.readlink(filename)
-        f = open(filename, "r")
-    else:
-        f = sys.stdin
-
-    for line in f:
-        if TIMESTAMP_RE.match(line):
-            add()
-            ts = line
             entry = []
-        else:
-            entry.append(line)
 
-    add()
-    f.close()
+        ts = line
+        if line is None:
+            break
 
-    if len(history) == len(hashmap) and filename:
+    if len(history) == len(hashmap):
         return
 
-    if filename:
-        if quiet:
-            try:
-                f = open(filename + ".tmp", "w")
-            except IOError:
-                sys.exit(0)
-        else:
-            f = open(filename + ".tmp", "w")
-    else:
-        f = sys.stdout
+    with open(filename + ".tmp", "w") as f:
+        for i, (ts, entry) in enumerate(history):
+            if hashmap[entry] == i:
+                f.write(ts)
+                for l in entry:
+                    f.write(l)
+        f.flush()
 
-    for i, (ts, entry) in enumerate(history):
-        if hashmap[entry] == i:
-            f.write(ts)
-            for l in entry:
-                f.write(l)
-
-    f.close()
-
-    if filename:
-        os.rename(filename + ".tmp", filename)
+    os.rename(filename + ".tmp", filename)
 
 
-def process_for_bashrc(pattern):
-    # Expand pattern for last 12 months
+def process_pattern(pattern, N=12):
     today = datetime.date.today()
     Y, m = today.year, today.month
     expanded = []
 
-    for i in range(12):
+    for i in range(N):
         expanded.append(pattern.replace("%Y", str(Y)).replace("%m", "%02d" % m))
         m -= 1
         if m == 0:
@@ -107,9 +88,12 @@ def process_for_bashrc(pattern):
             st = os.stat(path)
         except:
             continue
-        if st.st_mode & 0222:
-            process_file(path, quiet=True)
-            os.chmod(path, 0600)
+        if st.st_mode & 0o222:
+            try:
+                process_file(path)
+                os.chmod(path, 0o600)
+            except:
+                pass
         print(path)
 
     if not os.path.exists(current_path):
@@ -124,7 +108,7 @@ def process_for_bashrc(pattern):
         st = os.stat(current_path)
         if (st.st_mode & 0o777) != 0o600:
             os.chmod(current_path, 0o600)
-        process_file(current_path, quiet=True)
+        process_file(current_path)
     except:
         pass
 
@@ -133,17 +117,18 @@ def process_for_bashrc(pattern):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-q", "--quiet", help="be quiet", action="store_true")
-    parser.add_argument("--bashrc", action="store_true", help="Logic for bashrc")
-    parser.add_argument("filename", nargs="?")
+    parser.add_argument(
+        "--expand", type=int, metavar="N",
+        help="Expand %Y and %d placeholders with last 12 months, dedup and print filenames")
+    parser.add_argument("filename")
     args = parser.parse_args()
 
     processed_filename = set()
 
-    if args.bashrc:
-        process_for_bashrc(args.filename)
+    if args.expand:
+        process_pattern(args.filename, args.expand)
     else:
-        process_file(args.filename, args.quiet)
+        process_file(args.filename)
 
 
 if __name__ == "__main__":
