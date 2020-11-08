@@ -1,0 +1,33 @@
+Section: dotfiles
+Priority: optional
+Standards-Version: 4.3.0
+
+Package: usb-xhci-suspend-fix
+Version: 1.0
+Maintainer: none
+Architecture: all
+Description: Fix USB XHCI suspend issue
+
+File: /lib/systemd/system-sleep/custom-xhci_hcd 0755
+ #!/bin/bash
+ # https://bugs.launchpad.net/ubuntu/+source/linux/+bug/522998
+ TMPLIST=/tmp/xhci-dev-list
+ case $1/$2 in
+   pre/*)
+     echo "$0: Going to $2..."
+     echo -n '' > $TMPLIST
+           for i in `ls /sys/bus/pci/drivers/xhci_hcd/ | egrep '[0-9a-z]+\:[0-9a-z]+\:.*$'`; do
+               # Unbind xhci_hcd for first device XXXX:XX:XX.X:
+                echo -n "$i" | tee /sys/bus/pci/drivers/xhci_hcd/unbind
+            echo "$i" >> $TMPLIST
+           done
+         ;;
+   post/*)
+     echo "$0: Waking up from $2..."
+     for i in `cat $TMPLIST`; do
+               # Bind xhci_hcd for first device XXXX:XX:XX.X:
+               echo -n "$i" | tee /sys/bus/pci/drivers/xhci_hcd/bind
+     done
+     rm $TMPLIST
+         ;;
+ esac
