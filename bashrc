@@ -129,6 +129,13 @@ ts() {
 }
 alias tsd='ts "%Y-%m-%d %.T"'
 
+for _c in ifconfig route; do
+  if ! hash "$_c" >/dev/null 2>&1; then
+    alias "$_c"=/sbin/"$_c"
+  fi
+done
+unset _c
+
 # }}}
 
 # History {{{
