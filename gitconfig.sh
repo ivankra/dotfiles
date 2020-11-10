@@ -13,9 +13,11 @@ cat <<EOF
 	br = branch
 	ci = commit
 	cia = commit --amend
+	caa = commit -a --amend
 	co = checkout
 	cp = cherry-pick
 	detach = !git checkout HEAD^0
+	diffh = diff HEAD
 	g = !gitg
 	lg = log --pretty=oneline --abbrev-commit --decorate
 	root = rev-parse --show-toplevel
@@ -60,8 +62,8 @@ cat <<EOF
 	pushInsteadOf = "git://gist.github.com/"
 EOF
 
-if [[ -f ~/.private/gitconfig ]]; then
+if [[ -f ~/.dotfiles/gitconfig.local ]]; then
   echo
   echo "[include]"
-  echo "	path = ~/.private/gitconfig"
+  echo "	path = ~/.dotfiles/gitconfig.local"
 fi
