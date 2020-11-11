@@ -187,9 +187,6 @@ else
   }
   __run_erasedup
 
-  # Hook for PROMPT_COMMAND
-  __prompt_history() { history -a; }
-
   # Re-read history to synchronize with other shell instances
   # Also fix background color guess
   h() { __run_erasedup; hash -r; __reset_colorfgbg; }
@@ -234,18 +231,61 @@ fi
 
 # }}}
 
+__BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
+
 # Prompt {{{
 
-# For use in PROMPT_COMMAND: print last command's exit code if non zero.
-__prompt_print_status() {
+# PROMPT_COMMAND
+#
+# Delayed till the end to ensure __prompt_print_status will be
+# the first thing there in order to get the correct $?.
+__bashrc_set_prompt_command() {
+  if [[ "$PROMPT_COMMAND" != *__bashrc_prompt_command* ]]; then
+    PROMPT_COMMAND="__bashrc_prompt_command;$PROMPT_COMMAND"
+  fi
+  unset __bashrc_set_prompt_command
+}
+__BASHRC_EPILOGUE+="__bashrc_set_prompt_command;"
+unset PROMPT_COMMAND
+
+__bashrc_prompt_command() {
+  # Print last command's exit code if non zero.
   local __status=$?
   if [[ $__status -ne 0 ]]; then
     echo -e "\033[31m\$? = ${__status}\033[m"
   fi
+
+  if [[ -n "$HISTFILE" ]]; then
+    history -a
+  fi
 }
 
-# Parameter: PS1_COLOR.
-__setup_ps1() {
+# PS0 (bash 4.4+)
+# Expanded and displayed by interactive shells after reading a command and
+# before the command is executed.
+__bashrc_ps0() {
+  # Update terminal title with currently running command.
+  local cmd=$(HISTTIMEFORMAT= history 1 | cut -c8- | xargs -0 echo)
+  if [[ -n "$USER" && -n "$HOSTNAME" && -n "$cmd" ]]; then
+    echo -e "\e]0;$USER@$HOSTNAME - $cmd\a"
+  fi
+
+  if [[ -n "$HISTFILE" ]]; then
+    history -a
+  fi
+}
+PS0='$(__bashrc_ps0)'
+
+# PS1
+#
+# Delayed till the end to have the last say on PS1 and get definitions for
+# __git_ps1 and parameters from local scripts:
+#   * PS1_COLOR - user@host color:
+#       30 .. 37      standard ansi colors
+#       38;5;n        256 extended colors (0..255)
+#       38;2;r;g;b    R/G/B (0..255)
+#   * PS1_HOST - hostname to display
+__bashrc_set_ps1() {
   # set variable identifying the chroot you work in (used in the prompt below)
   if [[ -z "$debian_chroot" && -r /etc/debian_chroot ]]; then
     debian_chroot=$(cat /etc/debian_chroot)
@@ -265,10 +305,6 @@ __setup_ps1() {
   if [[ "$TERM" == "dumb" ]]; then
     PS1='\u@\h:\w\$ '
   else
-    if ((PS1_COLOR < 0)); then  # 256 colors
-      PS1_COLOR=$((-PS1_COLOR))
-      PS1_COLOR="38;5;${PS1_COLOR}"
-    fi
     PS1="\[\033[01;36m\]\A\[\033[m\] "                  # HH:MM
     PS1+="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}"  # user@host
     PS1+="\[\033[00m\]:"                                # :
@@ -293,20 +329,11 @@ __setup_ps1() {
 
   unset PS1_COLOR
   unset PS1_HOST
+  unset __bashrc_set_ps1
 }
+__BASHRC_EPILOGUE+="__bashrc_set_ps1;"
 
-__setup_prompt_command() {
-  [[ ";$PROMPT_COMMAND;" == *__prompt_print_status* ]] && return
-
-  declare -f -F __prompt_history >/dev/null 2>&1 &&
-    PROMPT_COMMAND="__prompt_history;$PROMPT_COMMAND"
-
-  # Has to be the first thing in PROMPT_COMMAND to get correct $?
-  PROMPT_COMMAND="__prompt_print_status;$PROMPT_COMMAND"
-}
-
-unset PROMPT_COMMAND
-
+# TODO: https://redandblack.io/blog/2020/bash-prompt-with-updating-time/
 # }}}
 
 # OS X {{{
@@ -380,15 +407,8 @@ if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
-if [[ -f ~/.private/bashrc ]]; then
-  source ~/.private/bashrc
-elif [[ -f ~/.bashrc.local ]]; then
-  source ~/.bashrc.local
+if [[ -f ~/.dotfiles/bashrc.local ]]; then
+  source ~/.dotfiles/bashrc.local
 fi
 
-declare -f -F __setup_prompt_command >/dev/null 2>&1 && __setup_prompt_command
-declare -f -F __setup_ps1 >/dev/null 2>&1 && __setup_ps1
-unset __setup_prompt_command
-unset __setup_ps1
-unset __maybe_prepend_path
-unset __link_to_history
+eval "$__BASHRC_EPILOGUE"
