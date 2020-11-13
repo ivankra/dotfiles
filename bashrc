@@ -292,11 +292,15 @@ __bashrc_set_ps1() {
   fi
 
   if [[ -z "$PS1_COLOR" ]]; then
-    local groups=" $(id -nG) "
     if [[ $UID == 0 ]]; then
       PS1_COLOR=31
-    elif [[ "$groups" == *" sudo " && ! "$groups" == *" audio "* ]]; then
-      PS1_COLOR=31
+    elif hash id >/dev/null 2>&1; then
+      local groups=" $(id -nG) "
+      if [[ "$groups" == *" sudo " && ! "$groups" == *" audio "* ]]; then
+        PS1_COLOR=31
+      else
+        PS1_COLOR=32
+      fi
     else
       PS1_COLOR=32
     fi
