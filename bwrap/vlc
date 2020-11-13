@@ -6,7 +6,6 @@ mkdir -m 0700 -p ~/.config/vlc ~/.local/share/vlc
 
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.config/vlc ~/.config/vlc
   --bind ~/.local/share/vlc ~/.local/share/vlc
@@ -15,6 +14,9 @@ FLAGS=(
   --ro-bind ~/.config/dconf ~/.config/dconf
   --unsetenv SESSION_MANAGER
 )
+if [[ -d /run/user/$UID/bus ]]; then
+  FLAGS+=(--bind /run/user/$UID/bus /run/user/$UID/bus)
+fi
 add_nvidia
 add_argdirs_ro "$@"
 

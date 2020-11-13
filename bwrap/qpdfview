@@ -5,7 +5,6 @@ source "${SCRIPT%/*}/lib.sh"
 FLAGS=(
   ${X11_FLAGS[@]}
   --ro-bind /home /home
-  --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --ro-bind ~/.config ~/.config
   --bind ~/.config/qpdfview ~/.config/qpdfview
@@ -19,6 +18,9 @@ FLAGS=(
   --setenv QT_FONT_DPI 163
 )
 #add_argdirs_ro "$@" /s /nfs /s/home
+if [[ -d /run/user/$UID/bus ]]; then
+  FLAGS+=(--bind /run/user/$UID/bus /run/user/$UID/bus)
+fi
 
 mkdir -p -m 0700 ~/.config/qpdfview
 

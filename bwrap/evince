@@ -6,13 +6,15 @@ mkdir -p -m 0700 ~/.config/evince ~/.cache/fontconfig
 
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --bind ~/.config/evince ~/.config/evince
   --bind ~/.cache/fontconfig ~/.cache/fontconfig
   --ro-bind /usr/bin/evince /usr/bin/evince
   --unsetenv SESSION_MANAGER
 )
+if [[ -d /run/user/$UID/bus ]]; then
+  FLAGS+=(--bind /run/user/$UID/bus /run/user/$UID/bus)
+fi
 add_argdirs_ro "$@"
 
 exec bwrap "${FLAGS[@]}" /usr/bin/evince "$@"

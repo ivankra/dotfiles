@@ -8,7 +8,6 @@ BINARY=$(realpath /usr/bin/libreoffice)
 
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --ro-bind ~/.config/libreoffice ~/.config/libreoffice
   --ro-bind /bin /bin
@@ -16,6 +15,9 @@ FLAGS=(
   --ro-bind /usr/bin /usr/bin
   --unsetenv SESSION_MANAGER
 )
+if [[ -d /run/user/$UID/bus ]]; then
+  FLAGS+=(--bind /run/user/$UID/bus /run/user/$UID/bus)
+fi
 add_argdirs "$@" /share ~/Downloads
 
 if [[ -z "$GTK_THEME" && -d /usr/share/themes/Numix ]]; then

@@ -6,7 +6,6 @@ BINARY=/usr/bin/okular
 
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind /run/user/$UID/bus /run/user/$UID/bus
   --bind /run/user/$UID/dconf /run/user/$UID/dconf
   --bind ~/.config ~/.config
   --ro-bind "$BINARY" "$BINARY"
@@ -16,6 +15,9 @@ FLAGS=(
   --unsetenv QT_AUTO_SCREEN_SCALE_FACTOR
   --setenv QT_FONT_DPI 163
 )
+if [[ -d /run/user/$UID/bus ]]; then
+  FLAGS+=(--bind /run/user/$UID/bus /run/user/$UID/bus)
+fi
 add_argdirs_ro "$@" /share ~/Downloads /s/study ~/.config/qt5ct ~/.icons ~/.fonts
 
 exec bwrap "${FLAGS[@]}" "$BINARY" "$@"
