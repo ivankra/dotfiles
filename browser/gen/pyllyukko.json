@@ -275,7 +275,6 @@
   "security.tls.version.min": 1,
   "security.xpconnect.plugin.unrestricted": false,
   "services.blocklist.update_enabled": true,
-  "shumway.disabled": true,
   "signon.autofillForms": false,
   "signon.autofillForms.http": false,
   "signon.formlessCapture.enabled": false,
