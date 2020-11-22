@@ -75,7 +75,6 @@ alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
 alias cx='chmod a+x'
-alias d=docker
 alias df='df -h'
 alias diff='diff -u'
 alias dokcer=docker
@@ -96,6 +95,7 @@ alias la='ls -la'
 alias le='less'
 alias ll='ls -l -h'
 alias ls='ls --color=auto --group-directories-first'
+alias mtr='mtr -bt'  # --show-ips --curses
 alias mv='mv -i'
 alias nb=jupyter-notebook
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
@@ -129,7 +129,7 @@ ts() {
 }
 alias tsd='ts "%Y-%m-%d %.T"'
 
-for _c in ifconfig route; do
+for _c in ifconfig iwconfig route; do
   if ! hash "$_c" >/dev/null 2>&1; then
     alias "$_c"=/sbin/"$_c"
   fi
