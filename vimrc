@@ -292,23 +292,19 @@ if has("cscope")
 endif
 
 if has("gui_running")
-  if (filereadable('/usr/share/fonts/truetype/iosevka-custom/iosevka-custom-medium.ttf') || filereadable('/usr/local/share/fonts/truetype/iosevka-custom/iosevka-custom-medium.ttf'))
-    if $HIDPI == "1"
-      set guifont=Iosevka\ Custom\ Medium\ 13
-    else
-      set guifont=Iosevka\ Custom\ Semibold\ 14
+  if filereadable("/usr/bin/dconf")
+    let dconffont = system("dconf read /org/gnome/desktop/interface/monospace-font-name | tr -d \"'\" | tr -d \\\\n")
+    if len(dconffont) > 1
+      let &guifont = dconffont
     endif
-  else
-    set guifont=Monospace\ Regular\ 13
   endif
-  "set guifont=Fira\ Mono\ Medium\ 13
-  "set guifont=Roboto\ Mono\ Medium\ 13
+
   set guioptions-=T   " disable toolbar
   set guioptions-=t   " disable tear-off menu items
   set background=light
 
   if exists("+lines") && exists("+columns")
-    set lines=50
+    set lines=45
     set columns=120
   endif
 else
