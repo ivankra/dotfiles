@@ -1,5 +1,8 @@
 all: dep gen firefox chromium
 
+# Update vendored-in files and generated files.
+vendor: vendor-download gen
+
 # Install prerequisite packages
 dep:
 	python3 -c 'import lz4' >/dev/null 2>&1 || \
@@ -13,15 +16,13 @@ dep:
 	  sudo apt-get install chromium-no-skip-ink || \
 	  sudo apt-get install ../packages-deb/chromium-no-skip-ink_1.0_all.deb;
 
-# Re-download external dependencies into vendor/
-vendor:
+# Re-download external dependencies into vendor
+vendor-download:
 	rm -rf vendor tmp
 	mkdir -p tmp
 	curl -s -o tmp/pyllyukko.user.js 'https://raw.githubusercontent.com/pyllyukko/user.js/master/user.js'
 	curl -s -o tmp/ghacks.user.js 'https://raw.githubusercontent.com/ghacksuserjs/ghacks-user.js/master/user.js'
 	mv tmp vendor
-
-.PHONY: vendor
 
 # Regenerate files in gen/
 gen: gen-clean gen/user.js
@@ -49,3 +50,5 @@ firefox: gen/user.js
 
 chromium:
 	./chromium.py
+
+.PHONY: vendor gen
