@@ -32,7 +32,19 @@ APPS=(
 )
 
 install() {
-  mkdir -p -m 0700 ~/.local/share/applications ~/.local/bin
+  mkdir -p -m 0700 \
+    ~/.cache/fontconfig \
+    ~/.config/dconf \
+    ~/.config/evince \
+    ~/.config/geeqie \
+    ~/.config/mpv \
+    ~/.config/pulse \
+    ~/.config/qpdfview \
+    ~/.config/vlc \
+    ~/.fonts \
+    ~/.local/bin \
+    ~/.local/share/applications \
+    ~/.local/share/vlc
 
   only_app="$1"
 
