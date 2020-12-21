@@ -80,8 +80,10 @@ alias diff='diff -u'
 alias dokcer=docker
 alias du='du -h'
 alias e=egrep
+alias eg=egrep
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
+alias free='free -h'
 alias g=grep
 alias gdb='gdb --quiet'
 alias got=git
