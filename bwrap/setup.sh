@@ -14,14 +14,6 @@ APPS=(
   eog
   evince:org.gnome.Evince.desktop
   geeqie
-  libreoffice:libreoffice-calc.desktop
-  libreoffice:libreoffice-draw.desktop
-  libreoffice:libreoffice-impress.desktop
-  libreoffice:libreoffice-math.desktop
-  libreoffice:libreoffice-startcenter.desktop
-  libreoffice:libreoffice-writer.desktop
-  libreoffice:libreoffice-writer.desktop
-  libreoffice:libreoffice-xsltfilter.desktop
   mpv
   okular:org.kde.okular.desktop
   p7zip:none
