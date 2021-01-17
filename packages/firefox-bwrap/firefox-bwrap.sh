@@ -36,6 +36,9 @@ FLAGS=(
   --setenv DISPLAY "$DISPLAY"
 )
 
+if [[ -L ~/.cache && ! -d ~/.cache ]]; then
+  mkdir -m 0700 -p "$(readlink ~/.cache)" || true
+fi
 mkdir -m 0700 -p ~/.cache/mozilla ~/.mozilla "/tmp/mozilla_$(whoami)0"
 
 if ! [[ -e "/tmp/mozilla_$(whoami)1" ]]; then
