@@ -138,7 +138,6 @@
   "network.gio.supported-protocols": "",
   "network.http.altsvc.enabled": false,
   "network.http.altsvc.oe": false,
-  "network.http.redirection-limit": 10,
   "network.http.referer.XOriginPolicy": 2,
   "network.http.referer.XOriginTrimmingPolicy": 2,
   "network.http.referer.hideOnionSource": true,
