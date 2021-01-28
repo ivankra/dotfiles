@@ -24,4 +24,4 @@ for arg in "$@"; do
   fi
 done
 
-exec bwrap "${FLAGS[@]}" /usr/bin/mpv "$@"
+exec bwrap "${FLAGS[@]}" /usr/bin/mpv --loop "$@"
