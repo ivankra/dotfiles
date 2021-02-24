@@ -49,6 +49,7 @@ if [[ $UID != 0 ]]; then
   setup_gen <(./mpv.conf.sh) ~/.config/mpv/mpv.conf
   setup_gen --backup <(./qpdfview.sh) ~/.config/qpdfview/qpdfview.conf
   setup_gen <(./qt5ct.sh) ~/.config/qt5ct/qt5ct.conf
+  setup_ln keepassxc.ini ~/.config/keepassxc/keepassxc.ini
   setup_ln tkdiffrc
   setup_ln xinitrc
   setup_ln xonshrc
@@ -57,9 +58,7 @@ if [[ $UID != 0 ]]; then
   if [[ -x /usr/bin/virt-manager ]]; then
     setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
   fi
-fi
-
-if [[ $UID == 0 ]]; then
+else
   mkdir -m 0700 -p ~/.synaptic
   setup_cp synaptic.conf ~/.synaptic/synaptic.conf
   if [[ -f /var/lib/synaptic/preferences ]]; then
@@ -99,10 +98,6 @@ if ! [[ -e ~/.history ]]; then
 fi
 if [[ -d ~/.history ]]; then
   chmod 0700 ~/.history
-fi
-
-if [[ -f ~/.config/keepassxc/keepassxc.ini ]]; then
-  sed -i -e 's/^\(LastDatabases=[^,]*\), .*/\1/' ~/.config/keepassxc/keepassxc.ini
 fi
 
 if [[ -f ~/.bash_history && ! -L ~/.bash_history ]]; then
