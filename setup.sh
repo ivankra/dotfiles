@@ -80,10 +80,13 @@ if [[ -f ~/.ssh/authorized_keys ]]; then
   chmod 0600 ~/.ssh/authorized_keys
 fi
 
-if [[ -x /usr/bin/byobu && ! -f ~/.byobu/.welcome-displayed ]]; then
-  mkdir -p ~/.byobu
-  (set -x; touch ~/.byobu/.welcome-displayed)
-fi
+# don't show welcome message and mess up with prompt on first run
+for f in ~/.byobu/{prompt,.welcome-displayed}; do
+  if ! [[ -f "$f" ]]; then
+    mkdir -m 0700 -p ~/.byobu
+    (set -x; touch "$f")
+  fi
+done
 
 if ! [[ -d ~/.local/bin ]]; then
   (set -x; mkdir -p ~/.local/bin)
