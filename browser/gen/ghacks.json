@@ -114,7 +114,6 @@
   "media.getusermedia.audiocapture.enabled": false,
   "media.getusermedia.browser.enabled": false,
   "media.getusermedia.screensharing.enabled": false,
-  "media.gmp-widevinecdm.enabled": false,
   "media.memory_cache_max_size": 65536,
   "media.navigator.enabled": false,
   "media.peerconnection.enabled": false,
@@ -190,7 +189,6 @@
   "security.pki.crlite_mode": 2,
   "security.pki.sha1_enforcement_level": 1,
   "security.remote_settings.crlite_filters.enabled": true,
-  "security.ssl.disable_session_identifiers": true,
   "security.ssl.enable_ocsp_stapling": true,
   "security.ssl.require_safe_negotiation": true,
   "security.ssl.treat_unsafe_negotiation_as_broken": true,
@@ -215,6 +213,5 @@
   "webchannel.allowObject.urlWhitelist": "",
   "webgl.disable-fail-if-major-performance-caveat": true,
   "webgl.disabled": true,
-  "webgl.enable-webgl2": false,
-  "webgl.min_capability_mode": true
+  "webgl.enable-webgl2": false
 }

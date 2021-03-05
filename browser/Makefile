@@ -1,8 +1,5 @@
 all: dep gen firefox chromium
 
-# Update vendored-in files and generated files.
-vendor: vendor-download gen
-
 # Install prerequisite packages
 dep:
 	python3 -c 'import lz4' >/dev/null 2>&1 || \
@@ -15,6 +12,9 @@ dep:
 	[ -f /usr/share/chromium/extensions/no-skip-ink/no-skip-ink.css ] || \
 	  sudo apt-get install chromium-no-skip-ink || \
 	  sudo apt-get install ../packages-deb/chromium-no-skip-ink_1.0_all.deb;
+
+# Update vendored-in files and generated files.
+vendor: vendor-download gen
 
 # Re-download external dependencies into vendor
 vendor-download:
@@ -40,6 +40,8 @@ gen/pyllyukko.json: vendor/pyllyukko.user.js
 
 gen/user.js: firefox.jsonnet gen/ghacks.json gen/pyllyukko.json
 	jsonnet -V DOWNLOAD_DIR="$$(realpath ~/Downloads)" -V HIDPI -m gen firefox.jsonnet
+	jsonnet -S -m gen gen/text
+	rm -f gen/text
 	cat gen/user.json | sed -Ene 's/^ *("[^"]+"): (.*[^,]),?$$/user_pref(\1, \2);/p' >gen/user.js.tmp
 	mv -f gen/user.js.tmp gen/user.js
 

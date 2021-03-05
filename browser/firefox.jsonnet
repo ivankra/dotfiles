@@ -51,6 +51,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "privacy.trackingprotection.fingerprinting.enabled": true,
     "privacy.window.maxInnerHeight": 1200,
     "privacy.window.maxInnerWidth": 1900,
+    "toolkit.legacyUserProfileCustomizations.stylesheets": true,  // for userContent.css
     "toolkit.telemetry.hybridContent.enabled": false,
     "toolkit.cosmeticAnimations.enabled": false,
     "ui.context_menus.after_mouseup": true,  // fix right click menu behaviour
@@ -154,5 +155,9 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
       "NoDefaultBookmarks": true,
       "SearchSuggestEnabled": false,
     },
+  },
+
+  "text": {
+    "userContent.css": "* { text-decoration-skip-ink: none !important; }",
   },
 }

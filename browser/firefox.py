@@ -128,6 +128,9 @@ def configure_profile(path):
         configure_search(path / 'search.json.mozlz4', config)
         print('Wrote %s/search.json.mozlz4' % path)
 
+    shutil.copy('gen/userContent.css', path / 'chrome/userContent.css')
+    print('Wrote %s/chrome/userContent.css' % path)
+
 
 def main():
     parser = argparse.ArgumentParser()
