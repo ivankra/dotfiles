@@ -17,7 +17,7 @@ if [ -z "$CUDA_ROOT$CUDA_PATH" ] && [ -d /usr/local/cuda ]; then
   export CUDA_PATH=/usr/local/cuda
 fi
 
-if [ -z "$GOPATH" ] && [ -d ~/.go ]; then
+if [ -z "$GOPATH" ]; then
   export GOPATH=~/.go
 fi
 
@@ -40,7 +40,7 @@ __maybe_prepend_path /usr/bin
 __maybe_prepend_path /usr/local/bin
 __maybe_prepend_path "$CUDA_ROOT/bin"
 __maybe_prepend_path "$CONDA_ROOT/bin"
-__maybe_prepend_path ~/.go/bin
+__maybe_prepend_path "$GOPATH/bin"
 __maybe_prepend_path ~/.dotfiles/bin
 __maybe_prepend_path ~/.private/bin
 __maybe_prepend_path ~/.local/bin
@@ -110,14 +110,17 @@ alias rm='rm -i'
 alias rsync='rsync --info=progress2'
 alias rsyncp='rsync --info=progress2'
 alias sqlite3='sqlite3 -header -column'
-alias sqlite='sqlite3 -header -column'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
 
-if hash python3 >/dev/null 2>&1 && ! hash python >/dev/null 2>&1; then
-  alias python=python3
-fi
+__maybe_alias() {
+  if ! hash "$1" >/dev/null 2>&1 && hash "$2" >/dev/null 2>&1; then
+    alias "$1"="$2"
+  fi
+}
+__maybe_alias blaze bazel
+__maybe_alias python python3
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
