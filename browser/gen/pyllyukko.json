@@ -11,6 +11,7 @@
   "browser.cache.disk_cache_ssl": false,
   "browser.cache.offline.enable": false,
   "browser.casting.enabled": false,
+  "browser.chrome.site_icons": false,
   "browser.crashReports.unsubmittedCheck.enabled": false,
   "browser.discovery.enabled": false,
   "browser.display.use_document_fonts": 0,
