@@ -75,6 +75,7 @@ alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
 alias cx='chmod a+x'
+alias date='date -R'
 alias df='df -h'
 alias diff='diff -u'
 alias dokcer=docker
