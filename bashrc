@@ -192,9 +192,9 @@ else
   }
   __run_erasedup
 
-  # Re-read history to synchronize with other shell instances
-  # Also fix background color guess
-  h() { __run_erasedup; hash -r; __reset_colorfgbg; }
+  # Re-read history to synchronize with other shell instances.
+  # Also fix various terminal issues.
+  h() { __run_erasedup; hash -r; __reset_colorfgbg; stty sane cooked; bind -f ~/.inputrc; }
 
   __link_to_history() {
     local src="$1"
