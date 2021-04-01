@@ -481,6 +481,6 @@ if has("user_commands") && has("autocmd")
   endif
 endif
 
-if filereadable(expand("~/.private/vimrc"))
-  source ~/.private/vimrc
+if filereadable(expand("~/.dotfiles/vimrc.local"))
+  source ~/.dotfiles/vimrc.local
 endif

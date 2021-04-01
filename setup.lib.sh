@@ -10,8 +10,8 @@ fi
 if [[ -f ~/.dotfiles/setup.vars ]]; then
   source ~/.dotfiles/setup.vars
 fi
-if [[ -f ~/.private/setup.vars ]]; then
-  source ~/.private/setup.vars
+if [[ -f ~/.local/dotfiles/setup.vars ]]; then
+  source ~/.local/dotfiles/setup.vars
 fi
 export SCM_NAME=${SCM_NAME:-$(whoami)}
 export SCM_EMAIL=${SCM_EMAIL:-$(whoami)@$(hostname -s)}

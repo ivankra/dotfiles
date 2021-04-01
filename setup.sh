@@ -23,7 +23,12 @@ if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
 fi
 
-setup_gen -c <(./gitconfig.sh) ~/.gitconfig
+if [[ -f ~/.dotfiles/gitconfig.local ]]; then
+  setup_ln gitconfig.local ~/.gitconfig
+else
+  setup_gen -c <(./gitconfig.sh) ~/.gitconfig
+fi
+
 setup_gen -c <(./hgrc.sh) ~/.hgrc
 setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
 setup_ln Rprofile
@@ -110,6 +115,6 @@ fi
 
 rm -rf python/dotfiles/__pycache__
 
-if [[ -x ~/.private/setup.sh ]]; then
-  (set -x; ~/.private/setup.sh)
+if [[ -x ~/.local/dotfiles/setup.sh ]]; then
+  (set -x; ~/.local/dotfiles/setup.sh)
 fi

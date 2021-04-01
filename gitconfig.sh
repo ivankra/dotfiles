@@ -62,9 +62,3 @@ cat <<EOF
 [url "git@gist.github.com:"]
 	pushInsteadOf = "git://gist.github.com/"
 EOF
-
-if [[ -f ~/.dotfiles/gitconfig.local ]]; then
-  echo
-  echo "[include]"
-  echo "	path = ~/.dotfiles/gitconfig.local"
-fi
