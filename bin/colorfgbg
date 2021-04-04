@@ -14,7 +14,6 @@ function __reset_colorfgbg() {
         "$TERM" == "screen" ||
         "$TERM" == "screen-256color" ||
         "$TERM" == "screen.linux" ||
-        "$TERM" == "xterm-256color" ||
         "$TERM" == "cygwin" ||
         "$TERM" == "putty" ||
         -n "$GUAKE_TAB_UUID" ||      # guake
@@ -25,7 +24,7 @@ function __reset_colorfgbg() {
   else
     local prev_stty="$(stty -g)"
     stty raw -echo min 0 time 0
-    echo -e '\e]11;?\e\\'
+    echo -e -n '\e]11;?\e\\'
 
     # sometimes terminal can be slow to respond
     local response=""
