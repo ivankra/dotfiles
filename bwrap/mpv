@@ -2,26 +2,36 @@
 SCRIPT=$(realpath -P -- "${BASH_SOURCE[0]}")
 source "${SCRIPT%/*}/lib.sh"
 
-mkdir -m 0700 -p ~/.config/dconf ~/.config/mpv ~/.config/pulse
-
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind /run/user/$UID/pulse /run/user/$UID/pulse
+  --bind-try /run/user/$UID/pulse /run/user/$UID/pulse
   --ro-bind /etc /etc
   --ro-bind /usr/bin/mpv /usr/bin/mpv
-  --ro-bind ~/.config/dconf ~/.config/dconf
-  --ro-bind ~/.config/mpv ~/.config/mpv
-  --ro-bind ~/.config/pulse ~/.config/pulse
+  --ro-bind-try ~/.config/dconf ~/.config/dconf
+  --ro-bind-try ~/.config/mpv ~/.config/mpv
+  --ro-bind-try ~/.config/pulse ~/.config/pulse
   --unsetenv SESSION_MANAGER
 )
 add_nvidia
-add_argdirs_ro "$@"
+
+# i915
+if ! [[ -c /dev/nvidiactl ]]; then
+  FLAGS+=(
+    --bind-try /dev/dri /dev/dri
+    --ro-bind-try /sys /sys
+  )
+fi
 
 for arg in "$@"; do
   if [[ "$arg" =~ ^https?://.* ]]; then
     FLAGS+=(--share-net)
-    break
+  elif [[ -f "$arg" ]]; then
+    FLAGS+=(--ro-bind "$arg" "$arg")
+    if [[ -f "$arg.srt" ]]; then
+      FLAGS+=(--ro-bind "$arg.srt" "$arg.srt")
+    fi
   fi
 done
 
-exec bwrap "${FLAGS[@]}" /usr/bin/mpv --loop "$@"
+bwrap "${FLAGS[@]}" /usr/bin/mpv -v --alang=eng,en --loop "$@" >/tmp/mpv.log 2>&1
+exit $?
