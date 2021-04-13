@@ -122,6 +122,7 @@ __maybe_alias() {
 }
 __maybe_alias blaze bazel
 __maybe_alias python python3
+__maybe_alias fd fdfind
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
@@ -195,7 +196,7 @@ else
 
   # Re-read history to synchronize with other shell instances.
   # Also fix various terminal issues.
-  h() { __run_erasedup; hash -r; __reset_colorfgbg; stty sane cooked; bind -f ~/.inputrc; }
+  h() { __run_erasedup; hash -r; __reset_colorfgbg; stty sane cooked; __reset_term_keys; bind -f ~/.inputrc; }
 
   __link_to_history() {
     local src="$1"
@@ -241,6 +242,11 @@ __BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
 
 # Prompt {{{
 
+__reset_term_keys() {
+  echo -en "\033]104\7\033!p"
+  #echo -en "\033]104\7\033[!p\033[?3;4l\033[4l\033>\033[?69l\r"
+}
+
 # PROMPT_COMMAND
 #
 # Delayed till the end to ensure __prompt_print_status will be
@@ -259,6 +265,7 @@ __bashrc_prompt_command() {
   local __status=$?
   if [[ $__status -ne 0 ]]; then
     echo -e "\033[31m\$? = ${__status}\033[m"
+    __reset_term_keys
   fi
 
   if [[ -n "$HISTFILE" ]]; then
