@@ -21,6 +21,7 @@ cat <<EOF
 	g = !gitg
 	lg = log --pretty=oneline --abbrev-commit --decorate
 	pp = !git pull && git push
+	rbc = rebase --continue
 	root = rev-parse --show-toplevel
 	st = status
 	unstage = reset HEAD --
