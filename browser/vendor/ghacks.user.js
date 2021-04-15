@@ -1,7 +1,7 @@
 /******
 * name: arkenfox user.js
-* date: 02 March 2021
-* version 87-alpha
+* date: 06 April 2021
+* version 88-alpha
 * url: https://github.com/arkenfox/user.js
 * license: MIT: https://github.com/arkenfox/user.js/blob/master/LICENSE.txt
 
@@ -121,8 +121,6 @@ user_pref("browser.newtabpage.activity-stream.feeds.section.topstories", false);
 user_pref("browser.newtabpage.activity-stream.section.highlights.includePocket", false);
 user_pref("browser.newtabpage.activity-stream.showSponsored", false);
 user_pref("browser.newtabpage.activity-stream.feeds.discoverystreamfeed", false); // [FF66+]
-/* 0105d: disable Activity Stream recent Highlights in the Library [FF57+] ***/
-   // user_pref("browser.library.activity-stream.enabled", false);
 /* 0105e: clear default topsites
  * [NOTE] This does not block you from adding your own ***/
 user_pref("browser.newtabpage.activity-stream.default.sites", "");
@@ -361,17 +359,16 @@ user_pref("network.prefetch-next", false);
 /* 0602: disable DNS prefetching
  * [1] https://developer.mozilla.org/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control ***/
 user_pref("network.dns.disablePrefetch", true);
-user_pref("network.dns.disablePrefetchFromHTTPS", true); // [DEFAULT: true]
+   // user_pref("network.dns.disablePrefetchFromHTTPS", true); // [DEFAULT: true]
 /* 0603: disable predictor / prefetching ***/
 user_pref("network.predictor.enabled", false);
-user_pref("network.predictor.enable-prefetch", false); // [FF48+] [DEFAULT: false]
+   // user_pref("network.predictor.enable-prefetch", false); // [FF48+] [DEFAULT: false]
 /* 0605: disable link-mouseover opening connection to linked server
  * [1] https://news.slashdot.org/story/15/08/14/2321202/how-to-quash-firefoxs-silent-requests ***/
 user_pref("network.http.speculative-parallel-limit", 0);
 /* 0606: enforce no "Hyperlink Auditing" (click tracking)
  * [1] https://www.bleepingcomputer.com/news/software/major-browsers-to-prevent-disabling-of-click-tracking-privacy-risk/ ***/
-user_pref("browser.send_pings", false); // [DEFAULT: false]
-user_pref("browser.send_pings.require_same_host", true); // defense-in-depth
+   // user_pref("browser.send_pings", false); // [DEFAULT: false]
 
 /*** [SECTION 0700]: HTTP* / TCP/IP / DNS / PROXY / SOCKS etc ***/
 user_pref("_user.js.parrot", "0700 syntax error: the parrot's given up the ghost!");
@@ -389,8 +386,8 @@ user_pref("network.dns.disableIPv6", true);
 /* 0702: disable HTTP2
  * HTTP2 raises concerns with "multiplexing" and "server push", does nothing to
  * enhance privacy, and opens up a number of server-side fingerprinting opportunities.
- * [WARNING] Disabling this made sense in the past, and doesn't break anything, but HTTP2 is
- * at 40% (December 2019) and growing [5]. Don't be that one person using HTTP1.1 on HTTP2 sites
+ * [WARNING] Don't disable HTTP2. Don't be that one person using HTTP1.1 on HTTP2 sites
+ * [STATS] Over 50% of sites (April 2021) and growing [5]
  * [1] https://http2.github.io/faq/
  * [2] https://blog.scottlogic.com/2014/11/07/http-2-a-quick-look.html
  * [3] https://http2.github.io/http2-spec/#rfc.section.10.8
@@ -746,6 +743,10 @@ user_pref("dom.security.https_only_mode", true); // [FF76+]
  * This is done to avoid waiting for a timeout which takes 90 seconds
  * [1] https://bugzilla.mozilla.org/buglist.cgi?bug_id=1642387,1660945 ***/
 user_pref("dom.security.https_only_mode_send_http_background_request", false);
+/* 1247: treat .onion as a secure context [FF60+] [TOR]
+ * [NOTE] Firefox cannot access .onion sites by default: it is strongly recommended you just use Tor Browser
+ * [1] https://bugzilla.mozilla.org/1382359 ***/
+   // user_pref("dom.securecontext.whitelist_onions", true);
 
 /** CIPHERS [WARNING: do not meddle with your cipher suite: see the section 1200 intro]
  * These are all the ciphers still using SHA-1 and CBC which are weaker than the available alternatives. (see "Cipher Suites" in [1])
@@ -847,14 +848,14 @@ user_pref("network.http.referer.XOriginTrimmingPolicy", 2);
  * [NOTE] This is only a default, it can be overridden by a site-controlled Referrer Policy
  * [1] https://www.w3.org/TR/referrer-policy/
  * [2] https://developer.mozilla.org/docs/Web/HTTP/Headers/Referrer-Policy
- * [3] https://blog.mozilla.org/security/2018/01/31/preventing-data-leaks-by-stripping-path-information-in-http-referrers/ ***/
-   // user_pref("network.http.referer.defaultPolicy", 3); // [DEFAULT: 3]
+ * [3] https://blog.mozilla.org/security/2018/01/31/preventing-data-leaks-by-stripping-path-information-in-http-referrers/
+ * [4] https://blog.mozilla.org/security/2021/03/22/firefox-87-trims-http-referrers-by-default-to-protect-user-privacy/ ***/
+   // user_pref("network.http.referer.defaultPolicy", 2); // [DEFAULT: 2 FF87+]
    // user_pref("network.http.referer.defaultPolicy.pbmode", 2); // [DEFAULT: 2]
-/* 1607: TOR: hide (not spoof) referrer when leaving a .onion domain [FF54+]
- * [NOTE] Firefox cannot access .onion sites by default. We recommend you use
- * the Tor Browser which is specifically designed for hidden services
+/* 1607: hide (not spoof) referrer when leaving a .onion domain [FF54+] [TOR]
+ * [NOTE] Firefox cannot access .onion sites by default: it is strongly recommended you just use Tor Browser
  * [1] https://bugzilla.mozilla.org/1305144 ***/
-user_pref("network.http.referer.hideOnionSource", true);
+   // user_pref("network.http.referer.hideOnionSource", true);
 /* 1610: ALL: enable the DNT (Do Not Track) HTTP header
  * [NOTE] DNT is enforced with Enhanced Tracking Protection regardless of this pref
  * [SETTING] Privacy & Security>Enhanced Tracking Protection>Send websites a "Do Not Track" signal... ***/
@@ -896,6 +897,7 @@ user_pref("plugin.state.flash", 0);
 /* 1830: disable all DRM content (EME: Encryption Media Extension)
  * [SETUP-WEB] e.g. Netflix, Amazon Prime, Hulu, HBO, Disney+, Showtime, Starz, DirectTV
  * [SETTING] General>DRM Content>Play DRM-controlled content
+ * [TEST] https://bitmovin.com/demos/drm
  * [1] https://www.eff.org/deeplinks/2017/10/drms-dead-canary-how-we-just-lost-web-what-we-learned-it-and-what-we-need-do-next ***/
 user_pref("media.eme.enabled", false);
 
@@ -923,7 +925,6 @@ user_pref("media.peerconnection.ice.proxy_only_if_behind_proxy", true); // [FF70
 user_pref("webgl.disabled", true);
 user_pref("webgl.enable-webgl2", false);
 /* 2012: limit WebGL ***/
-   // user_pref("webgl.min_capability_mode", true);
 user_pref("webgl.disable-fail-if-major-performance-caveat", true); // [DEFAULT: true FF86+]
 /* 2022: disable screensharing ***/
 user_pref("media.getusermedia.screensharing.enabled", false);
@@ -1025,8 +1026,8 @@ user_pref("_user.js.parrot", "2400 syntax error: the parrot's kicked the bucket!
 /* 2402: disable website access to clipboard events/content [SETUP-HARDEN]
  * [NOTE] This will break some sites' functionality e.g. Outlook, Twitter, Facebook, Wordpress
  * This applies to onCut/onCopy/onPaste events - i.e. it requires interaction with the website
- * [WARNING] If both 'middlemouse.paste' and 'general.autoScroll' are true (at least one
- * is default false) then enabling this pref can leak clipboard content [1]
+ * [WARNING] In FF88 or lower, with clipboardevents enabled, if both 'middlemouse.paste' and
+ * 'general.autoScroll' are true (at least one is default false) then the clipboard can leak [1]
  * [1] https://bugzilla.mozilla.org/1528289 ***/
    // user_pref("dom.event.clipboardevents.enabled", false);
 /* 2404: disable clipboard commands (cut/copy) from "non-privileged" content [FF41+]
@@ -1246,12 +1247,18 @@ user_pref("security.dialog_enable_delay", 700);
      accessible to websites except shared/service workers where the cookie setting *must* be "Allow"
 ***/
 user_pref("_user.js.parrot", "2700 syntax error: the parrot's joined the bleedin' choir invisible!");
-/* 2701: disable 3rd-party cookies and site-data [SETUP-WEB]
- * 0=Accept cookies and site data, 1=(Block) All third-party cookies, 2=(Block) All cookies,
- * 3=(Block) Cookies from unvisited websites, 4=(Block) Cross-site and social media trackers (default)
- * [NOTE] You can set exceptions under site permissions or use an extension
+/* 2701: disable or isolate 3rd-party cookies and site-data [SETUP-WEB]
+ * 0 = Accept cookies and site data
+ * 1 = (Block) All third-party cookies
+ * 2 = (Block) All cookies
+ * 3 = (Block) Cookies from unvisited websites
+ * 4 = (Block) Cross-site tracking cookies (default)
+ * 5 = (Isolate All) Cross-site cookies (TCP: Total Cookie Protection / dFPI: dynamic FPI) [1] (FF86+)
+ * Option 5 with FPI enabled (4001) is ignored and not shown, and option 4 used instead
+ * [NOTE] You can set cookie exceptions under site permissions or use an extension
  * [NOTE] Enforcing category to custom ensures ETP related prefs are always honored
- * [SETTING] Privacy & Security>Enhanced Tracking Protection>Custom>Cookies ***/
+ * [SETTING] Privacy & Security>Enhanced Tracking Protection>Custom>Cookies
+ * [1] https://blog.mozilla.org/security/2021/02/23/total-cookie-protection/ ***/
 user_pref("network.cookie.cookieBehavior", 1);
 user_pref("browser.contentblocking.category", "custom");
 /* 2702: set third-party cookies (if enabled, see 2701) to session-only
@@ -1265,7 +1272,16 @@ user_pref("network.cookie.thirdparty.nonsecureSessionOnly", true); // [FF58+]
  * [NOTE] The setting below is disabled (but not changed) if you block all cookies (2701 = 2)
  * [SETTING] Privacy & Security>Cookies and Site Data>Delete cookies and site data when Firefox is closed ***/
    // user_pref("network.cookie.lifetimePolicy", 2);
-/* 2710: disable DOM (Document Object Model) Storage
+/* 2710: enable Enhanced Tracking Protection (ETP) in all windows
+ * [SETTING] Privacy & Security>Enhanced Tracking Protection>Custom>Tracking content
+ * [SETTING] to add site exceptions: Urlbar>ETP Shield
+ * [SETTING] to manage site exceptions: Options>Privacy & Security>Enhanced Tracking Protection>Manage Exceptions ***/
+user_pref("privacy.trackingprotection.enabled", true);
+/* 2711: enable various ETP lists ***/
+user_pref("privacy.trackingprotection.socialtracking.enabled", true);
+   // user_pref("privacy.trackingprotection.cryptomining.enabled", true); // [DEFAULT: true]
+   // user_pref("privacy.trackingprotection.fingerprinting.enabled", true); // [DEFAULT: true]
+/* 2720: disable DOM (Document Object Model) Storage
  * [WARNING] This will break a LOT of sites' functionality AND extensions!
  * You are better off using an extension for more granular control ***/
    // user_pref("dom.storage.enabled", false);
@@ -1293,8 +1309,8 @@ user_pref("dom.storage.next_gen", true);
 
 /*** [SECTION 2800]: SHUTDOWN
      You should set the values to what suits you best.
-     - "Offline Website Data" includes appCache (2730), localStorage (2710),
-       service worker cache (2740), and QuotaManager (IndexedDB (2720), asm-cache)
+     - "Offline Website Data" includes appCache (2730), localStorage (2720),
+       service worker cache (2740), and QuotaManager (IndexedDB, asm-cache)
      - In both 2803 + 2804, the 'download' and 'history' prefs are combined in the
        Firefox interface as "Browsing & Download History" and their values will be synced
 ***/
@@ -1417,7 +1433,7 @@ user_pref("privacy.firstparty.isolate", true);
    1217290 & 1409677 - enable fingerprinting resistance for WebGL (see 2010-12)
    1382545 - reduce fingerprinting in Animation API
    1354633 - limit MediaError.message to a whitelist
-   1382533 - enable fingerprinting resistance for Presentation API
+   1382533 & 1697680 - enable fingerprinting resistance for Presentation API (FF57-87)
       This blocks exposure of local IP Addresses via mDNS (Multicast DNS)
  FF58+
     967895 - spoof canvas and enable site permission prompt before allowing canvas data extraction
@@ -1561,8 +1577,9 @@ user_pref("webgl.enable-debug-renderer-info", false);
    // 0=no-preference, 1=reduce
 user_pref("ui.prefersReducedMotion", 0); // [HIDDEN PREF]
 // FF64+
-// 4615: [2516] disable PointerEvents
+// 4615: [2516] disable PointerEvents [FF86 or lower]
    // [1] https://developer.mozilla.org/en-US/docs/Web/API/PointerEvent
+   // [-] https://bugzilla.mozilla.org/1688105
 user_pref("dom.w3c_pointer_events.enabled", false);
 // * * * /
 // FF67+
@@ -1602,10 +1619,11 @@ user_pref("_user.js.parrot", "4700 syntax error: the parrot's taken 'is last bow
    // user_pref("general.useragent.override", ""); // [HIDDEN PREF]
 
 /*** [SECTION 5000]: PERSONAL
-     Non-project related but useful. If any of these interest you, add them to your overrides ***/
+     Non-project related but useful. If any of these interest you, add them to your overrides
+     To save some overrides, we've made a few active as they seem to be universally used ***/
 user_pref("_user.js.parrot", "5000 syntax error: this is an ex-parrot!");
 /* WELCOME & WHAT's NEW NOTICES ***/
-   // user_pref("browser.startup.homepage_override.mstone", "ignore"); // master switch
+user_pref("browser.startup.homepage_override.mstone", "ignore"); // master switch
    // user_pref("startup.homepage_welcome_url", "");
    // user_pref("startup.homepage_welcome_url.additional", "");
    // user_pref("startup.homepage_override_url", ""); // What's New page after updates
@@ -1632,15 +1650,15 @@ user_pref("_user.js.parrot", "5000 syntax error: this is an ex-parrot!");
    // user_pref("ui.key.menuAccessKey", 0); // disable alt key toggling the menu bar [RESTART]
    // user_pref("view_source.tab", false); // view "page/selection source" in a new window [FF68+, FF59 and under]
 /* UX FEATURES: disable and hide the icons and menus ***/
-   // user_pref("browser.messaging-system.whatsNewPanel.enabled", false); // What's New [FF69+]
+user_pref("browser.messaging-system.whatsNewPanel.enabled", false); // What's New toolbar icon [FF69+]
    // user_pref("extensions.pocket.enabled", false); // Pocket Account [FF46+]
    // user_pref("identity.fxaccounts.enabled", false); // Firefox Accounts & Sync [FF60+] [RESTART]
    // user_pref("reader.parse-on-load.enabled", false); // Reader View
 /* OTHER ***/
    // user_pref("browser.bookmarks.max_backups", 2);
-   // user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", false); // disable CFR [FF67+]
+user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", false); // disable CFR [FF67+]
       // [SETTING] General>Browsing>Recommend extensions as you browse
-   // user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", false); // disable CFR [FF67+]
+user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", false); // disable CFR [FF67+]
       // [SETTING] General>Browsing>Recommend features as you browse
    // user_pref("network.manage-offline-status", false); // see bugzilla 620472
    // user_pref("xpinstall.signatures.required", false); // enforced extension signing (Nightly/ESR)
@@ -1677,6 +1695,10 @@ user_pref("security.ssl.errorReporting.url", "");
 // 2653: disable hiding mime types (Options>General>Applications) not associated with a plugin
    // [-] https://bugzilla.mozilla.org/1581678
 user_pref("browser.download.hide_plugins_without_extensions", false);
+// FF87
+// 0105d: disable Activity Stream recent Highlights in the Library [FF57+]
+   // [-] https://bugzilla.mozilla.org/1689405
+   // user_pref("browser.library.activity-stream.enabled", false);
 // ***/
 
 /* END: internal custom pref to test for syntax errors ***/

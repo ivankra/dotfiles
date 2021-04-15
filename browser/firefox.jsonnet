@@ -43,6 +43,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
     "layout.css.text-decoration-skip-ink.enabled": false,  // fugly
     "mousewheel.default.delta_multiplier_y": 150,
     "mousewheel.min_line_scroll_amount": 40,
+    "network.predictor.enable-prefetch": false,
     "permissions.default.camera": 2,
     "permissions.default.desktop-notification": 2,
     "permissions.default.geo": 2,
