@@ -243,7 +243,7 @@ __BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
 # Prompt {{{
 
 __reset_term_keys() {
-  echo -en "\033]104\7\033!p"
+  echo -en "\033]104\7\033\041p\r"
   #echo -en "\033]104\7\033[!p\033[?3;4l\033[4l\033>\033[?69l\r"
 }
 
