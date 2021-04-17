@@ -9,6 +9,7 @@ local pyllyukko_user_js = import "gen/pyllyukko.json";
   },
 
   "user.json.static": pyllyukko_user_js + ghacks_user_js + {
+    "browser.defaultbrowser.notificationbar.checklimit": 0,
     "browser.tabs.allowTabDetach": false,
     "browser.cache.memory.capacity": -1,
     "browser.cache.memory.enable": true,

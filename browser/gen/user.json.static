@@ -22,6 +22,7 @@
    "browser.contentblocking.introCount": 20,
    "browser.crashReports.unsubmittedCheck.autoSubmit2": false,
    "browser.crashReports.unsubmittedCheck.enabled": false,
+   "browser.defaultbrowser.notificationbar.checklimit": 0,
    "browser.discovery.enabled": false,
    "browser.display.use_document_fonts": 1,
    "browser.display.use_system_colors": false,
