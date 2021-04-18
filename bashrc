@@ -269,29 +269,35 @@ __BASHRC_EPILOGUE+="__bashrc_set_prompt_command;"
 unset PROMPT_COMMAND
 
 __bashrc_prompt_command() {
-  # Print last command's exit code if non zero.
-  local __status=$?
-  if [[ $__status -ne 0 ]]; then
-    echo -e "\033[31m\$? = ${__status}\033[m"
-  fi
+  # Record last command's exit code, has to be first thing in PROMPT_COMMAND.
+  local status=$?
 
-  # Record elapsed time and automatically print it for long running commands.
+  # Record elapsed time.
+  local elapsedmsg=""
   if [[ -n "$__PS0_EPOCHSECONDS" ]]; then
     __PS0_ELAPSED=$(($EPOCHSECONDS - $__PS0_EPOCHSECONDS))
-    if (( $__PS0_ELAPSED >= 3600 )); then
-      echo -e "\033[38;5;8mElapsed ${__PS0_ELAPSED}s\033[m"
-    elif (( $__PS0_ELAPSED >= 21*3600 )); then
-      local s0=$(date +'%Y-%m-%d %H:%M:%S' --date="@$__PS0_EPOCHSECONDS" 2>/dev/null || true)
-      local s1=$(date +'%Y-%m-%d %H:%M:%S %z' --date="@$((__PS0_EPOCHSECONDS + __PS0_ELAPSED))" 2>/dev/null || true)
-      echo -e "\033[38;5;8mElapsed ${__PS0_ELAPSED}s from $s0 till $s1\033[m"
+
+    if (( $__PS0_ELAPSED >= 23*3600 )); then
+      elapsedmsg="Elapsed $(((__PS0_ELAPSED + 1800)/3600))h"
     fi
+  fi
+
+  # Print last command's exit code if non zero and elapsed time if large enough.
+  if [[ $status -ne 0 ]]; then
+    if [[ -n "$elapsedmsg" ]]; then
+      echo -e "\033[31m\$? = $status  $elapsedmsg\033[m"
+    else
+      echo -e "\033[31m\$? = $status\033[m"
+    fi
+  elif [[ -n "$elapsedmsg" ]]; then
+    echo -e "\033[38;5;8m$elapsedmsg\033[m"
   fi
 
   if [[ -n "$HISTFILE" ]]; then
     history -a
   fi
 
-  if [[ $__status -ne 0 ]]; then
+  if [[ $status -ne 0 ]]; then
     __fix_term_input
   fi
 }
