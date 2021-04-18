@@ -74,8 +74,8 @@ _import_bashrc_aliases()
 ))
 
 $PROMPT = (
-    '{env_name:{} }{BOLD_GREEN}{user}@{hostname}{NO_COLOR}:{BOLD_CYAN}{cwd}'
-    '{branch_color}{curr_branch: ({})}{NO_COLOR}{NO_COLOR}{prompt_end}{NO_COLOR} '
+    '{env_name:{} }{BOLD_GREEN}{user}@{hostname}{RESET}:{BOLD_CYAN}{cwd}'
+    '{branch_color}{curr_branch: ({})}{RESET}{RESET}{prompt_end}{RESET} '
 )
 
 $XONSH_COLOR_STYLE = 'monokai'
