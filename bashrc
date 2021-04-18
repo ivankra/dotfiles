@@ -75,7 +75,6 @@ alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
 alias cx='chmod a+x'
-alias date='date -R'
 alias df='df -h'
 alias diff='diff -u'
 alias dokcer=docker
@@ -83,6 +82,7 @@ alias du='du -h'
 alias e=egrep
 alias eg=egrep
 alias egrep='egrep --color=auto'
+alias elapsed='echo $__PS0_ELAPSED'  # last foreground command's elapsed time in seconds
 alias fgrep='fgrep --color=auto'
 alias free='free -h'
 alias g=grep
@@ -126,6 +126,11 @@ __maybe_alias fd fdfind
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
+
+date() {
+  local arg1=${1:--R}; shift;
+  /usr/bin/date "$arg1" "$@"
+}
 
 ts() {
   if [[ "$1" == "" ]]; then
@@ -196,7 +201,7 @@ else
 
   # Re-read history to synchronize with other shell instances.
   # Also fix various terminal issues.
-  h() { __run_erasedup; hash -r; __reset_colorfgbg; stty sane cooked; __reset_term_keys; bind -f ~/.inputrc; }
+  h() { __run_erasedup; hash -r; __reset_colorfgbg; __fix_term_input; }
 
   __link_to_history() {
     local src="$1"
@@ -242,9 +247,12 @@ __BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
 
 # Prompt {{{
 
-__reset_term_keys() {
-  echo -en "\033]104\7\033\041p\r"
-  #echo -en "\033]104\7\033[!p\033[?3;4l\033[4l\033>\033[?69l\r"
+# Fix messed up terminal input handling.
+__fix_term_input() {
+  stty sane cooked
+  echo -en '\033]104\007\033[\041p\r'
+  #echo -en '\033]104\007\033[\041p\033[?3;4l\033[4l\033>\033[?69l\r'  # full reset seq
+  bind -f ~/.inputrc
 }
 
 # PROMPT_COMMAND
@@ -265,11 +273,26 @@ __bashrc_prompt_command() {
   local __status=$?
   if [[ $__status -ne 0 ]]; then
     echo -e "\033[31m\$? = ${__status}\033[m"
-    __reset_term_keys
+  fi
+
+  # Record elapsed time and automatically print it for long running commands.
+  if [[ -n "$__PS0_EPOCHSECONDS" ]]; then
+    __PS0_ELAPSED=$(($EPOCHSECONDS - $__PS0_EPOCHSECONDS))
+    if (( $__PS0_ELAPSED >= 3600 )); then
+      echo -e "\033[38;5;8mElapsed ${__PS0_ELAPSED}s\033[m"
+    elif (( $__PS0_ELAPSED >= 21*3600 )); then
+      local s0=$(date +'%Y-%m-%d %H:%M:%S' --date="@$__PS0_EPOCHSECONDS" 2>/dev/null || true)
+      local s1=$(date +'%Y-%m-%d %H:%M:%S %z' --date="@$((__PS0_EPOCHSECONDS + __PS0_ELAPSED))" 2>/dev/null || true)
+      echo -e "\033[38;5;8mElapsed ${__PS0_ELAPSED}s from $s0 till $s1\033[m"
+    fi
   fi
 
   if [[ -n "$HISTFILE" ]]; then
     history -a
+  fi
+
+  if [[ $__status -ne 0 ]]; then
+    __fix_term_input
   fi
 }
 
@@ -283,11 +306,16 @@ __bashrc_ps0() {
     echo -e "\e]0;$USER@$HOSTNAME - $cmd\a"
   fi
 
+  # Write command to be executed to history
   if [[ -n "$HISTFILE" ]]; then
     history -a
   fi
 }
 PS0='$(__bashrc_ps0)'
+# Record command's start time in __PS0_EPOCHSECONDS.
+# Using substring expansion syntax ${parameter:offset:length} with a side effect
+# to avoid getting executed in a subshell as $() and avoid printing anything.
+PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
 
 # PS1
 #
