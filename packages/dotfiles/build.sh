@@ -45,7 +45,7 @@ EOF
 install -D -m 0644 /dev/stdin "$PKGDIR/lib/systemd/system/dotfiles-update.service" <<EOF
 [Unit]
 Description=Update ~/.dotfiles directories for all users
-After=local-fs.target
+After=local-fs.target getty.target zfs.target
 
 [Service]
 ExecStart=/usr/local/share/dotfiles/update.sh
