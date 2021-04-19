@@ -10,7 +10,9 @@ function __reset_colorfgbg() {
   fi
 
   local guess=""
-  if [[ "$TERM" == "linux" ||
+  if [[ -f ~/.local/dotfiles/black ||
+        -f ~/.dotfiles/black ||
+        "$TERM" == "linux" ||
         "$TERM" == "screen" ||
         "$TERM" == "screen-256color" ||
         "$TERM" == "screen.linux" ||
