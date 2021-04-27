@@ -318,10 +318,12 @@ __bashrc_ps0() {
   fi
 }
 PS0='$(__bashrc_ps0)'
-# Record command's start time in __PS0_EPOCHSECONDS.
-# Using substring expansion syntax ${parameter:offset:length} with a side effect
-# to avoid getting executed in a subshell as $() and avoid printing anything.
-PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
+if [[ "${BASH_VERSINFO[0]}" -ge 5 ]]; then
+  # Record command's start time in __PS0_EPOCHSECONDS.
+  # Using substring expansion syntax ${parameter:offset:length} with a side effect
+  # to avoid getting executed in a subshell as $() and avoid printing anything.
+  PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
+fi
 
 # PS1
 #
