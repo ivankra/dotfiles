@@ -4,19 +4,32 @@
 set -e -u -o pipefail
 umask 002
 
+get_latest_ver() {
+  local ver=$(
+    wget -q -O - "https://product-details.mozilla.org/1.0/firefox_versions.json" |
+    sed -ne "s/.*\"$1\": \"\(.*\)\".*/\1/p"
+  )
+  (echo "$1 = $ver"; echo) >&2
+  echo "$ver"
+}
+
 TMPDIR="$(mktemp -d)"
+trap 'set +eu; rm -rf "$TMPDIR"; exit 1;' ERR
 
 # Find latest release version
 VERSION=""
-if [[ $# > 0 ]]; then
-  VERSION="$1"
-else
-  VERSION=$(
-    wget -q -O - "https://product-details.mozilla.org/1.0/firefox_versions.json" |
-    sed -ne 's/.*"LATEST_FIREFOX_VERSION": "\(.*\)".*/\1/p'
-  )
-  echo "Latest firefox version: $VERSION"
-fi
+case "${1:-release}" in
+  release)
+    VERSION=$(get_latest_ver LATEST_FIREFOX_VERSION);;
+  beta|dev|devel)
+    VERSION=$(get_latest_ver LATEST_FIREFOX_RELEASED_DEVEL_VERSION);;
+  nightly)
+    VERSION=$(get_latest_ver FIREFOX_NIGHTLY);;
+  esr)
+    VERSION=$(get_latest_ver FIREFOX_ESR);;
+  *)
+    VERSION="$1"
+esac
 
 # Maybe download signing key
 if ! [[ -f firefox.asc ]]; then
@@ -48,6 +61,7 @@ mkdir -p "$PKGDIR/usr/local/bin"
 ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox-bwrap"
 ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox"
 
+# Copy icons from an existing firefox installation
 ICON="firefox-esr"
 for path in /usr/share/icons/hicolor/128x128/apps/firefox.png \
             /usr/share/icons/hicolor/16x16/apps/firefox.png \
