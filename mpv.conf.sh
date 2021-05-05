@@ -2,9 +2,17 @@
 # ~/.config/mpv.conf generator
 set -e -u -o pipefail
 
+if egrep 'MemTotal: *[0-9]{8} kB' /proc/meminfo >/dev/null 2>&1; then
+  csec=1800
+  csize=1024MiB
+else
+  csec=200
+  csize=256MiB
+fi
+
 cat <<EOF
 demuxer-thread=yes
-demuxer-readahead-secs=200
+demuxer-readahead-secs=$csec
 volume-max=200
 EOF
 
@@ -25,8 +33,8 @@ if [[ -x /usr/bin/mpv ]]; then
     echo "cache=262144"  # KiB
   else
     echo "cache=yes"
-    echo "demuxer-max-bytes=256MiB"
-    echo "cache-secs=200"
+    echo "demuxer-max-bytes=$csize"
+    echo "cache-secs=$csec"
   fi
 
   if ls -A /dev/nvidia* >/dev/null 2>&1; then
