@@ -18,6 +18,7 @@ Host *
   MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
   Protocol 2
   RekeyLimit 64G 1h
+  SendEnv COLORFGBG COLORTERM TERM_PROGRAM
   ServerAliveCountMax 6
   ServerAliveInterval 30
   TCPKeepAlive no

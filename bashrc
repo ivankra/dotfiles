@@ -91,6 +91,7 @@ alias got=git
 alias grep='grep --color=auto'
 alias gt=git
 alias gti=git
+alias ip='ip --color=auto'
 alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
 alias json_pp='python3 -m json.tool'
 alias l='ls -l'
@@ -163,6 +164,7 @@ if ! [[ -d ~/.history ]] && ([[ -f ~/.history ]] || ! mkdir -m 0700 -p ~/.histor
   # history disabled
   HISTCONTROL=ignoreboth
   HISTSIZE=100000
+  h() { hash -r; __reset_colorfgbg; __fix_term_input; }
 else
   shopt -s histappend
   HISTCONTROL=ignoreboth

@@ -1,15 +1,14 @@
 #!/bin/bash
-# Can be sourced from bashrc (to set COLORFGBG) or run directly.
+# Can be sourced from bashrc - sets COLORFGBG if missing.
+# Or run directly to print COLORFGBG guess.
 
-# Determines/guesses terminal background colors and
-# sets or updates COLORFGBG variable.
+# Guesses terminal background theme and sets/updates COLORFGBG variable.
 function __reset_colorfgbg() {
-  if [[ -n "$COLORFGBG" && -z "$COLORFGBG_GUESSED" ]]; then
-    # COLORFGBG was explicitly set (e.g. rxvt), rather than guessed here
-    return
+  if [[ -n "$COLORFGBG" && "$COLORTERM" == rxvt* ]]; then
+    return  # rxvt explicitly sets COLORFGBG
   fi
 
-  local guess=""
+  local dark=""
   if [[ -f ~/.local/dotfiles/black ||
         -f ~/.dotfiles/black ||
         "$TERM" == "linux" ||
@@ -18,11 +17,12 @@ function __reset_colorfgbg() {
         "$TERM" == "screen.linux" ||
         "$TERM" == "cygwin" ||
         "$TERM" == "putty" ||
-        -n "$GUAKE_TAB_UUID" ||      # guake
-        -n "$PYXTERM_DIMENSIONS" ||  # jupyterlab
-        -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES"  # ssh applet
+        "$TERM_PROGRAM" == "iTerm.app" ||
+        -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES" || # ssh applet
+        -n "$GUAKE_TAB_UUID" ||   # guake
+        -n "$PYXTERM_DIMENSIONS"  # jupyterlab
        ]]; then
-    guess="dark"
+    dark=1
   else
     local prev_stty="$(stty -g)"
     stty raw -echo min 0 time 0
@@ -46,18 +46,16 @@ function __reset_colorfgbg() {
     stty "$prev_stty"
 
     if [[ "$response" == *rgb:[0-8]* ]]; then
-      guess="dark"
+      dark=1
     else
-      guess="light"
+      dark=0
     fi
   fi
 
-  if [[ "$guess" == "dark" ]]; then
+  if [[ "$dark" == 1 ]]; then
     export COLORFGBG="15;0"
-    export COLORFGBG_GUESSED=1
-  elif [[ "$guess" == "light" ]]; then
+  elif [[ "$dark" == 0 ]]; then
     export COLORFGBG="0;15"
-    export COLORFGBG_GUESSED=1
   fi
 }
 
