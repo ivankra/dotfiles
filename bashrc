@@ -82,7 +82,6 @@ alias du='du -h'
 alias e=egrep
 alias eg=egrep
 alias egrep='egrep --color=auto'
-alias elapsed='echo $__PS0_ELAPSED'  # last foreground command's elapsed time in seconds
 alias fgrep='fgrep --color=auto'
 alias free='free -h'
 alias g=grep
@@ -277,17 +276,19 @@ __bashrc_prompt_command() {
   # Record elapsed time.
   local elapsedmsg=""
   if [[ -n "$__PS0_EPOCHSECONDS" ]]; then
+    local cmd="$(HISTTIMEFORMAT= history 1 | cut -c8-80)"
     __PS0_ELAPSED=$(($EPOCHSECONDS - $__PS0_EPOCHSECONDS))
-
+    __PS0_ELAPSED_HIST+=("$(printf %7d $__PS0_ELAPSED) $cmd")
     if (( $__PS0_ELAPSED >= 23*3600 )); then
       elapsedmsg="Elapsed $(((__PS0_ELAPSED + 1800)/3600))h"
     fi
+    export __PS0_EPOCHSECONDS=""
   fi
 
   # Print last command's exit code if non zero and elapsed time if large enough.
   if [[ $status -ne 0 ]]; then
     if [[ -n "$elapsedmsg" ]]; then
-      echo -e "\033[31m\$? = $status  $elapsedmsg\033[m"
+      echo -e "\033[31m\$? = $status (${elapsedmsg,,})\033[m"  # lowercase msg
     else
       echo -e "\033[31m\$? = $status\033[m"
     fi
@@ -320,11 +321,14 @@ __bashrc_ps0() {
   fi
 }
 PS0='$(__bashrc_ps0)'
-if [[ "${BASH_VERSINFO[0]}" -ge 5 ]]; then
+if [[ "${BASH_VERSINFO[0]}" -ge 5 ]] && hash printf >/dev/null 2>&1; then
   # Record command's start time in __PS0_EPOCHSECONDS.
   # Using substring expansion syntax ${parameter:offset:length} with a side effect
   # to avoid getting executed in a subshell as $() and avoid printing anything.
   PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
+
+  # Print recent elapsed times recorded by __bashrc_prompt_command.
+  elapsed() { local s; for s in "${__PS0_ELAPSED_HIST[@]}"; do echo "$s"; done; }
 fi
 
 # PS1
