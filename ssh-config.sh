@@ -19,8 +19,8 @@ Host *
   Protocol 2
   RekeyLimit 64G 1h
   SendEnv COLORFGBG COLORTERM TERM_PROGRAM
-  ServerAliveCountMax 6
-  ServerAliveInterval 30
+  ServerAliveCountMax 15
+  ServerAliveInterval 60
   TCPKeepAlive no
 EOF
 
