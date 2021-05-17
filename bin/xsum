@@ -16,6 +16,7 @@ def main():
                     help='Find decimals by regex, parse and sum up only them')
     parser.add_argument('-b', '--clipboard', action='store_true',
                     help='Use X11 clipboard instead of selection buffer')
+    parser.add_argument('--avg', default=sys.argv[0].endswith('xavg'), action='store_true')
     args = parser.parse_args()
 
     input_it = sys.stdin
@@ -30,6 +31,7 @@ def main():
 
     find_regexp = re.compile('[-+]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+?)(?:e-?[0-9]+)?')
     result = decimal.Decimal(0)
+    count = 0
 
     for line_no, line in enumerate(input_it):
         tokens = []
@@ -47,8 +49,12 @@ def main():
                 sys.exit(1)
 
             result += val
+            count += 1
 
-    print(result)
+    if args.avg:
+        print(result / count)
+    else:
+        print(result)
 
 
 if __name__ == '__main__':
