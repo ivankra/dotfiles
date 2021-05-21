@@ -126,23 +126,12 @@ __maybe_alias fd fdfind
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
-
-date() {
-  local arg1=${1:--R}; shift;
-  /usr/bin/date "$arg1" "$@"
-}
-
-ts() {
-  if [[ "$1" == "" ]]; then
-    /usr/bin/ts "%.T"
-  else
-    /usr/bin/ts "$@"
-  fi
-}
+date() { local arg=${1:--R}; shift; "$(which date)" "$arg" "$@"; }
+ts() { local arg=${1:-%.T}; shift; "$(which ts)" "$arg" "$@"; }
 alias tsd='ts "%Y-%m-%d %.T"'
 
-for _c in ifconfig iwconfig route; do
-  if ! hash "$_c" >/dev/null 2>&1; then
+for _c in ifconfig iwconfig route sysctl zfs zpool; do
+  if ! hash "$_c" >/dev/null 2>&1 && [[ -x /sbin/"$_c" ]]; then
     alias "$_c"=/sbin/"$_c"
   fi
 done
