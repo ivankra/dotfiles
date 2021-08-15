@@ -63,6 +63,7 @@ MIN_FLAGS=(
   --ro-bind /usr/share /usr/share
   --ro-bind /lib /lib
   --ro-bind /lib64 /lib64
+  --ro-bind /etc/fonts /etc/fonts
 )
 
 X11_FLAGS=(
