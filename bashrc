@@ -71,6 +71,7 @@ alias R='R --no-save --no-restore --quiet'
 alias b=byobu-tmux
 alias bat=batcat
 alias bc='bc -q'
+alias catf='tail --follow -c +0'
 alias cd..='cd ..'
 alias cd3='cd "$(scm-root)"'
 alias cp='cp -i'
