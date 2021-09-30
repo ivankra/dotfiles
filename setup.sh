@@ -63,6 +63,9 @@ if [[ $UID != 0 ]]; then
   if [[ -x /usr/bin/virt-manager ]]; then
     setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
   fi
+  if [[ -x /usr/bin/keepassxc ]]; then
+    setup_cp keepassxc.desktop ~/.local/share/applications/org.keepassxc.KeePassXC.desktop
+  fi
 else
   mkdir -m 0700 -p ~/.synaptic
   setup_cp synaptic.conf ~/.synaptic/synaptic.conf
