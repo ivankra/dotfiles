@@ -1,3 +1,0 @@
-[submodule "packages-deb"]
-	path = packages-deb
-	url = https://github.com/ivankra/packages.git

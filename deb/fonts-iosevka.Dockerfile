@@ -42,7 +42,7 @@ RUN cd /tmp && \
     rm -rf otfcc/ otfcc.tar.gz
 
 # Checkout latest tag and fetch npm deps
-RUN git clone --depth=100 https://github.com/be5invis/Iosevka.git /src
+RUN git clone --depth=10 https://github.com/be5invis/Iosevka.git /src
 WORKDIR /src
 RUN git checkout "$(git describe --abbrev=0 --tags)"
 RUN npm install
@@ -58,7 +58,7 @@ no-ligation = true\n\
 [buildPlans.iosevka.variants.design]\n\
 asterisk = "hex-low"\n\
 brace = "straight"\n\
-l = "serifed-tailed"\n\
+l = "tailed-serifed"\n\
 number-sign = "slanted"\n\
 ' >private-build-plans.toml
 RUN npm run build -- ttf::iosevka
