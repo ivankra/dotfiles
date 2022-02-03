@@ -2,7 +2,7 @@
 # Inserts an empty page after every page in the input .pdf
 
 if [[ -t 0 || -t 1 ]]; then
-  echo "Usage: pdftk-insert-empty.sh <input.pdf >output.pdf"
+  echo "Usage: pdf-insert-empty.sh <input.pdf >output.pdf"
   exit 1
 fi
 
@@ -23,3 +23,5 @@ done
 pdftk pg_*.pdf cat output output.pdf
 
 cat output.pdf
+
+rm -rf "$TMP"
