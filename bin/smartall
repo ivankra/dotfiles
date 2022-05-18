@@ -1,0 +1,3 @@
+#!/bin/bash
+PATH=/sbin:/usr/sbin:$PATH
+for x in /dev/sd?; do smartctl -iA "$x" | sed -e "s|^|$x: |"; done
