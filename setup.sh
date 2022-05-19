@@ -46,6 +46,7 @@ setup_ln vim
 setup_ln vimrc
 
 if [[ $UID != 0 ]]; then
+  setup_ln fcitx5 ~/.config/fcitx5
   setup_cp gnome-system-monitor.desktop ~/.local/share/applications/gnome-system-monitor.desktop
   setup_cp mpv-input.conf ~/.config/mpv/input.conf
   setup_cp okularpartrc ~/.config/okularpartrc
