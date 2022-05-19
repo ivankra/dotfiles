@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:bookworm
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -51,7 +51,7 @@ RUN npm install
 RUN echo '\
 [buildPlans.iosevka]\n\
 family = "Iosevka"\n\
-spacing = "term"\n\
+spacing = "fixed"\n\
 serifs = "sans"\n\
 no-ligation = true\n\
 \n\
