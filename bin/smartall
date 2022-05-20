@@ -1,3 +1,21 @@
 #!/bin/bash
 PATH=/sbin:/usr/sbin:$PATH
-for x in /dev/sd?; do smartctl -iA "$x" | sed -e "s|^|$x: |"; done
+
+TMP=$(mktemp -d)
+cd "$TMP"
+
+ARG="${1:--iA}"; shift
+
+for x in /dev/sd? /dev/hd? /dev/nvme?n?; do
+  if [[ -b "$x" ]]; then
+    smartctl "$ARG" "$@" "$x" >$(basename "$x") 2>&1 &
+  fi
+done
+
+wait
+
+for x in *; do
+  cat "$x" | sed -e "s|^|/dev/$x: |"
+done
+
+rm -rf "$TMP"
