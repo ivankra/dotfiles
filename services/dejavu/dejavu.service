@@ -6,7 +6,6 @@ After=basic.target
 ExecStart=$HOME/.dotfiles/services/dejavu/dejavu.sh --startup
 Type=simple
 Restart=on-failure
-RestartSec=5s
 
 [Install]
 WantedBy=default.target
