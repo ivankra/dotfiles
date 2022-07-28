@@ -102,6 +102,7 @@ alias ls='ls --color=auto --group-directories-first'
 alias mtr='mtr -bt'  # --show-ips --curses
 alias mv='mv -i'
 alias nb=jupyter-notebook
+alias noping='noping -H 2'
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
