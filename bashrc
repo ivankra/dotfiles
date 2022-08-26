@@ -400,6 +400,10 @@ fi
 
 if [[ $UID == 0 ]]; then
   umask 027
+
+  if [[ -x /usr/share/speedify/speedify_cli ]]; then
+    alias speedify_cli=/usr/share/speedify/speedify_cli
+  fi
 fi
 
 if ! [[ -d ~/.ssh/socket ]]; then
