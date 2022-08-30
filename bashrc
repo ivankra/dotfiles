@@ -280,6 +280,11 @@ __bashrc_prompt_command() {
     export __PS0_EPOCHSECONDS=""
   fi
 
+  if [[ -n "$__vsc_status" && "$TERM_PROGRAM" == "vscode" ]]; then
+    # let vscode shell integration handle non-zero exit codes
+    return
+  fi
+
   # Print last command's exit code if non zero and elapsed time if large enough.
   if [[ $status -ne 0 ]]; then
     if [[ -n "$elapsedmsg" ]]; then
