@@ -86,4 +86,6 @@ $XONSH_DATA_DIR = $HOME + '/.history/xonsh'
 if os.path.exists($HOME + '/.local/share/xonsh'):
     rm -rf "$HOME/.local/share/xonsh"
 
+$PATH.append("$HOME/.iac/bin")
+
 # vim: ft=python

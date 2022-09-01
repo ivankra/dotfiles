@@ -42,7 +42,7 @@ __maybe_prepend_path "$CUDA_ROOT/bin"
 __maybe_prepend_path "$CONDA_ROOT/bin"
 __maybe_prepend_path "$GOPATH/bin"
 __maybe_prepend_path ~/.dotfiles/bin
-__maybe_prepend_path ~/.local/dotfiles/bin
+__maybe_prepend_path ~/.iac/bin
 __maybe_prepend_path ~/.local/bin
 __maybe_prepend_path ~/.bin
 __maybe_prepend_path ~/bin
