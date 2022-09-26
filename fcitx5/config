@@ -15,7 +15,7 @@ EnumerateGroupForwardKeys=
 EnumerateGroupBackwardKeys=
 
 [Hotkey/TriggerKeys]
-0=Control+space
+0=Control+Shift+Shift_L
 
 [Hotkey/ActivateKeys]
 0=Hangul_Hanja
