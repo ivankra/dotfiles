@@ -199,6 +199,10 @@ else
   # Also fix various terminal issues.
   h() { __run_erasedup; hash -r; __reset_colorfgbg; __fix_term_input; }
 
+  histoff() {
+    HISTFILE=
+  }
+
   __link_to_history() {
     local src="$1"
     local dst="$HOME/.history/$2"
