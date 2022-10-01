@@ -23,6 +23,27 @@ if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
 fi
 
+if [[ -d "/var/ext/$UID" ]] && chmod o-rwx "/var/ext/$UID"; then
+  mkdir -p ~/.local/share
+  for srcdst in \
+      "$HOME/.local/share/containers=/var/ext/$UID/containers" \
+      "$HOME/.cache=/var/ext/$UID/cache" \
+    ; do
+    src_dir="${srcdst%=*}"
+    ext_dir="${srcdst#*=}"
+    if mkdir -m 0700 -p "$ext_dir" && chmod 0700 "$ext_dir"; then
+      if [[ -d "$src_dir" ]] && ! [[ -L "$src_dir" ]]; then
+        echo "Ignoring $src_dir - existing directory, not symlinking to $ext_dir"
+      elif ! [[ -L "$src_dir" && "$(readlink "$src_dir")" == "$ext_dir" ]]; then
+        if [[ -L "$src_dir" ]]; then
+          (set -x; rm -f "$src_dir")
+        fi
+        (set -x; ln -sf "$ext_dir" "$src_dir")
+      fi
+    fi
+  done
+fi
+
 if [[ -f ~/.dotfiles/gitconfig.local ]]; then
   setup_ln gitconfig.local ~/.gitconfig
 else
@@ -30,6 +51,7 @@ else
 fi
 
 setup_gen -c <(./hgrc.sh) ~/.hgrc
+setup_gen -c <(./bazelrc.sh) ~/.bazelrc
 setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
 setup_ln Rprofile
 setup_ln bash_logout

@@ -424,10 +424,6 @@ if ! [[ -d ~/.ssh/socket ]]; then
   chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
 fi
 
-if hash bazel >/dev/null 2>&1 && [[ -d ~/.cache && ! -L ~/.cache/bazel && ! -d ~/.cache/bazel ]]; then
-  ln -s /var/tmp ~/.cache/bazel
-fi
-
 if [[ -f ~/.lesshst || -f ~/.wget-hsts || -f ~/.xsel.log || -f ~/.xsession-errors || -f ~/.xsession-errors.old ]]; then
   rm -f ~/.lesshst ~/.wget-hsts ~/.xsel.log ~/.xsession-errors ~/.xsession-errors.old
 fi

@@ -68,7 +68,7 @@ startup() {
     echo "cache" >>"$WORKTREE/.gitignore"
   fi
 
-  setup_link "$WORKTREE/cache" "$HOME/.cache"
+  #setup_link "$WORKTREE/cache" "$HOME/.cache"
   setup_link "$WORKTREE/chromium" "$HOME/.config/chromium"
   setup_link "$WORKTREE/google-chrome" "$HOME/.config/google-chrome"
   setup_link "$WORKTREE/mozilla" "$HOME/.mozilla"
