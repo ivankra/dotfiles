@@ -1,0 +1,18 @@
+#!/bin/bash
+# Suppress "Address family not supported by protocol" on ipv6-disabled hosts
+
+bin="/usr/bin/ping"
+if [[ -f /bin/ping ]]; then
+  bin="/bin/ping"
+fi
+
+if [[ -f /sys/module/ipv6/parameters/disable &&
+      "$(cat /sys/module/ipv6/parameters/disable)" == "1" ]]; then
+  if [[ -f /bin/ping4 ]]; then
+    bin="/bin/ping4"
+  elif [[ -f /usr/bin/ping4 ]]; then
+    bin=/usr/bin/ping4
+  fi
+fi
+
+exec "$bin" "$@"

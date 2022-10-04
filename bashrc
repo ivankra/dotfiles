@@ -117,10 +117,6 @@ alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python3 -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
 
-if [[ -f /sys/module/ipv6/parameters/disable && $(cat /sys/module/ipv6/parameters/disable) == "1" ]]; then
-  alias ping=ping4
-fi
-
 __maybe_alias() {
   if ! hash "$1" >/dev/null 2>&1 && hash "$2" >/dev/null 2>&1; then
     alias "$1"="$2"
