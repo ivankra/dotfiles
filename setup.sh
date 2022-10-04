@@ -52,7 +52,7 @@ fi
 
 setup_gen -c <(./hgrc.sh) ~/.hgrc
 setup_gen -c <(./bazelrc.sh) ~/.bazelrc
-setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
+#setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
 setup_ln Rprofile
 setup_ln bash_logout
 setup_ln bashrc
