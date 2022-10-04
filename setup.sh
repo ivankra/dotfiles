@@ -82,13 +82,6 @@ if [[ $UID != 0 ]]; then
   setup_ln xinitrc
   setup_ln xonshrc
   setup_ln xsessionrc
-
-  if [[ -x /usr/bin/virt-manager ]]; then
-    setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
-  fi
-  if [[ -x /usr/bin/keepassxc ]]; then
-    setup_cp keepassxc.desktop ~/.local/share/applications/org.keepassxc.KeePassXC.desktop
-  fi
 else
   mkdir -m 0700 -p ~/.synaptic
   setup_cp synaptic.conf ~/.synaptic/synaptic.conf
@@ -101,7 +94,17 @@ else
   fi
 fi
 
-~/.dotfiles/bin-cond/setup.sh
+if [[ -x /usr/bin/virt-manager ]]; then
+  setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
+fi
+if [[ -x /usr/bin/keepassxc ]]; then
+  setup_cp keepassxc.desktop ~/.local/share/applications/org.keepassxc.KeePassXC.desktop
+fi
+if [[ -x /usr/bin/code ]]; then
+  mkdir -p ~/.local/share/applications
+  envsubst <code.desktop >~/.local/share/applications/code.desktop
+  setup_ln code ~/.local/bin/code
+fi
 
 mkdir -p -m 0700 ~/.ssh
 setup_gen -c <(./ssh-config.sh) ~/.ssh/config
