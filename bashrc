@@ -129,6 +129,7 @@ __maybe_alias() {
 __maybe_alias blaze bazel
 __maybe_alias python python3
 __maybe_alias fd fdfind
+__maybe_alias docker podman
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
