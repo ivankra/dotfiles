@@ -33,13 +33,13 @@ EOF
 
 install -D -m 0755 /dev/stdin "$PKGDIR/DEBIAN/postinst" <<EOF
 #!/bin/bash -e
-systemctl enable dotfiles-update.service
+[[ -f /usr/bin/systemctl ]] && systemctl enable dotfiles-update.service
 /usr/local/share/dotfiles/update.sh
 EOF
 
 install -D -m 0755 /dev/stdin "$PKGDIR/DEBIAN/prerm" <<EOF
 #!/bin/bash
-systemctl disable dotfiles-update.service
+[[ -f /usr/bin/systemctl ]] && systemctl disable dotfiles-update.service
 EOF
 
 install -D -m 0644 /dev/stdin "$PKGDIR/lib/systemd/system/dotfiles-update.service" <<EOF
