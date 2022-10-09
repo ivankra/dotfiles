@@ -58,6 +58,10 @@ if [[ -z "$PS1" || -z "$HOME" ]]; then
   return
 fi
 
+if [[ -z "$SHELL" && -f /bin/bash ]]; then
+  export SHELL=/bin/bash
+fi
+
 shopt -s checkhash checkwinsize no_empty_cmd_completion
 if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
   shopt -s autocd
