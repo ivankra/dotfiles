@@ -15,7 +15,7 @@ import dotfiles.goo
 def _import_bashrc_aliases():
     global aliases
     for line in open(os.environ['HOME'] + '/.bashrc'):
-        line = re.sub('#.*', '', line).strip()
+        line = re.sub('#.*', '', line).rstrip()
         m = re.match(r'^alias (\w+)=(.+)$', line)
         if not m: continue
         key = m.group(1)
