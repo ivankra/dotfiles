@@ -12,15 +12,7 @@ FLAGS=(
   --ro-bind-try ~/.config/pulse ~/.config/pulse
   --unsetenv SESSION_MANAGER
 )
-add_nvidia
-
-# i915
-if ! [[ -c /dev/nvidiactl ]]; then
-  FLAGS+=(
-    --bind-try /dev/dri /dev/dri
-    --ro-bind-try /sys /sys
-  )
-fi
+add_gpu
 
 for arg in "$@"; do
   if [[ "$arg" =~ ^https?://.* ]]; then

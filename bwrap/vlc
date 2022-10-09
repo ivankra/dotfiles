@@ -15,7 +15,7 @@ FLAGS=(
   --ro-bind-try ~/.config/dconf ~/.config/dconf
   --unsetenv SESSION_MANAGER
 )
-add_nvidia
+add_gpu
 
 for arg in "$@"; do
   if [[ "$arg" =~ ^https?://.* ]]; then
