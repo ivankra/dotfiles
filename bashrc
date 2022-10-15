@@ -102,7 +102,11 @@ alias l='ls -l'
 alias la='ls -la'
 alias le='less'
 alias ll='ls -l -h'
-alias ls='ls --color=auto --group-directories-first'
+if [[ "$TERM" == dumb ]]; then  # e.g. vim
+  alias ls='ls --group-directories-first'
+else
+  alias ls='ls --color=auto --group-directories-first'
+fi
 alias mtr='mtr -bt'  # --show-ips --curses
 alias mv='mv -i'
 alias nb=jupyter-notebook
