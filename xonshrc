@@ -1,5 +1,6 @@
-import warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning)
+#!/usr/bin/env python
+#import warnings
+#warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 import importlib
 import os
@@ -10,7 +11,6 @@ from pathlib import Path
 
 sys.path.append(os.path.expanduser('~/.dotfiles/python'))
 import dotfiles.lazyimport
-import dotfiles.goo
 
 def _import_bashrc_aliases():
     global aliases
@@ -87,5 +87,11 @@ if os.path.exists($HOME + '/.local/share/xonsh'):
     rm -rf "$HOME/.local/share/xonsh"
 
 $PATH.append("$HOME/.iac/bin")
+
+def l(x):
+    return np.log(x)
+
+def sqrt(x):
+    return np.sqrt(x)
 
 # vim: ft=python
