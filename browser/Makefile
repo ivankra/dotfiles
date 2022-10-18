@@ -1,4 +1,4 @@
-all: dep gen firefox chromium
+all: dep gen firefox chrome
 
 # Install prerequisite packages
 dep:
@@ -45,12 +45,12 @@ gen/user.js: firefox.jsonnet gen/ghacks.json gen/pyllyukko.json
 	cat gen/user.json | sed -Ene 's/^ *("[^"]+"): (.*[^,]),?$$/user_pref(\1, \2);/p' >gen/user.js.tmp
 	mv -f gen/user.js.tmp gen/user.js
 
-# Configure firefox/chromium
+# Configure firefox/chrome/chromium
 
 firefox: gen/user.js
 	./firefox.py
 
-chromium:
-	./chromium.py
+chrome:
+	./chrome.py
 
 .PHONY: vendor gen

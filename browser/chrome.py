@@ -130,18 +130,21 @@ def tweak_profile(profile_path):
     with JsonIO(profile_path / 'Local State') as ls:
         ls.browser.enabled_labs_experiments = ['enable-webrtc-hide-local-ips-with-mdns@1', 'smooth-scrolling@2']
 
-    with JsonIO(profile_path / 'Default' / 'Bookmarks') as bookmarks:
-        for root in bookmarks.roots.values():
-            if 'children' not in root: continue
-            filt = []
-            for ch in root['children']:
-                if 'debian.org' in ch['url']:
-                    print('Removing bookmark %s' % ch['url'])
-                    del bookmarks.checksum
-                else:
-                    filt.append(ch)
-            root['children'] = filt
+    path = profile_path / 'Default' / 'Bookmarks'
+    if path.exists():
+        with JsonIO(path) as bookmarks:
+            for root in bookmarks.roots.values():
+                if 'children' not in root: continue
+                filt = []
+                for ch in root['children']:
+                    if 'debian.org' in ch['url']:
+                        print('Removing bookmark %s' % ch['url'])
+                        del bookmarks.checksum
+                    else:
+                        filt.append(ch)
+                root['children'] = filt
 
 
 if __name__ == '__main__':
     tweak_profile(Path('~/.config/chromium').expanduser())
+    tweak_profile(Path('~/.config/google-chrome').expanduser())
