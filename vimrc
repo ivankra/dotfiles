@@ -473,8 +473,7 @@ if has("user_commands") && has("autocmd")
 endif
 
 if has("user_commands") && has("autocmd")
-  if $COLORFGBG == "15;default;0" || $COLORFGBG == "15;0"
-    "&& !has("gui_running")
+  if $COLORFGBG == "15;default;0" || $COLORFGBG == "15;0" || has("gui_running")
     call DarkTheme("")
   else
     call LightTheme("")
