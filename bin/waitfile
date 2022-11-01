@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+if [[ "$1" == "" ]]; then
+  echo "Usage: $0 file [file ...]"
+  echo "Wait until all file exist"
+  exit 1
+fi
+
+for arg in "$@"; do
+  while ! [[ -f "$arg" ]]; do
+    sleep 0.1
+  done
+done
