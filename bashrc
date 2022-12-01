@@ -448,7 +448,7 @@ if [[ -f ~/.dotfiles/bin/colorfgbg ]]; then
 fi
 
 if [[ -z "$LS_COLORS" ]] && hash dircolors >/dev/null 2>&1; then
-  eval $(dircolors ~/.dotfiles/dircolors)
+  eval $(SHELL="${SHELL:-/bin/bash}" dircolors ~/.dotfiles/dircolors)
 fi
 
 if [[ -n "$VTE_VERSION" ]]; then
