@@ -8,7 +8,7 @@ if [[ "$1" == "" ]]; then
 fi
 
 for arg in "$@"; do
-  while ! [[ -f "$arg" ]]; do
+  while ! [[ -e "$arg" ]]; do
     sleep 0.1
   done
 done
