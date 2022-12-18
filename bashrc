@@ -472,6 +472,7 @@ if [[ -f /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
 fi
 
 if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
+  true  # in case conda installer comments out below line causing syntax error
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
