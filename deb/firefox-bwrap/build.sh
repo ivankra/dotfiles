@@ -32,9 +32,8 @@ case "${1:-release}" in
 esac
 
 # Maybe download signing key
-if ! [[ -f firefox.asc ]]; then
-  wget -O firefox.asc "https://archive.mozilla.org/pub/firefox/releases/$VERSION/KEY"
-fi
+rm -f firefox.asc
+wget -O firefox.asc "https://archive.mozilla.org/pub/firefox/releases/$VERSION/KEY"
 gpg -q --no-default-keyring --keyring "$TMPDIR/firefox.gpg" --import firefox.asc
 
 # Download release tarball
