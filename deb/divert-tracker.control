@@ -3,9 +3,9 @@ Priority: optional
 Standards-Version: 4.3.0
 
 Package: divert-tracker
-Version: 1.1
+Version: 1.2
 Maintainer: none
-Depends: divert-base
+Depends: bash, dpkg
 Architecture: all
 Description: Disable Tracker services via dpkg-divert
 Replaces: tracker-divert
@@ -13,16 +13,27 @@ Breaks: tracker-divert
 
 File: postinst
  #!/bin/bash
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
+ divert_file() {
+   dpkg-divert --rename --add --divert "$1.bak" "$1"
+   mkdir -p -m 0755 "$(dirname "$1")"
+   ln -sf /dev/null "$1"
+ }
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
 
 File: prerm
  #!/bin/bash
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
+ divert_undo() {
+   if [[ -f "$1.bak" || "$1" -ef /dev/null ]]; then
+     rm -f "$1"
+   fi
+   dpkg-divert --rename --remove "$1"
+ }
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service

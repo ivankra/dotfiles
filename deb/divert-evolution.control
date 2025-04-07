@@ -3,9 +3,9 @@ Priority: optional
 Standards-Version: 4.3.0
 
 Package: divert-evolution
-Version: 1.2
+Version: 1.3
 Maintainer: none
-Depends: divert-base
+Depends: bash, dpkg
 Architecture: all
 Description: Disable GNOME Evolution services via dpkg-divert
 Replaces: evolution-divert
@@ -13,17 +13,28 @@ Breaks: evolution-divert
 
 File: postinst
  #!/bin/bash
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
- /usr/local/sbin/divert-file.sh /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
- /usr/local/sbin/divert-file.sh /etc/xdg/autostart/org.gnome.Evolution-alarm-notify.desktop
+ divert_file() {
+   dpkg-divert --rename --add --divert "$1.bak" "$1"
+   mkdir -p -m 0755 "$(dirname "$1")"
+   ln -sf /dev/null "$1"
+ }
+ divert_file /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
+ divert_file /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
+ divert_file /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
+ divert_file /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
+ divert_file /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
+ divert_file /etc/xdg/autostart/org.gnome.Evolution-alarm-notify.desktop
 
 File: prerm
  #!/bin/bash
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
- /usr/local/sbin/divert-undo.sh /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
+ divert_undo() {
+   if [[ -f "$1.bak" || "$1" -ef /dev/null ]]; then
+     rm -f "$1"
+   fi
+   dpkg-divert --rename --remove "$1"
+ }
+ divert_undo /usr/share/dbus-1/services/org.gnome.evolution.dataserver.AddressBook.service
+ divert_undo /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Calendar.service
+ divert_undo /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
+ divert_undo /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
+ divert_undo /usr/lib/evolution/evolution-data-server/evolution-alarm-notify

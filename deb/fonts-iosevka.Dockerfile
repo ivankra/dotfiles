@@ -53,7 +53,7 @@ RUN echo '\
 family = "Iosevka"\n\
 spacing = "fixed"\n\
 serifs = "sans"\n\
-no-ligation = true\n\
+noLigation = true\n\
 \n\
 [buildPlans.iosevka.variants.design]\n\
 asterisk = "hex-low"\n\
@@ -63,8 +63,8 @@ number-sign = "slanted"\n\
 ' >private-build-plans.toml
 RUN npm run build -- ttf::iosevka
 
-# Check build succeeed, artefacts were produced
-RUN ls -l dist/iosevka/ttf/iosevka-regular.ttf
+# Check that build succeeded, artefacts were produced
+RUN ls -l dist/iosevka/TTF/iosevka-Regular.ttf
 
 RUN { \
       echo "Package: fonts-iosevka"; \
@@ -78,7 +78,7 @@ RUN { \
       echo "Readme: README.md"; \
       echo; \
       echo -n "Files:"; \
-      for f in dist/iosevka/ttf/*.ttf; do \
+      for f in dist/iosevka/TTF/*.ttf; do \
         echo " $f /usr/share/fonts/truetype/iosevka"; \
       done; \
     } >control && \

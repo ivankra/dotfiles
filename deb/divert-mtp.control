@@ -3,16 +3,27 @@ Priority: optional
 Standards-Version: 4.3.0
 
 Package: divert-mtp
-Version: 1.0
+Version: 1.1
 Maintainer: none
-Depends: divert-base
+Depends: bash, dpkg
 Architecture: all
 Description: Disable GVFS MTP Volume Monitor service via dpkg-divert
 
 File: postinst
  #!/bin/bash
- /usr/local/sbin/divert-file.sh /usr/share/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service
+ divert_file() {
+   dpkg-divert --rename --add --divert "$1.bak" "$1"
+   mkdir -p -m 0755 "$(dirname "$1")"
+   ln -sf /dev/null "$1"
+ }
+ divert_file /usr/share/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service
 
 File: prerm
  #!/bin/bash
- /usr/local/sbin/divert-undo.sh /usr/share/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service
+ divert_undo() {
+   if [[ -f "$1.bak" || "$1" -ef /dev/null ]]; then
+     rm -f "$1"
+   fi
+   dpkg-divert --rename --remove "$1"
+ }
+ divert_undo /usr/share/dbus-1/services/org.gtk.vfs.MTPVolumeMonitor.service

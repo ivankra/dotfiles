@@ -37,7 +37,7 @@ wget -O firefox.asc "https://archive.mozilla.org/pub/firefox/releases/$VERSION/K
 gpg -q --no-default-keyring --keyring "$TMPDIR/firefox.gpg" --import firefox.asc
 
 # Download release tarball
-URL="https://download.cdn.mozilla.net/pub/firefox/releases/$VERSION/linux-x86_64/en-US/firefox-$VERSION.tar.bz2"
+URL="https://download.cdn.mozilla.net/pub/firefox/releases/$VERSION/linux-x86_64/en-US/firefox-$VERSION.tar.xz"
 TARBALL=$(basename "$URL")
 wget -O "$TMPDIR/$TARBALL" "$URL"
 wget -O "$TMPDIR/$TARBALL.asc" "$URL.asc"
