@@ -70,7 +70,7 @@ if has("autocmd")
   autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
   autocmd FileType ledger     source ~/.vim/ledger.vim
   autocmd FileType markdown   syn sync minlines=1000
-  autocmd FileType dockerfile set ai
+  autocmd FileType dockerfile set ai sw=4 sts=4 ts=8 et
   autocmd FileType jsonnet    set sts=2 sw=2 ts=8 et ai nowrap
 
   autocmd FileType python     set sts=4 sw=4 ts=8 et ai

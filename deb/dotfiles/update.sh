@@ -21,6 +21,10 @@ if [[ $UID != 0 ]]; then
   exit 1;
 fi
 
+if ! fgrep "$PKG_REPO" /etc/gitconfig >/dev/null 2>&1; then
+  git config --system --add safe.directory "$PKG_REPO"
+fi
+
 FORCE=0
 if [[ "$#" != 0 && ("$1" == "-f" || "$1" == "--force") ]]; then
   FORCE=1
