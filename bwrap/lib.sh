@@ -77,9 +77,11 @@ MIN_FLAGS=(
   --ro-bind /usr/lib /usr/lib
   --ro-bind /usr/share /usr/share
   --ro-bind /lib /lib
-  --ro-bind /lib64 /lib64
   --ro-bind /etc/fonts /etc/fonts
 )
+if [[ -d /lib64 ]]; then
+  MIN_FLAGS+=(--ro-bind /lib64 /lib64)
+fi
 
 X11_FLAGS=(
   ${MIN_FLAGS[@]}
