@@ -3,7 +3,7 @@ Priority: optional
 Standards-Version: 4.3.0
 
 Package: divert-evolution
-Version: 1.3
+Version: 20250514.0
 Maintainer: none
 Depends: bash, dpkg
 Architecture: all
@@ -38,3 +38,4 @@ File: prerm
  divert_undo /usr/share/dbus-1/services/org.gnome.evolution.dataserver.Sources.service
  divert_undo /usr/share/dbus-1/services/org.gnome.evolution.dataserver.UserPrompter.service
  divert_undo /usr/lib/evolution/evolution-data-server/evolution-alarm-notify
+ divert_undo /etc/xdg/autostart/org.gnome.Evolution-alarm-notify.desktop

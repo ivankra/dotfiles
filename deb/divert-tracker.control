@@ -3,7 +3,7 @@ Priority: optional
 Standards-Version: 4.3.0
 
 Package: divert-tracker
-Version: 1.2
+Version: 20250514.0
 Maintainer: none
 Depends: bash, dpkg
 Architecture: all
@@ -23,6 +23,13 @@ File: postinst
  divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
  divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
  divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.portal.Tracker.service
+ divert_file /usr/share/tracker3-miners/miners/org.freedesktop.Tracker3.Miner.Files.service
+ divert_file /usr/libexec/tracker-miner-fs-3
+ divert_file /usr/lib/systemd/user/tracker-miner-fs-3.service
+ divert_file /usr/lib/systemd/user/tracker-miner-fs-control-3.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.Control.service
+ divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.service
 
 File: prerm
  #!/bin/bash
@@ -37,3 +44,10 @@ File: prerm
  divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
  divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
  divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.portal.Tracker.service
+ divert_undo /usr/share/tracker3-miners/miners/org.freedesktop.Tracker3.Miner.Files.service
+ divert_undo /usr/libexec/tracker-miner-fs-3
+ divert_undo /usr/lib/systemd/user/tracker-miner-fs-3.service
+ divert_undo /usr/lib/systemd/user/tracker-miner-fs-control-3.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.Control.service
+ divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.service
