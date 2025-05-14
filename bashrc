@@ -2,13 +2,18 @@
 # Note: this file is also sourced from ~/.profile by non-bash shells
 
 export EDITOR=vim
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US:en
-export LC_COLLATE=C
 export LESS=-FRSXi
 export LESSHISTFILE=-
 export PAGER=less
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
+
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US:en
+export LC_COLLATE=C
+export LC_MEASUREMENT=C  # metric
+export LC_PAPER=C  # A4
+# Also see /var/lib/AccountsService/users/*, Language=en_US.UTF-8
+# ~/.config/plasma-localerc
 
 # Paths {{{
 
@@ -102,10 +107,12 @@ alias l='ls -l'
 alias la='ls -la'
 alias le='less'
 alias ll='ls -l -h'
-if [[ "$TERM" == dumb ]]; then  # e.g. vim
-  alias ls='ls --group-directories-first'
-else
-  alias ls='ls --color=auto --group-directories-first'
+if [[ "$OSTYPE" != darwin* ]]; then
+  if [[ "$TERM" == dumb ]]; then  # e.g. vim
+    alias ls='ls --group-directories-first'
+  else
+    alias ls='ls --color=auto --group-directories-first'
+  fi
 fi
 alias mtr='mtr -bt'  # --show-ips --curses
 alias mv='mv -i'
