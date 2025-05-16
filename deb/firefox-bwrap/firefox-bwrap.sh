@@ -24,22 +24,28 @@ FLAGS=(
   --ro-bind /usr/local /usr/local
   --ro-bind /usr/share /usr/share
   --ro-bind /lib /lib
-  --ro-bind /lib64 /lib64
-  --bind /run/user/$UID/pulse /run/user/$UID/pulse
   --bind ~/.cache/mozilla ~/.cache/mozilla
   --bind ~/.mozilla ~/.mozilla
-  --bind "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)0"
   --ro-bind /etc /etc
   --ro-bind ~/.config ~/.config
   --unsetenv DBUS_SESSION_BUS_ADDRESS
   --unsetenv SESSION_MANAGER
   --setenv DISPLAY "$DISPLAY"
 )
+if [[ -d /lib64 ]]; then
+  FLAGS+=(--ro-bind /lib64 /lib64)
+fi
+if [[ -d /run/user/$UID/pulse ]]; then
+  FLAGS+=(--bind /run/user/$UID/pulse /run/user/$UID/pulse)
+fi
 
 if [[ -L ~/.cache && ! -d ~/.cache ]]; then
-  mkdir -m 0700 -p "$(readlink ~/.cache)" || true
+  mkdir -m 0700 -p "$(readlink ~/.cache)" || rm -f ~/.cache
 fi
 mkdir -m 0700 -p ~/.cache/mozilla ~/.mozilla "/tmp/mozilla_$(whoami)0"
+if [[ -d ~/Downloads ]]; then
+  FLAGS+=(--bind "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)0")
+fi
 
 if ! [[ -e "/tmp/mozilla_$(whoami)1" ]]; then
   ln -s "$(realpath ~/Downloads)" "/tmp/mozilla_$(whoami)1" || true
@@ -88,7 +94,7 @@ add_argdirs() {
     FLAGS+=(--chdir "$(realpath -s -- ".")")
   fi
 }
-add_argdirs "$(realpath ~/Downloads)" ~/Downloads /share
+add_argdirs "$(realpath ~/Downloads)" ~/Downloads ~/share
 add_argdirs --ro-bind "$@"
 
 export GTK_CSD=1  # fix titlebar hiding in cinnamon

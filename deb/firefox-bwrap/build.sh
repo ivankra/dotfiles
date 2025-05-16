@@ -13,9 +13,6 @@ get_latest_ver() {
   echo "$ver"
 }
 
-TMPDIR="$(mktemp -d)"
-trap 'set +eu; rm -rf "$TMPDIR"; exit 1;' ERR
-
 # Find latest release version
 VERSION=""
 case "${1:-release}" in
@@ -34,53 +31,64 @@ esac
 # Maybe download signing key
 rm -f firefox.asc
 wget -O firefox.asc "https://archive.mozilla.org/pub/firefox/releases/$VERSION/KEY"
-gpg -q --no-default-keyring --keyring "$TMPDIR/firefox.gpg" --import firefox.asc
 
-# Download release tarball
-URL="https://download.cdn.mozilla.net/pub/firefox/releases/$VERSION/linux-x86_64/en-US/firefox-$VERSION.tar.xz"
-TARBALL=$(basename "$URL")
-wget -O "$TMPDIR/$TARBALL" "$URL"
-wget -O "$TMPDIR/$TARBALL.asc" "$URL.asc"
-gpg --no-default-keyring --keyring "$TMPDIR/firefox.gpg" --verify "$TMPDIR/$TARBALL.asc" "$TMPDIR/$TARBALL"
+do_build() {
+  ARCH="$1"
 
-# Prepare package
-PKGDIR="$TMPDIR/pkg"
-mkdir -p "$PKGDIR/usr/local/lib"
-(set -x; cd "$PKGDIR/usr/local/lib" && tar xf "$TMPDIR/$TARBALL")
+  TMPDIR="$(mktemp -d)"
+  trap 'set +eu; rm -rf "$TMPDIR"; exit 1;' ERR
 
-if [[ "$(ls -A "$PKGDIR/usr/local/lib")" != "firefox" ]]; then
-  echo "Unexpected content in $TMPDIR/$TARBALL"
-  exit 1
-fi
+  gpg -q --no-default-keyring --keyring "$TMPDIR/firefox.gpg" --import firefox.asc
 
-mv "$PKGDIR/usr/local/lib/firefox" "$PKGDIR/usr/local/lib/firefox-bwrap"
-install -D -m 0644 ../../browser/gen/policies.json "$PKGDIR/usr/local/lib/firefox-bwrap/distribution/policies.json"
-install -D -m 0755 firefox-bwrap.sh "$PKGDIR/usr/local/lib/firefox-bwrap/firefox-bwrap.sh"
-mkdir -p "$PKGDIR/usr/local/bin"
-ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox-bwrap"
-ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox"
+  # Download release tarball
+  if [[ "$ARCH" == "amd64" ]]; then
+    URL="https://download.cdn.mozilla.net/pub/firefox/releases/$VERSION/linux-x86_64/en-US/firefox-$VERSION.tar.xz"
+  else
+    URL="https://download.cdn.mozilla.net/pub/firefox/releases/$VERSION/linux-aarch64/en-US/firefox-$VERSION.tar.xz"
+  fi
+  TARBALL=$(basename "$URL")
+  wget -O "$TMPDIR/$TARBALL" "$URL"
+  wget -O "$TMPDIR/$TARBALL.asc" "$URL.asc"
+  gpg --no-default-keyring --keyring "$TMPDIR/firefox.gpg" --verify "$TMPDIR/$TARBALL.asc" "$TMPDIR/$TARBALL"
 
-# Copy icons from an existing firefox installation
-ICON="firefox-esr"
-for path in /usr/share/icons/hicolor/128x128/apps/firefox.png \
-            /usr/share/icons/hicolor/16x16/apps/firefox.png \
-            /usr/share/icons/hicolor/32x32/apps/firefox.png \
-            /usr/share/icons/hicolor/48x48/apps/firefox.png \
-            /usr/share/icons/hicolor/64x64/apps/firefox.png \
-            /usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg; do
-  for product in firefox firefox-esr firefox-bwrap; do
-    spath=$(echo "$path" | sed -e "s/firefox/$product/")
-    dpath=$(echo "$path" | sed -e "s/firefox/firefox-bwrap/")
-    echo $spath $dpath
-    if [[ -f "$spath" ]]; then
-      install -D -m 0644 <(cat "$spath") "$PKGDIR$dpath"
-      ICON=firefox-bwrap
-      break
-    fi
+  # Prepare package
+  PKGDIR="$TMPDIR/pkg"
+  mkdir -p "$PKGDIR/usr/local/lib"
+  (set -x; cd "$PKGDIR/usr/local/lib" && tar xf "$TMPDIR/$TARBALL")
+
+  if [[ "$(ls -A "$PKGDIR/usr/local/lib")" != "firefox" ]]; then
+    echo "Unexpected content in $TMPDIR/$TARBALL"
+    exit 1
+  fi
+
+  mv "$PKGDIR/usr/local/lib/firefox" "$PKGDIR/usr/local/lib/firefox-bwrap"
+  install -D -m 0644 ../../browser/gen/policies.json "$PKGDIR/usr/local/lib/firefox-bwrap/distribution/policies.json"
+  install -D -m 0755 firefox-bwrap.sh "$PKGDIR/usr/local/lib/firefox-bwrap/firefox-bwrap.sh"
+  mkdir -p "$PKGDIR/usr/local/bin"
+  ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox-bwrap"
+  ln -sf "../lib/firefox-bwrap/firefox-bwrap.sh" "$PKGDIR/usr/local/bin/firefox"
+
+  # Copy icons from an existing firefox installation
+  ICON="firefox-esr"
+  for path in /usr/share/icons/hicolor/128x128/apps/firefox.png \
+              /usr/share/icons/hicolor/16x16/apps/firefox.png \
+              /usr/share/icons/hicolor/32x32/apps/firefox.png \
+              /usr/share/icons/hicolor/48x48/apps/firefox.png \
+              /usr/share/icons/hicolor/64x64/apps/firefox.png \
+              /usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg; do
+    for product in firefox firefox-esr firefox-bwrap; do
+      spath=$(echo "$path" | sed -e "s/firefox/$product/")
+      dpath=$(echo "$path" | sed -e "s/firefox/firefox-bwrap/")
+      echo $spath $dpath
+      if [[ -f "$spath" ]]; then
+        install -D -m 0644 <(cat "$spath") "$PKGDIR$dpath"
+        ICON=firefox-bwrap
+        break
+      fi
+    done
   done
-done
 
-install -D -m 0644 /dev/stdin "$PKGDIR/usr/share/applications/firefox-bwrap.desktop" <<EOF
+  install -D -m 0644 /dev/stdin "$PKGDIR/usr/share/applications/firefox-bwrap.desktop" <<EOF
 [Desktop Entry]
 Name=Firefox (bwrap)
 Comment=Browse the World Wide Web
@@ -97,17 +105,21 @@ StartupWMClass=Firefox
 StartupNotify=true
 EOF
 
-install -D /dev/stdin "$PKGDIR/DEBIAN/control" <<EOF
+  install -D /dev/stdin "$PKGDIR/DEBIAN/control" <<EOF
 Package: firefox-bwrap
 Version: ${VERSION}
 Section: dotfiles
 Priority: optional
 Maintainer: none
-Architecture: amd64
+Architecture: ${ARCH}
 Depends: bash, bubblewrap
 Description: Firefox bubblewrapped
 EOF
 
-fakeroot dpkg-deb --build "$PKGDIR" "firefox-bwrap_${VERSION}_amd64.deb"
+  fakeroot dpkg-deb --build "$PKGDIR" "firefox-bwrap_${VERSION}_${ARCH}.deb"
 
-rm -rf "$TMPDIR"
+  rm -rf "$TMPDIR"
+}
+
+do_build amd64
+do_build arm64
