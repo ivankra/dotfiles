@@ -102,15 +102,6 @@ cat dconf.json | ../bin/json2dconf | dconf load /
 cat dconf-panels.json | ../bin/json2dconf | dconf load /
 cat dconf-terminal.json | ../bin/json2dconf | dconf load /
 
-if hostnamectl | grep -q 'Hardware Model:.*Apple Virtualization'; then
-  # Under Apple's Virtualizaton Framework
-  dconf write /org/cinnamon/desktop/peripherals/mouse/natural-scroll true
-  dconf write /org/gnome/desktop/peripherals/mouse/natural-scroll true
-else
-  dconf write /org/cinnamon/desktop/peripherals/mouse/natural-scroll false
-  dconf write /org/gnome/desktop/peripherals/mouse/natural-scroll false
-fi
-
 for theme in Yaru Adwaita; do
   if [[ -d "/usr/share/themes/$theme" ]]; then
     dconf write /org/cinnamon/desktop/interface/gtk-theme "'$theme'"
@@ -175,6 +166,31 @@ fi
 #  "org/mate/desktop/background/primary-color": "'rgb(88,145,188)'",
 #  "org/mate/desktop/background/secondary-color": "'rgb(60,143,37)'",
 
+virt="$(systemd-detect-virt || true)"
+if ! systemd-detect-virt -q || [[ "$virt" == "" ]]; then
+  virt="none"
+fi
+
+if [[ "$virt" == "apple" ]]; then  # Apple's Virtualizaton Framework
+  dconf write /org/cinnamon/desktop/peripherals/mouse/natural-scroll true
+  dconf write /org/gnome/desktop/peripherals/mouse/natural-scroll true
+else
+  dconf write /org/cinnamon/desktop/peripherals/mouse/natural-scroll false
+  dconf write /org/gnome/desktop/peripherals/mouse/natural-scroll false
+fi
+
+if [[ "$virt" == "none" ]]; then
+  # Turn off the screen when inactive for: 30 min
+  dconf write /org/cinnamon/settings-daemon/plugins/power/sleep-display-ac 1800
+  dconf write /org/mate/power-manager/sleep-display-ac 1800
+  # Time before session is considered idle (starting screensaver / blank screen): 15 min
+  dconf write /org/cinnamon/desktop/session/idle-delay '"uint32 900"'
+  dconf write /org/gnome/desktop/session/idle-delay '"uint32 900"'
+  dconf write /org/mate/desktop/session/idle-delay 15  # in minutes
+  dconf write /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-timeout 7200
+  dconf write /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type "'blank'"
+  #dconf write /org/mate/power-manager/sleep-computer-ac 1200
+fi
 
 # Cinnamon applets' configs
 if [[ -x /usr/bin/cinnamon-session ]]; then
@@ -196,11 +212,13 @@ fi
 
 filter_apps() {
   for app in $*; do
-    if [[ -f "/usr/share/applications/$app" || (-x "/usr/bin/${app/.desktop}" && "$app" != firefox.desktop) ]]; then
+    if [[ -f "/usr/share/applications/$app" || -x "/usr/bin/${app/.desktop}" ]]; then
       echo "$app"
     elif [[ "$app" == nemo.desktop && -x /usr/bin/nautilus ]]; then
       echo org.gnome.Nautilus.desktop
-    elif [[ "$app" == firefox.desktop && -x /usr/bin/firefox-esr ]]; then
+    elif [[ "$app" == firefox-bwrap.desktop && -f /usr/share/applications/firefox.desktop ]]; then
+      echo firefox.desktop
+    elif [[ "$app" == firefox-bwrap.desktop && -f /usr/share/applications/firefox-esr.desktop ]]; then
       echo firefox-esr.desktop
     elif [[ "$app" == google-chrome.desktop && -x /usr/bin/chromium ]]; then
       echo chromium.desktop
@@ -212,7 +230,7 @@ filter_apps() {
 dconf write /org/cinnamon/favorite-apps \
   "$(filter_apps \
        google-chrome.desktop \
-       firefox.desktop \
+       firefox-bwrap.desktop \
        org.gnome.Terminal.desktop \
        nemo.desktop \
      | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
@@ -221,7 +239,9 @@ dconf write /org/cinnamon/favorite-apps \
 dconf write /org/gnome/shell/favorite-apps \
   "$(filter_apps \
        google-chrome.desktop \
-       firefox.desktop \
+       chromium.desktop \
+       firefox-bwrap.desktop \
+       firefox-esr.desktop \
        org.gnome.Terminal.desktop \
        nemo.desktop \
      | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
@@ -231,7 +251,7 @@ mkdir -p ~/Desktop
 for x in $(filter_apps \
        google-chrome.desktop \
        chromium.desktop \
-       firefox.desktop \
+       firefox-bwrap.desktop \
        firefox-esr.desktop \
        org.gnome.Terminal.desktop \
      ); do
@@ -240,6 +260,9 @@ for x in $(filter_apps \
     # Mark as trusted
     chmod a+x ~/Desktop/"$x"
     gio set ~/Desktop/"$x" metadata::trusted true || true
+  fi
+  if [[ -f ~/Desktop/"$x" ]]; then
+    sed -i -e 's/Name=Chromium Web Browser/Name=Chromium/' ~/Desktop/"$x"
   fi
 done
 
@@ -254,5 +277,7 @@ fi
 
 rm -f ~/.face ~/.face.icon
 echo yes >~/.config/gnome-initial-setup-done
-#echo org.gnome.Terminal.desktop >~/.config/X-Cinnamon-xdg-terminals.list
-#echo org.gnome.Terminal.desktop >~/.config/xdg-terminals.list
+if [[ -x /usr/bin/gnome-terminal ]]; then
+  echo org.gnome.Terminal.desktop >~/.config/X-Cinnamon-xdg-terminals.list
+  echo org.gnome.Terminal.desktop >~/.config/xdg-terminals.list
+fi
