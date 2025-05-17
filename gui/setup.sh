@@ -1,8 +1,24 @@
 #!/bin/bash
+# Usage: setup.sh [--dark|--light] [--hi-dpi|--low-dpi]
 set -e -o pipefail
 
 SCRIPT_PATH=$(readlink -f "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
+HIDPI=${HIDPI:-}
+DARK_THEME=${DARK_THEME:-}
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case "$1" in
+    --hi-dpi)  HIDPI=1;;
+    --low-dpi) HIDPI=0;;
+    --dark)    DARK_THEME=1;;
+    --light)   DARK_THEME=0;;
+    *)         echo "Unknown parameter: $1"; exit 1;;
+  esac
+  shift
+done
 
 if [[ $UID == 0 ]]; then
   # Doesn't normally make sense to run GUI setup under root.
@@ -10,7 +26,7 @@ if [[ $UID == 0 ]]; then
   SCRIPT_USER=$(stat -c %U "$SCRIPT_PATH")
   if [[ "$SCRIPT_PATH" == "/home/$SCRIPT_USER/"* ]]; then
     echo "Will run GUI setup under $SCRIPT_USER"
-    (set -x; sudo -u "$SCRIPT_USER" "$SCRIPT_PATH")
+    (set -x; sudo -u "$SCRIPT_USER" --preserve-env=HIDPI,DARK_THEME "$SCRIPT_PATH" "$@")
     exit $?
   fi
   echo "Refusing to run under root"
@@ -104,6 +120,9 @@ cat dconf-terminal.json | ../bin/json2dconf | dconf load /
 
 for theme in Yaru Adwaita; do
   if [[ -d "/usr/share/themes/$theme" ]]; then
+    if [[ "$DARK_THEME" == 1 ]]; then
+      theme+="-dark"
+    fi
     dconf write /org/cinnamon/desktop/interface/gtk-theme "'$theme'"
     dconf write /org/gnome/desktop/interface/gtk-theme "'$theme'"
     dconf write /org/mate/desktop/interface/gtk-theme "'$theme'"
@@ -120,16 +139,39 @@ for theme in Humanity suru gnome-human Adwaita Moka; do
   fi
 done
 
+if [[ "$DARK_THEME" == 1 ]]; then
+  dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
+  dconf write /org/x/apps/portal/color-scheme "'prefer-dark'"
+else
+  dconf write /org/gnome/desktop/interface/color-scheme "'default'"
+  dconf write /org/x/apps/portal/color-scheme "'default'"
+fi
+
 interface_font="Noto Sans 9"
+doc_font="Noto Sans 11"
+desktop_font="Noto Sans 11"
+
+if [[ "$HIDPI" == "0" ]]; then
+  dconf write /org/cinnamon/desktop/interface/scaling-factor 'uint32 1'
+  dconf write /org/gnome/desktop/interface/scaling-factor 'uint32 1'
+  dconf write /org/gnome/desktop/interface/text-scaling-factor 1.15
+  dconf write /org/mate/desktop/interface/window-scaling-factor 1
+  dconf write /org/gnome/gnome-panel/layout/toplevels/top-panel/size 32
+  interface_font="Noto Sans 11"
+else
+  dconf write /org/cinnamon/desktop/interface/scaling-factor 'uint32 2'
+  dconf write /org/gnome/desktop/interface/scaling-factor 'uint32 2'
+  dconf write /org/gnome/desktop/interface/text-scaling-factor 1.0
+  dconf write /org/mate/desktop/interface/window-scaling-factor 2
+fi
+
 dconf write /org/cinnamon/desktop/interface/font-name "'$interface_font'"
 dconf write /org/gnome/desktop/interface/font-name "'$interface_font'"
 dconf write /org/mate/desktop/interface/font-name "'$interface_font'"
 
-doc_font="Noto Sans 11"
 dconf write /org/gnome/desktop/interface/document-font-name "'$doc_font'"
 dconf write /org/mate/desktop/interface/document-font-name "'$doc_font'"
 
-desktop_font="Noto Sans 11"
 dconf write /org/nemo/desktop/font "'$desktop_font'"
 dconf write /org/mate/caja/desktop/font "'$desktop_font'"
 
@@ -184,12 +226,15 @@ if [[ "$virt" == "none" ]]; then
   dconf write /org/cinnamon/settings-daemon/plugins/power/sleep-display-ac 1800
   dconf write /org/mate/power-manager/sleep-display-ac 1800
   # Time before session is considered idle (starting screensaver / blank screen): 15 min
-  dconf write /org/cinnamon/desktop/session/idle-delay '"uint32 900"'
-  dconf write /org/gnome/desktop/session/idle-delay '"uint32 900"'
+  dconf write /org/cinnamon/desktop/session/idle-delay 'uint32 900'
+  dconf write /org/gnome/desktop/session/idle-delay 'uint32 900'
   dconf write /org/mate/desktop/session/idle-delay 15  # in minutes
+
   dconf write /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-timeout 7200
   dconf write /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type "'blank'"
   #dconf write /org/mate/power-manager/sleep-computer-ac 1200
+
+  dconf write /org/gnome/gnome-panel/layout/object-id-list "['menu-bar', 'notification-area', 'system-indicators', 'clock', 'user-menu', 'window-list', 'multiload', 'workspace-switcher', 'launcher', 'launcher-0', 'launcher-1', 'launcher-2', 'launcher-3', 'launcher-4']"
 fi
 
 # Cinnamon applets' configs
@@ -233,7 +278,7 @@ dconf write /org/cinnamon/favorite-apps \
        firefox-bwrap.desktop \
        org.gnome.Terminal.desktop \
        nemo.desktop \
-     | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
+     | uniq | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
 
 # Gnome dash pinned apps
 dconf write /org/gnome/shell/favorite-apps \
@@ -244,26 +289,101 @@ dconf write /org/gnome/shell/favorite-apps \
        firefox-esr.desktop \
        org.gnome.Terminal.desktop \
        nemo.desktop \
-     | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
+     | uniq | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
+
+# Flashback panel launchers
+flashback_objlist=$(dconf read /org/gnome/gnome-panel/layout/object-id-list | sed -e "s/, 'launcher-*[0-9]*'//g" | tr -d '[]')
+flashback_n=0
+for app in \
+  $(filter_apps \
+      google-chrome.desktop \
+      chromium.desktop \
+      firefox-bwrap.desktop \
+      org.gnome.Terminal.desktop \
+      nemo.desktop \
+      virt-manager.desktop \
+      org.keepassxc.KeePassXC.desktop \
+    | uniq); do
+  if [[ -f /usr/share/applications/"$app" ]]; then
+    if [[ "$((++flashback_n))" == "1" ]]; then
+      launcher="launcher"
+    else
+      launcher="launcher-$((flashback_n-2))"
+    fi
+    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/instance-config/location "'/usr/share/applications/$app'"
+    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/object-iid "'org.gnome.gnome-panel.launcher::launcher'"
+    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/pack-index $flashback_n
+    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/pack-type "'start'"
+    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/toplevel-id "'top-panel'"
+    flashback_objlist+=", '$launcher'"
+  fi
+done
+dconf write /org/gnome/gnome-panel/layout/object-id-list "[$flashback_objlist]"
+
+# Cinnamon panel launchers
+cinnamon_panel_launchers=$( \
+  filter_apps \
+    google-chrome.desktop \
+    chromium.desktop \
+    firefox-bwrap.desktop \
+    org.gnome.Terminal.desktop \
+    nemo.desktop \
+    virt-manager.desktop \
+    org.keepassxc.KeePassXC.desktop \
+  | uniq)
+if [[ -f ~/.config/cinnamon/spices/panel-launchers@cinnamon.org/ ]]; then
+  cat >~/.config/cinnamon/spices/panel-launchers@cinnamon.org/1.json <<EOF
+{
+    "section1": {
+        "type": "section",
+        "description": "Behavior"
+    },
+    "launcherList": {
+        "type": "generic",
+        "default": [
+            "firefox.desktop",
+            "org.gnome.Terminal.desktop",
+            "nemo.desktop"
+        ],
+        "value": [
+            "$(echo $cinnamon_panel_launchers | tr -d '\n' | sed -e 's/ /", "/g')"
+        ]
+    },
+    "allow-dragging": {
+        "type": "switch",
+        "default": true,
+        "description": "Allow dragging of launchers",
+        "value": true
+    },
+    "__md5__": "366f8e129abf9622014c95f26ce5aa0f"
+}
+EOF
+fi
 
 # Desktop icons
 mkdir -p ~/Desktop
-for x in $(filter_apps \
-       google-chrome.desktop \
-       chromium.desktop \
-       firefox-bwrap.desktop \
-       firefox-esr.desktop \
-       org.gnome.Terminal.desktop \
-     ); do
+for x in \
+  $(filter_apps \
+      google-chrome.desktop \
+      chromium.desktop \
+      firefox-bwrap.desktop \
+      firefox-esr.desktop \
+      org.gnome.Terminal.desktop \
+    | uniq); do
   if ! [[ -f ~/Desktop/"$x" && -f /usr/share/applications/"$x" ]]; then
-    cp /usr/share/applications/"$x" ~/Desktop/"$x"
-    # Mark as trusted
-    chmod a+x ~/Desktop/"$x"
-    gio set ~/Desktop/"$x" metadata::trusted true || true
+    cat /usr/share/applications/"$x" >~/Desktop/"$x"
   fi
   if [[ -f ~/Desktop/"$x" ]]; then
-    sed -i -e 's/Name=Chromium Web Browser/Name=Chromium/' ~/Desktop/"$x"
+    tmp=$(mktemp)  # avoid spurious sedXXXXXX files on desktop from sed -i
+    sed -e 's/Name=Chromium Web Browser/Name=Chromium/; s/Name=Google Chrome/Name=Chrome/' <~/Desktop/"$x" >"$tmp"
+    if ! cmp -s "$tmp" ~/Desktop/"$x" >/dev/null 2>&1; then
+      cat "$tmp" >~/Desktop/"$x"
+    fi
+    rm -f "$tmp"
   fi
+  # Mark as trusted
+  chmod a+x ~/Desktop/"$x"
+  gio set ~/Desktop/"$x" metadata::trusted true || true
 done
 
 # Autostart
@@ -272,8 +392,12 @@ if [[ -f /usr/share/applications/guake.desktop && ! -f ~/.config/autostart/guake
   cp -af /usr/share/applications/guake.desktop ~/.config/autostart/guake.desktop
 fi
 
-# TODO cinnamon/flashback panel lauchers
-# TODO default apps ~/.config/mimelist
+# wget https://raw.githubusercontent.com/dracula/gedit/master/dracula.xml
+if [[ -x /usr/bin/gedit ]]; then
+  mkdir -p ~/.local/share/gedit/styles
+  cp -f gedit-dracula.xml ~/.local/share/gedit/styles/gedit-dracula.xml
+  dconf write /org/gnome/gedit/preferences/editor/scheme "'dracula'"
+fi
 
 rm -f ~/.face ~/.face.icon
 echo yes >~/.config/gnome-initial-setup-done
@@ -281,3 +405,5 @@ if [[ -x /usr/bin/gnome-terminal ]]; then
   echo org.gnome.Terminal.desktop >~/.config/X-Cinnamon-xdg-terminals.list
   echo org.gnome.Terminal.desktop >~/.config/xdg-terminals.list
 fi
+
+# TODO default apps ~/.config/mimelist
