@@ -87,32 +87,18 @@ if hash R >/dev/null 2>&1; then
   setup_ln Rprofile
 fi
 
-mkdir -p ~/.local/share/applications
-
 if [[ $UID != 0 ]]; then
   setup_cp mpv-input.conf ~/.config/mpv/input.conf
   setup_cp vlcrc ~/.config/vlc/vlcrc
   setup_gen <(./mpv.conf.sh) ~/.config/mpv/mpv.conf
-  if hash code >/dev/null 2>&1; then
-    envsubst <code.desktop >~/.local/share/applications/code.desktop
-    setup_ln code ~/.local/bin/code
-  fi
-  if hash keepassxc >/dev/null 2>&1; then
-    setup_cp keepassxc.desktop ~/.local/share/applications/org.keepassxc.KeePassXC.desktop
-    setup_ln keepassxc.ini ~/.config/keepassxc/keepassxc.ini
-  fi
   if hash tkdiff >/dev/null 2>&1; then
     setup_ln tkdiffrc
-  fi
-  if hash virt-manager >/dev/null 2>&1; then
-    setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
   fi
   if hash xonsh >/dev/null 2>&1; then
     setup_ln xonshrc
   fi
   if [[ "$OSTYPE" != darwin* ]]; then
     setup_ln fcitx5 ~/.config/fcitx5
-    setup_cp gnome-system-monitor.desktop ~/.local/share/applications/gnome-system-monitor.desktop
     setup_cp okularpartrc ~/.config/okularpartrc
     setup_ln plasma-localerc ~/.config/plasma-localerc
     setup_cp qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
@@ -120,6 +106,20 @@ if [[ $UID != 0 ]]; then
     setup_gen <(./qt5ct.sh) ~/.config/qt5ct/qt5ct.conf
     setup_ln xinitrc
     setup_ln xsessionrc
+
+    mkdir -p ~/.local/share/applications
+    setup_cp gnome-system-monitor.desktop ~/.local/share/applications/gnome-system-monitor.desktop
+    if hash code >/dev/null 2>&1; then
+      envsubst <code.desktop >~/.local/share/applications/code.desktop
+      setup_ln code ~/.local/bin/code
+    fi
+    if hash keepassxc >/dev/null 2>&1; then
+      setup_cp keepassxc.desktop ~/.local/share/applications/org.keepassxc.KeePassXC.desktop
+      setup_ln keepassxc.ini ~/.config/keepassxc/keepassxc.ini
+    fi
+    if hash virt-manager >/dev/null 2>&1; then
+      setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
+    fi
   fi
 elif [[ "$OSTYPE" != darwin* ]]; then
   mkdir -m 0700 -p ~/.synaptic
