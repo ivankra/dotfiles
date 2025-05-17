@@ -3,7 +3,7 @@ Priority: optional
 Standards-Version: 4.3.0
 
 Package: divert-tracker
-Version: 20250514.0
+Version: 20250517.0
 Maintainer: none
 Depends: bash, dpkg
 Architecture: all
@@ -18,18 +18,24 @@ File: postinst
    mkdir -p -m 0755 "$(dirname "$1")"
    ln -sf /dev/null "$1"
  }
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.portal.Tracker.service
- divert_file /usr/share/tracker3-miners/miners/org.freedesktop.Tracker3.Miner.Files.service
- divert_file /usr/libexec/tracker-miner-fs-3
+ divert_file /etc/xdg/autostart/localsearch-3.desktop
+ divert_file /etc/xdg/autostart/tracker-miner-fs-3.desktop
+ divert_file /usr/bin/localsearch
+ divert_file /usr/bin/tracker3
+ divert_file /usr/lib/systemd/user/localsearch-3.service
+ divert_file /usr/lib/systemd/user/localsearch-control-3.service
+ divert_file /usr/lib/systemd/user/localsearch-writeback-3.service
+ divert_file /usr/lib/systemd/user/tracker-extract-3.service
  divert_file /usr/lib/systemd/user/tracker-miner-fs-3.service
  divert_file /usr/lib/systemd/user/tracker-miner-fs-control-3.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.Control.service
- divert_file /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.service
+ divert_file /usr/lib/systemd/user/tracker-writeback-3.service
+ divert_file /usr/libexec/localsearch-3
+ divert_file /usr/libexec/localsearch-control-3
+ divert_file /usr/libexec/localsearch-writeback-3
+ divert_file /usr/libexec/tracker-extract-3
+ divert_file /usr/libexec/tracker-miner-fs-3
+ divert_file /usr/libexec/tracker-miner-fs-control-3
+ divert_file /usr/libexec/tracker-writeback-3
 
 File: prerm
  #!/bin/bash
@@ -39,15 +45,21 @@ File: prerm
    fi
    dpkg-divert --rename --remove "$1"
  }
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Applications.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Files.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Miner.Extract.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker1.Writeback.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.portal.Tracker.service
- divert_undo /usr/share/tracker3-miners/miners/org.freedesktop.Tracker3.Miner.Files.service
- divert_undo /usr/libexec/tracker-miner-fs-3
+ divert_undo /etc/xdg/autostart/localsearch-3.desktop
+ divert_undo /etc/xdg/autostart/tracker-miner-fs-3.desktop
+ divert_undo /usr/bin/localsearch
+ divert_undo /usr/bin/tracker3
+ divert_undo /usr/lib/systemd/user/localsearch-3.service
+ divert_undo /usr/lib/systemd/user/localsearch-control-3.service
+ divert_undo /usr/lib/systemd/user/localsearch-writeback-3.service
+ divert_undo /usr/lib/systemd/user/tracker-extract-3.service
  divert_undo /usr/lib/systemd/user/tracker-miner-fs-3.service
  divert_undo /usr/lib/systemd/user/tracker-miner-fs-control-3.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.Control.service
- divert_undo /usr/share/dbus-1/services/org.freedesktop.Tracker3.Miner.Files.service
+ divert_undo /usr/lib/systemd/user/tracker-writeback-3.service
+ divert_undo /usr/libexec/localsearch-3
+ divert_undo /usr/libexec/localsearch-control-3
+ divert_undo /usr/libexec/localsearch-writeback-3
+ divert_undo /usr/libexec/tracker-extract-3
+ divert_undo /usr/libexec/tracker-miner-fs-3
+ divert_undo /usr/libexec/tracker-miner-fs-control-3
+ divert_undo /usr/libexec/tracker-writeback-3
