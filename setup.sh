@@ -108,7 +108,7 @@ if [[ $UID != 0 ]]; then
     setup_ln xsessionrc
 
     mkdir -p ~/.local/share/applications
-    setup_cp gnome-system-monitor.desktop ~/.local/share/applications/gnome-system-monitor.desktop
+    rm -f ~/.local/share/applications/gnome-system-monitor.desktop
     if hash code >/dev/null 2>&1; then
       envsubst <code.desktop >~/.local/share/applications/code.desktop
       setup_ln code ~/.local/bin/code
