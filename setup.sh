@@ -121,9 +121,10 @@ if [[ $UID != 0 ]]; then
       setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
     fi
   fi
-elif [[ "$OSTYPE" != darwin* ]]; then
-  mkdir -m 0700 -p ~/.synaptic
-  setup_cp synaptic.conf ~/.synaptic/synaptic.conf
+elif [[ -x /usr/sbin/synaptic ]]; then
+  mkdir -m 0700 -p ~/.config/synaptic
+  rm -rf ~/.synaptic
+  setup_cp synaptic.conf ~/.config/synaptic/synaptic.conf
   if [[ -f /var/lib/synaptic/preferences ]]; then
     if ! [[ -s /var/lib/synaptic/preferences ]]; then
       rm -f /var/lib/synaptic/preferences || true
