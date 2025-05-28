@@ -17,13 +17,21 @@ export LC_PAPER=C  # A4
 
 # Paths {{{
 
+if [ -z "$GOPATH" ]; then
+  export GOPATH=~/.go
+fi
+
+if [ -z "$GOROOT" ]; then
+  if [ -d ~/.local/go ]; then
+    export GOROOT=~/.local/go
+  elif [ -d /usr/local/go ]; then
+    export GOROOT=/usr/local/go
+  fi
+fi
+
 if [ -z "$CUDA_ROOT$CUDA_PATH" ] && [ -d /usr/local/cuda ]; then
   export CUDA_ROOT=/usr/local/cuda
   export CUDA_PATH=/usr/local/cuda
-fi
-
-if [ -z "$GOPATH" ]; then
-  export GOPATH=~/.go
 fi
 
 if [ -z "$CONDA_ROOT" ]; then
@@ -45,6 +53,7 @@ __maybe_prepend_path /usr/bin
 __maybe_prepend_path /usr/local/bin
 __maybe_prepend_path "$CUDA_ROOT/bin"
 __maybe_prepend_path "$CONDA_ROOT/bin"
+__maybe_prepend_path "$GOROOT/bin"
 __maybe_prepend_path "$GOPATH/bin"
 __maybe_prepend_path ~/.dotfiles/bin
 __maybe_prepend_path ~/.iac/bin

@@ -1,5 +1,0 @@
-#!/bin/bash
-# which printing fully resolving symlinks
-set -o pipefail
-which "$@" | xargs realpath -P
-exit $?
