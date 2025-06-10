@@ -17,7 +17,6 @@ function __reset_colorfgbg() {
         "$TERM" == "screen.linux" ||
         "$TERM" == "cygwin" ||
         "$TERM" == "putty" ||
-        "$TERM_PROGRAM" == "iTerm.app" ||
         -n "$CHROME_REMOTE_DESKTOP_DEFAULT_DESKTOP_SIZES" || # ssh applet
         -n "$GUAKE_TAB_UUID" ||   # guake
         -n "$PYXTERM_DIMENSIONS"  # jupyterlab
@@ -26,7 +25,10 @@ function __reset_colorfgbg() {
   else
     local prev_stty="$(stty -g)"
     stty raw -echo min 0 time 0
-    echo -e -n '\e]11;?\e\\'
+
+    # https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
+    # Query VT100 text background color
+    echo -e -n '\033]11;?\033\\'
 
     # sometimes terminal can be slow to respond
     local response=""
