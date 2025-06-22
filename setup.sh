@@ -32,27 +32,27 @@ if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
 fi
 
-xfsdir="/xfs/$UID"
-if [[ -d "$xfsdir" ]] && chmod o-rwx "$xfsdir"; then
-  mkdir -p ~/.local/share
-  for srcdst in \
-      "$HOME/.local/share/containers=$xfsdir/containers" \
-      "$HOME/.cache=$xfsdir/cache" \
-    ; do
-    src_dir="${srcdst%=*}"
-    ext_dir="${srcdst#*=}"
-    if mkdir -m 0700 -p "$ext_dir" && chmod 0700 "$ext_dir"; then
-      if [[ -d "$src_dir" ]] && ! [[ -L "$src_dir" ]]; then
-        echo "Ignoring $src_dir - existing directory, not symlinking to $ext_dir"
-      elif ! [[ -L "$src_dir" && "$(readlink "$src_dir")" == "$ext_dir" ]]; then
-        if [[ -L "$src_dir" ]]; then
-          (set -x; rm -f "$src_dir")
-        fi
-        (set -x; ln -sf "$ext_dir" "$src_dir")
-      fi
-    fi
-  done
-fi
+#xfsdir="/xfs/$UID"
+#if [[ -d "$xfsdir" ]] && chmod o-rwx "$xfsdir"; then
+#  mkdir -p ~/.local/share
+#  for srcdst in \
+#      "$HOME/.local/share/containers=$xfsdir/containers" \
+#      "$HOME/.cache=$xfsdir/cache" \
+#    ; do
+#    src_dir="${srcdst%=*}"
+#    ext_dir="${srcdst#*=}"
+#    if mkdir -m 0700 -p "$ext_dir" && chmod 0700 "$ext_dir"; then
+#      if [[ -d "$src_dir" ]] && ! [[ -L "$src_dir" ]]; then
+#        echo "Ignoring $src_dir - existing directory, not symlinking to $ext_dir"
+#      elif ! [[ -L "$src_dir" && "$(readlink "$src_dir")" == "$ext_dir" ]]; then
+#        if [[ -L "$src_dir" ]]; then
+#          (set -x; rm -f "$src_dir")
+#        fi
+#        (set -x; ln -sf "$ext_dir" "$src_dir")
+#      fi
+#    fi
+#  done
+#fi
 
 if [[ -f ~/.dotfiles/gitconfig.local ]]; then
   setup_ln gitconfig.local ~/.gitconfig
