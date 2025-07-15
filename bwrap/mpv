@@ -5,7 +5,6 @@ source "${SCRIPT%/*}/lib.sh"
 FLAGS=(
   ${X11_FLAGS[@]}
   --bind-try /run/user/$UID/pulse /run/user/$UID/pulse
-  --ro-bind /etc /etc
   --ro-bind /usr/bin/mpv /usr/bin/mpv
   --ro-bind-try ~/.config/dconf ~/.config/dconf
   --ro-bind-try ~/.config/mpv ~/.config/mpv
@@ -18,9 +17,9 @@ for arg in "$@"; do
   if [[ "$arg" =~ ^https?://.* ]]; then
     FLAGS+=(--share-net)
   elif [[ -f "$arg" ]]; then
-    FLAGS+=(--ro-bind "$arg" "$arg")
+    FLAGS+=(--ro-bind "$(realpath "$arg")"  "$(realpath "$arg")")
     if [[ -f "$arg.srt" ]]; then
-      FLAGS+=(--ro-bind "$arg.srt" "$arg.srt")
+      FLAGS+=(--ro-bind "$(realpath "$arg.srt")"  "$(realpath "$arg.srt")")
     fi
   fi
 done

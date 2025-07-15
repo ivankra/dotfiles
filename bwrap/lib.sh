@@ -66,7 +66,13 @@ add_argdirs_ro() {
 
 
 MIN_FLAGS=(
-  --unshare-all
+  #--unshare-all
+  --unshare-user-try
+  #--unshare-ipc
+  --unshare-pid
+  --unshare-net
+  --unshare-uts
+  --unshare-cgroup-try
   --cap-drop ALL
   --new-session
   --die-with-parent
@@ -77,7 +83,7 @@ MIN_FLAGS=(
   --ro-bind /usr/lib /usr/lib
   --ro-bind /usr/share /usr/share
   --ro-bind /lib /lib
-  --ro-bind /etc/fonts /etc/fonts
+  --ro-bind /etc /etc
 )
 if [[ -d /lib64 ]]; then
   MIN_FLAGS+=(--ro-bind /lib64 /lib64)

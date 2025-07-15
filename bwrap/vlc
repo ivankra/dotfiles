@@ -10,7 +10,6 @@ FLAGS=(
   --bind-try /run/user/$UID/pulse /run/user/$UID/pulse
   --bind-try ~/.config/vlc ~/.config/vlc
   --bind-try ~/.local/share/vlc ~/.local/share/vlc
-  --ro-bind /etc /etc
   --ro-bind /usr/bin/vlc /usr/bin/vlc
   --ro-bind-try ~/.config/dconf ~/.config/dconf
   --unsetenv SESSION_MANAGER
@@ -21,9 +20,9 @@ for arg in "$@"; do
   if [[ "$arg" =~ ^https?://.* ]]; then
     FLAGS+=(--share-net)
   elif [[ -f "$arg" ]]; then
-    FLAGS+=(--ro-bind "$arg" "$arg")
+    FLAGS+=(--ro-bind "$(realpath "$arg")"  "$(realpath "$arg")")
     if [[ -f "$arg.srt" ]]; then
-      FLAGS+=(--ro-bind "$arg.srt" "$arg.srt")
+      FLAGS+=(--ro-bind "$(realpath "$arg.srt")"  "$(realpath "$arg.srt")")
     fi
   fi
 done
