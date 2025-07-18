@@ -25,11 +25,10 @@ if [[ $UID == 0 ]]; then
   # Check if we can infer target user from script's path and if so, run under it.
   SCRIPT_USER=$(stat -c %U "$SCRIPT_PATH")
   if [[ "$SCRIPT_PATH" == "/home/$SCRIPT_USER/"* ]]; then
-    echo "Will run GUI setup under $SCRIPT_USER"
     (set -x; sudo -u "$SCRIPT_USER" --preserve-env=HIDPI,DARK_THEME "$SCRIPT_PATH" "$@")
     exit $?
   fi
-  echo "Refusing to run under root"
+  echo "Refusing to run under root" 2>&1
   exit 1
 fi
 
