@@ -177,7 +177,7 @@ setup_xfs_symlinks() {
     fi
   fi
 
-  if [[ $UID == 0 ]]; then
+  if [[ $UID == 0 || $USER == nobody || ! -d "/home/$USER" ]]; then
     return 0
   fi
 
