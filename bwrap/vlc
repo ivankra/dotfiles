@@ -6,8 +6,9 @@ mkdir -m 0700 -p ~/.config/vlc ~/.local/share/vlc
 
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind-try /run/user/$UID/bus /run/user/$UID/bus
-  --bind-try /run/user/$UID/pulse /run/user/$UID/pulse
+  #--ro-bind-try "${XDG_RUNTIME_DIR}/bus" "${XDG_RUNTIME_DIR}/bus"
+  --ro-bind-try "${XDG_RUNTIME_DIR}/pulse" "${XDG_RUNTIME_DIR}/pulse"
+  --ro-bind-try "${XDG_RUNTIME_DIR}/pipewire-0" "${XDG_RUNTIME_DIR}/pipewire-0"
   --bind-try ~/.config/vlc ~/.config/vlc
   --bind-try ~/.local/share/vlc ~/.local/share/vlc
   --ro-bind /usr/bin/vlc /usr/bin/vlc

@@ -4,7 +4,8 @@ source "${SCRIPT%/*}/lib.sh"
 
 FLAGS=(
   ${X11_FLAGS[@]}
-  --bind-try /run/user/$UID/pulse /run/user/$UID/pulse
+  --ro-bind-try "${XDG_RUNTIME_DIR}/pulse" "${XDG_RUNTIME_DIR}/pulse"
+  --ro-bind-try "${XDG_RUNTIME_DIR}/pipewire-0" "${XDG_RUNTIME_DIR}/pipewire-0"
   --ro-bind /usr/bin/mpv /usr/bin/mpv
   --ro-bind-try ~/.config/dconf ~/.config/dconf
   --ro-bind-try ~/.config/mpv ~/.config/mpv

@@ -2,28 +2,19 @@
 
 set -e -o pipefail
 
-add_nvidia() {
-  if glxinfo | grep '^OpenGL renderer string: Mesa'; then
-    return 0
-  fi
-
-  if [[ -c /dev/nvidiactl ]]; then
+add_gpu() {
+  if glxinfo | egrep '^OpenGL renderer string: (Mesa|virgl)' >/dev/null 2>&1; then
+    FLAGS+=(
+      --ro-bind /dev/dri /dev/dri
+      --ro-bind /sys/dev/char/ /sys/dev/char/
+      --ro-bind /sys/devices/pci0000:00/ /sys/devices/pci0000:00/
+    )
+  elif [[ -c /dev/nvidiactl ]]; then
     for f in /dev/dri /dev/nvidia-modeset /dev/nvidia[0-9] /dev/nvidiactl; do
       if [[ -e "$f" ]]; then
         FLAGS+=(--dev-bind "$f" "$f")
       fi
     done
-  fi
-}
-
-add_gpu() {
-  if glxinfo | grep '^OpenGL renderer string: Mesa'; then
-    FLAGS+=(
-      --bind-try /dev/dri /dev/dri
-      --ro-bind-try /sys /sys
-    )
-  elif [[ -c /dev/nvidiactl ]]; then
-    add_nvidia
   fi
 }
 
@@ -66,13 +57,7 @@ add_argdirs_ro() {
 
 
 MIN_FLAGS=(
-  #--unshare-all
-  --unshare-user-try
-  #--unshare-ipc
-  --unshare-pid
-  --unshare-net
-  --unshare-uts
-  --unshare-cgroup-try
+  --unshare-all
   --cap-drop ALL
   --new-session
   --die-with-parent
@@ -83,11 +68,9 @@ MIN_FLAGS=(
   --ro-bind /usr/lib /usr/lib
   --ro-bind /usr/share /usr/share
   --ro-bind /lib /lib
+  --ro-bind-try /lib64 /lib64
   --ro-bind /etc /etc
 )
-if [[ -d /lib64 ]]; then
-  MIN_FLAGS+=(--ro-bind /lib64 /lib64)
-fi
 
 X11_FLAGS=(
   ${MIN_FLAGS[@]}
