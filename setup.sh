@@ -32,28 +32,6 @@ if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
 fi
 
-#xfsdir="/xfs/$UID"
-#if [[ -d "$xfsdir" ]] && chmod o-rwx "$xfsdir"; then
-#  mkdir -p ~/.local/share
-#  for srcdst in \
-#      "$HOME/.local/share/containers=$xfsdir/containers" \
-#      "$HOME/.cache=$xfsdir/cache" \
-#    ; do
-#    src_dir="${srcdst%=*}"
-#    ext_dir="${srcdst#*=}"
-#    if mkdir -m 0700 -p "$ext_dir" && chmod 0700 "$ext_dir"; then
-#      if [[ -d "$src_dir" ]] && ! [[ -L "$src_dir" ]]; then
-#        echo "Ignoring $src_dir - existing directory, not symlinking to $ext_dir"
-#      elif ! [[ -L "$src_dir" && "$(readlink "$src_dir")" == "$ext_dir" ]]; then
-#        if [[ -L "$src_dir" ]]; then
-#          (set -x; rm -f "$src_dir")
-#        fi
-#        (set -x; ln -sf "$ext_dir" "$src_dir")
-#      fi
-#    fi
-#  done
-#fi
-
 if [[ -f ~/.dotfiles/gitconfig.local ]]; then
   setup_ln gitconfig.local ~/.gitconfig
 else
@@ -171,6 +149,62 @@ if [[ -f ~/.bash_history && ! -L ~/.bash_history ]]; then
   echo "Warning: orphan ~/.bash_history file"
   chmod og-rwx ~/.bash_history
 fi
+
+setup_xfs_symlinks() {
+  local xfsroot="/xfs"
+  local xfshome="/xfs/$USER"
+  local it
+
+  if [[ "$OSTYPE" == darwin* ]]; then
+    return 0
+  fi
+
+  if ! [[ -d "$xfshome" ]]; then
+    if [[ $UID != 0 && -d "$xfsroot" ]] && mountpoint "$xfsroot" >/dev/null 2>&1; then
+      mkdir -m 0750 "$xfshome" >/dev/null 2>&1 || true
+    fi
+    if ! [[ -d "$xfshome" ]]; then
+      # Remove possible dead symlinks, unless it seems like xfs isn't mounted
+      for it in ~/.local/share/containers ~/.cache; do
+        if [[ -L "$it" && ! -d "$it" ]]; then
+          if [[ "$(readlink "$it")" == $xfsroot/* ]] && fgrep " $xfsroot " /etc/fstab >/dev/null 2>&1; then
+            continue
+          fi
+          rm -f "$it"
+        fi
+      done
+      return 0
+    fi
+  fi
+
+  if [[ $UID == 0 ]]; then
+    return 0
+  fi
+
+  if ! [[ -d ~/.local/share ]]; then
+    mkdir -p -m 0700 ~/.local ~/.local/share
+  fi
+
+  for it in "$xfshome/containers=$HOME/.local/share/containers" "$xfshome/cache=$HOME/.cache"; do
+    local src="${it#*=}"
+    local target="${it%=*}"
+    if ! [[ -d "$target" ]]; then
+      mkdir -m 0750 "$target" || true
+      if ! [[ -d "$target" ]]; then
+        continue
+      fi
+    fi
+    if [[ -d "$src" ]]; then
+      continue
+    fi
+    if [[ -L "$src" ]]; then
+      rm -f "$src" || true
+    fi
+    ln -sf "$target" "$src"
+    echo "Symlinked $src -> $target"
+  done
+}
+setup_xfs_symlinks
 
 rm -rf python/dotfiles/__pycache__
 
