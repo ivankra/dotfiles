@@ -165,7 +165,7 @@ setup_xfs_symlinks() {
     fi
     if ! [[ -d "$xfshome" ]]; then
       # Remove possible dead symlinks, unless it seems like xfs isn't mounted
-      for it in ~/.local/share/containers ~/.cache; do
+      for it in ~/.local/share/{containers,flatpak} ~/.cache; do
         if [[ -L "$it" && ! -d "$it" ]]; then
           if [[ "$(readlink "$it")" == $xfsroot/* ]] && fgrep " $xfsroot " /etc/fstab >/dev/null 2>&1; then
             continue
@@ -185,7 +185,10 @@ setup_xfs_symlinks() {
     mkdir -p -m 0700 ~/.local ~/.local/share
   fi
 
-  for it in "$xfshome/containers=$HOME/.local/share/containers" "$xfshome/cache=$HOME/.cache"; do
+  for it in \
+      "$xfshome/cache=$HOME/.cache" \
+      "$xfshome/containers=$HOME/.local/share/containers" \
+      "$xfshome/flatpak=$HOME/.local/share/flatpak"; do
     local src="${it#*=}"
     local target="${it%=*}"
     if ! [[ -d "$target" ]]; then
