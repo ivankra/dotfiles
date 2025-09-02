@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+GIT_SSH_CONFIG="$SCRIPT_DIR/github-git.ssh-config"
+GIT_SSH_COMMAND="ssh -F $GIT_SSH_CONFIG"
+
+set -x
+git config --local user.name 'Ivan Krasilnikov'
+git config --local user.email '175570+ivankra@users.noreply.github.com'
+git config --local url."git@github.com:".pushInsteadOf "git://github.com/"
+git config --local url."git@github.com:".pushInsteadOf "https://github.com/"
+git config --local url."git@gist.github.com:".pushInsteadOf "git://gist.github.com/"
+if [[ -f $GIT_SSH_CONFIG ]]; then
+  git config --local core.sshCommand "$GIT_SSH_COMMAND"
+fi
