@@ -66,8 +66,8 @@ if has("autocmd")
   autocmd FileType asm,perl,lua,yaml    set sts=2 sw=2 et ai
   autocmd FileType make       set sts=0 sw=8 noet nowrap
   autocmd FileType cmake      set sts=4 sw=4 et nowrap
-  autocmd FileType html,xhtml set sts=4 sw=4 ts=8 et nowrap noai indentexpr=""
-  autocmd FileType sh,vim     set sts=2 sw=2 et autoindent
+  autocmd FileType html,xhtml,javascript set sts=2 sw=2 ts=8 et nowrap ai
+  autocmd FileType sh,vim     set sts=2 sw=2 et ai
   autocmd FileType ledger     source ~/.vim/ledger.vim
   autocmd FileType markdown   syn sync minlines=1000
   autocmd FileType dockerfile set ai sw=4 sts=4 ts=8 et
