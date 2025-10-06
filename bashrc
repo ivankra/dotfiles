@@ -109,6 +109,7 @@ alias got=git
 alias grep='grep --color=auto'
 alias gt=git
 alias gti=git
+alias httpserver='python3 -m http.server'  # httpserver [port]
 alias ip='ip --color=auto'
 alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
 alias json_pp='python3 -m json.tool --no-ensure-ascii --indent=2'  # NB overrides perl based /usr/bin/json_pp
