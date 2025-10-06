@@ -117,13 +117,6 @@ alias l='ls -l'
 alias la='ls -la'
 alias le='less'
 alias ll='ls -l -h'
-if [[ "$OSTYPE" != darwin* ]]; then
-  if [[ "$TERM" == dumb ]]; then  # e.g. vim
-    alias ls='ls --group-directories-first'
-  else
-    alias ls='ls --color=auto --group-directories-first'
-  fi
-fi
 alias mtr='mtr -bt'  # --show-ips --curses
 alias mv='mv -i'
 alias nb=jupyter-notebook
@@ -164,6 +157,22 @@ for _c in ifconfig iwconfig route sysctl zfs zpool; do
   fi
 done
 unset _c
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  export BASH_SILENCE_DEPRECATION_WARNING=1
+
+  if hash gls >/dev/null 2>&1; then
+    alias ls='gls --color=auto --group-directories-first'
+  fi
+else
+  if [[ "$TERM" == dumb ]]; then  # e.g. vim
+    alias ls='ls --group-directories-first'
+  else
+    alias ls='ls --color=auto --group-directories-first'
+  fi
+
+  alias ping=~/.dotfiles/bin/ping.sh
+fi
 
 # }}}
 
@@ -419,18 +428,6 @@ __bashrc_set_ps1() {
 __BASHRC_EPILOGUE+="__bashrc_set_ps1;"
 
 # TODO: https://redandblack.io/blog/2020/bash-prompt-with-updating-time/
-# }}}
-
-# OS X {{{
-
-if [[ "$OSTYPE" == darwin* ]]; then
-  export BASH_SILENCE_DEPRECATION_WARNING=1
-
-  if hash gls >/dev/null 2>&1; then
-    alias ls='gls --color=auto --group-directories-first'
-  fi
-fi
-
 # }}}
 
 if [[ $UID == 0 ]]; then
