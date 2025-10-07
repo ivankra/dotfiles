@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
-SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-GIT_SSH_CONFIG="$SCRIPT_DIR/github-git.ssh-config"
+GIT_SSH_CONFIG=$HOME/.ssh/github.config
 GIT_SSH_COMMAND="ssh -F $GIT_SSH_CONFIG"
 
 set -x
