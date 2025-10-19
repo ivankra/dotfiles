@@ -1,0 +1,46 @@
+# Customized Iosevka build plan
+# https://typeof.net/Iosevka/customizer
+
+[buildPlans.Iosevka]
+family = "Iosevka"
+spacing = "term"
+serifs = "sans"
+noCvSs = true
+exportGlyphNames = false
+noLigation = true
+
+[buildPlans.Iosevka.variants.design]
+zero = "tall-slashed"
+four = "closed-serifless"
+capital-d = "more-rounded-serifless"
+asterisk = "hex-low"
+brace = "straight"
+l = "tailed-serifed"
+number-sign = "slanted"
+at = "fourfold"
+percent = "rings-continuous-slash"
+
+[buildPlans.Iosevka.weights.Regular]
+shape = 400
+menu = 400
+css = 400
+
+[buildPlans.Iosevka.weights.Bold]
+shape = 700
+menu = 700
+css = 700
+
+[buildPlans.Iosevka.weights.Light]
+shape = 300
+menu = 300
+css = 300
+
+[buildPlans.Iosevka.weights.Medium]
+shape = 500
+menu = 500
+css = 500
+
+[buildPlans.Iosevka.weights.SemiBold]
+shape = 600
+menu = 600
+css = 600
