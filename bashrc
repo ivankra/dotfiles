@@ -160,10 +160,7 @@ unset _c
 
 if [[ "$OSTYPE" == darwin* ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
-
-  if hash gls >/dev/null 2>&1; then
-    alias ls='gls --color=auto --group-directories-first'
-  fi
+  alias ls='ls --color=auto'
 else
   if [[ "$TERM" == dumb ]]; then  # e.g. vim
     alias ls='ls --group-directories-first'
@@ -488,6 +485,10 @@ fi
 if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   true  # in case conda installer comments out below line causing syntax error
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
+fi
+
+if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
+  source ~/.dotfiles/iterm2/iterm2_shell_integration.bash
 fi
 
 if [[ -f ~/.dotfiles/bashrc.local ]]; then

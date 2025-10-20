@@ -9,16 +9,7 @@ set output-meta on
 "\e[3~": delete-char
 "\e[2~": quoted-insert
 
-# mappings for "page up" and "page down" to step to the beginning/end
-# of the history
-# "\e[5~": beginning-of-history
-# "\e[6~": end-of-history
-
-# alternate mappings for "page up" and "page down" to search the history
-# "\e[5~": history-search-backward
-# "\e[6~": history-search-forward
-
-# Ctrl-left-arrow / Ctrl-right-arrow
+# Ctrl-Left / Ctrl-Right
 "\e[1;5C": forward-word
 "\e[1;5D": backward-word
 "\e[5C": forward-word
@@ -47,7 +38,6 @@ set show-all-if-ambiguous on
 TAB: menu-complete
 "\e[Z": menu-complete-backward
 
-# Make Ctrl-W delete only till previous /
-#set bind-tty-special-chars off
-#"\C-w": unix-filename-rubout
+# Make Ctrl-Backspace delete part of the word till previous /
 "\C-H": unix-filename-rubout
+"\e[3;5~": unix-filename-rubout
