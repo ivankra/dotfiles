@@ -18,6 +18,14 @@ if ! [[ -f "$HOME/.dotfiles/setup.sh" && "$HOME/.dotfiles/setup.sh" -ef "$0" ]];
 fi
 cd ~/.dotfiles
 
+if [[ $UID == 0 ]]; then
+  ROOT_HOME="$(cat /etc/passwd | grep ^root: | cut -f 6 -d :)"
+  if ! [[ $HOME -ef $ROOT_HOME ]]; then
+    echo "Error: root's HOME=$HOME doesn't match home from /etc/passwd: $ROOT_HOME"
+    exit 1
+  fi
+fi
+
 remove_dotfiles_symlinks \
   ~/.config/autostart/gnome-keyring-ssh.desktop \
   ~/.config/mpv \
