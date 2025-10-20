@@ -8,4 +8,15 @@ if [[ -d /usr/share/themes/Yaru ]]; then
   export GTK_THEME=Yaru:dark
 fi
 
-exec /usr/bin/gvim "$@"
+for gvim in {,/usr}/{bin,sbin}/gvim; do
+  if [[ -x "$gvim" ]]; then
+    exec $gvim "$@"
+    exit $?
+  fi
+done
+
+if command -v vim >/dev/null 2>&1; then
+  exec vim "$@"
+else
+  exec vi "$@"
+fi
