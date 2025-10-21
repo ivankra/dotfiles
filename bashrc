@@ -15,57 +15,61 @@ export LC_PAPER=C  # A4
 # Also see /var/lib/AccountsService/users/*, Language=en_US.UTF-8
 # ~/.config/plasma-localerc
 
-# Paths {{{
-
-if [ -z "$GOPATH" ]; then
-  export GOPATH=~/.go
-fi
-
-if [ -z "$GOROOT" ]; then
-  if [ -d ~/.local/go ]; then
-    export GOROOT=~/.local/go
-  elif [ -d /usr/local/go ]; then
-    export GOROOT=/usr/local/go
-  fi
-fi
-
-if [ -z "$CUDA_ROOT$CUDA_PATH" ] && [ -d /usr/local/cuda ]; then
-  export CUDA_ROOT=/usr/local/cuda
-  export CUDA_PATH=/usr/local/cuda
-fi
-
-if [ -z "$CONDA_ROOT" ]; then
-  if [ -x ~/.conda/bin/conda ] && ! [ ~/.conda/bin/conda -ef /opt/conda/bin/conda ]; then
-    export CONDA_ROOT=~/.conda
-  elif [ -x /opt/conda/bin/conda ]; then
-    export CONDA_ROOT=/opt/conda
-  fi
-fi
-
-__maybe_prepend_path() {
-  case :$PATH: in *:$1:*) return;; esac  # for dash
-  if [ -d "$1" ]; then PATH="$1:$PATH"; fi
+# PATH {{{
+__setup_path_sh() {
+  local __dir
+  for __dir in /bin /usr/bin /usr/local/bin \
+               ~/.dotfiles/bin ~/.iac/bin ~/.local/bin ~/.bin ~/bin; do
+    case :$PATH: in *:$__dir:*) continue;; esac  # for dash
+    if [ -d "$__dir" ]; then PATH="$__dir:$PATH"; fi
+  done
 }
 
-# higher priority last
-__maybe_prepend_path /bin
-__maybe_prepend_path /usr/bin
-__maybe_prepend_path /usr/local/bin
-__maybe_prepend_path "$CUDA_ROOT/bin"
-__maybe_prepend_path "$CONDA_ROOT/bin"
-__maybe_prepend_path "$GOROOT/bin"
-__maybe_prepend_path "$GOPATH/bin"
-__maybe_prepend_path ~/.dotfiles/bin
-__maybe_prepend_path ~/.iac/bin
-__maybe_prepend_path ~/.local/bin
-__maybe_prepend_path ~/.bin
-__maybe_prepend_path ~/bin
+__setup_path_bash() {
+  if [[ -z "$GOPATH" ]]; then
+    export GOPATH=~/.go
+  fi
 
+  if [[ -z "$GOROOT" ]]; then
+    if [[ -d ~/.local/go ]]; then
+      export GOROOT=~/.local/go
+    elif [[ -d /usr/local/go ]]; then
+      export GOROOT=/usr/local/go
+    fi
+  fi
+
+  if [[ -z "$CUDA_ROOT$CUDA_PATH" && -d /usr/local/cuda ]]; then
+    export CUDA_ROOT=/usr/local/cuda
+    export CUDA_PATH=/usr/local/cuda
+  fi
+
+  if [[ -z "$CONDA_ROOT" ]]; then
+    if [[ -x ~/.conda/bin/conda ]] && ! [[ ~/.conda/bin/conda -ef /opt/conda/bin/conda ]]; then
+      export CONDA_ROOT=~/.conda
+    elif [[ -x /opt/conda/bin/conda ]]; then
+      export CONDA_ROOT=/opt/conda
+    fi
+  fi
+
+  # higher priority last
+  local __dir
+  for __dir in /bin /usr/bin /usr/local/bin \
+               "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" "$GOROOT/bin" "$GOPATH/bin" \
+               ~/.dotfiles/bin ~/.iac/bin ~/.local/bin ~/.bin ~/bin; do
+    if [[ :$PATH: != *:$__dir:* && -d "$__dir" ]]; then
+      PATH="$__dir:$PATH"
+    fi
+  done
+}
 # }}}
 
-if [ -z "$BASH_VERSION" ]; then
+if [ -z "${BASH_VERSION:-}" -a -z "${ZSH_VERSION:-}" ]; then
+  # not bash/zsh
+  __setup_path_sh
   return
 fi
+
+__setup_path_bash
 
 if [[ -z "$PS1" || -z "$HOME" ]]; then
   # non interactive
@@ -76,18 +80,18 @@ if [[ -z "$SHELL" && -f /bin/bash ]]; then
   export SHELL=/bin/bash
 fi
 
-shopt -s checkhash checkwinsize no_empty_cmd_completion
-if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
+if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
+  shopt -s checkhash checkwinsize no_empty_cmd_completion
+elif [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
   shopt -s autocd
 fi
 
+__BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
+
 # Aliases {{{
 
-alias ...='cd ...'
 alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
-alias b=byobu-tmux
-alias bat=batcat
 alias bc='bc -q'
 alias catf='tail --follow -c +0'
 alias cd..='cd ..'
@@ -98,7 +102,6 @@ alias df='df -h'
 alias diff='diff -u'
 alias dokcer=docker
 alias du='du -h'
-alias e=egrep
 alias eg=egrep
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
@@ -109,54 +112,63 @@ alias got=git
 alias grep='grep --color=auto'
 alias gt=git
 alias gti=git
-alias httpserver='python3 -m http.server'  # httpserver [port]
+alias http='python -m http.server'  # httpserver [port]
 alias ip='ip --color=auto'
 alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
-alias json_pp='python3 -m json.tool --no-ensure-ascii --indent=2'  # NB overrides perl based /usr/bin/json_pp
+alias json_pp='python -m json.tool --no-ensure-ascii --indent=2'  # NB overrides perl based /usr/bin/json_pp
 alias l='ls -l'
 alias la='ls -la'
 alias le='less'
 alias ll='ls -l -h'
 alias mtr='mtr -bt'  # --show-ips --curses
 alias mv='mv -i'
-alias nb=jupyter-notebook
 alias noping='noping -H 2'
 alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
-alias py2=ipython
-alias py3=ipython3
-alias py=ipython3
 alias rm='rm -i'
 alias rsync='rsync --info=progress2'
 alias rsyncp='rsync --info=progress2'
 alias sqlite3='sqlite3 -header -column'
 alias susl='sort | uniq -c | sort -nr | less'
-alias venv='python3 -m venv'
+alias venv='python -m venv'
 alias virt-manager='GDK_SCALE=1 virt-manager'
 
+# Alias name=cmd when name doesn't exist and cmd exists
 __maybe_alias() {
-  if ! hash "$1" >/dev/null 2>&1 && hash "$2" >/dev/null 2>&1; then
-    alias "$1"="$2"
+  local arg="$1"
+  local name="${arg%%=*}"
+  local cmd="${arg#*=}"
+  if ! hash "$name" >/dev/null 2>&1; then
+    if [[ "$cmd" == /* && -x "$cmd" ]]; then
+      alias "$name"="$cmd"
+    elif [[ "$cmd" != /* ]] && hash "$cmd" >/dev/null 2>&1; then
+      alias "$name"="$cmd"
+    fi
   fi
 }
-__maybe_alias blaze bazel
-__maybe_alias python python3
-__maybe_alias fd fdfind
-__maybe_alias docker podman
+__maybe_alias b=byobu-tmux
+__maybe_alias bat=batcat
+__maybe_alias blaze=bazel
+__maybe_alias docker=podman
+__maybe_alias fd=fdfind
+__maybe_alias ifconfig=/sbin/ifconfig
+__maybe_alias ipython=ipython3
+__maybe_alias iwconfig=/sbin/iwconfig
+__maybe_alias nb=jupyter-notebook
+__maybe_alias py=python3; __maybe_alias py=ipython3
+__maybe_alias python=python3
+__maybe_alias route=/sbin/route
+__maybe_alias speedify_cli=/usr/share/speedify/speedify_cli
+__maybe_alias sysctl=/sbin/sysctl
+__maybe_alias zfs=/sbin/zfs
+__maybe_alias zpool=/sbin/zpool
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
 date() { local arg=${1:--R}; shift; "$(which date)" "$arg" "$@"; }
 ts() { local arg=${1:-%.T}; shift; "$(which ts)" "$arg" "$@"; }
 alias tsd='ts "%Y-%m-%d %.T"'
-
-for _c in ifconfig iwconfig route sysctl zfs zpool; do
-  if ! hash "$_c" >/dev/null 2>&1 && [[ -x /sbin/"$_c" ]]; then
-    alias "$_c"=/sbin/"$_c"
-  fi
-done
-unset _c
 
 if [[ "$OSTYPE" == darwin* ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -167,17 +179,18 @@ else
   else
     alias ls='ls --color=auto --group-directories-first'
   fi
-
   alias ping=~/.dotfiles/bin/ping.sh
 fi
 
 # }}}
 
-# History {{{
+# Bash history {{{
 # * keep deduped in ~/.history/bash.YYYYMM files
 # * load last few months on startup
 # * append to last history file but don't read back
 # * force to re-read history: h
+
+if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
 
 shopt -s cmdhist histverify histreedit
 
@@ -269,11 +282,12 @@ else
   fi
 fi
 
+fi  # bash
 # }}}
 
-__BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
+# Bash prompt {{{
 
-# Prompt {{{
+if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
 
 # Fix messed up terminal input handling.
 __fix_term_input() {
@@ -422,17 +436,14 @@ __bashrc_set_ps1() {
   unset PS1_HOST
   unset __bashrc_set_ps1
 }
+
 __BASHRC_EPILOGUE+="__bashrc_set_ps1;"
 
-# TODO: https://redandblack.io/blog/2020/bash-prompt-with-updating-time/
+fi  # bash
 # }}}
 
 if [[ $UID == 0 ]]; then
   umask 027
-
-  if [[ -x /usr/share/speedify/speedify_cli ]]; then
-    alias speedify_cli=/usr/share/speedify/speedify_cli
-  fi
 fi
 
 if ! [[ -d ~/.ssh/socket ]]; then
@@ -470,25 +481,28 @@ if [[ -n "$VTE_VERSION" ]]; then
   fi
 fi
 
-if [[ -f /usr/share/bash-completion/bash_completion ]]; then
-  source /usr/share/bash-completion/bash_completion
-fi
-
-if [[ -f /usr/share/doc/fzf/examples/completion.bash ]]; then
-  source /usr/share/doc/fzf/examples/completion.bash
-fi
-
-if [[ -f /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
-  source /usr/share/doc/fzf/examples/key-bindings.bash
+if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
+  if [[ -f /usr/share/bash-completion/bash_completion ]]; then
+    source /usr/share/bash-completion/bash_completion
+  fi
+  if [[ -f /usr/share/doc/fzf/examples/completion.bash ]]; then
+    source /usr/share/doc/fzf/examples/completion.bash
+  fi
+  if [[ -f /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
+    source /usr/share/doc/fzf/examples/key-bindings.bash
+  fi
+  if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
+    source ~/.dotfiles/iterm2/iterm2_shell_integration.bash
+  fi
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+  if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
+    source ~/.dotfiles/iterm2/iterm2_shell_integration.zsh
+  fi
 fi
 
 if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   true  # in case conda installer comments out below line causing syntax error
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
-fi
-
-if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
-  source ~/.dotfiles/iterm2/iterm2_shell_integration.bash
 fi
 
 if [[ -f ~/.dotfiles/bashrc.local ]]; then
