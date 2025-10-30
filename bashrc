@@ -82,7 +82,8 @@ fi
 
 if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
   shopt -s checkhash checkwinsize no_empty_cmd_completion
-elif [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
+fi
+if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
   shopt -s autocd
 fi
 
