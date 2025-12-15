@@ -1,45 +1,63 @@
 #!/usr/bin/env python3
-# Sums up decimal numbers with arbitrary precision
+# Sums/averages decimal numbers with arbitrary precision
 # Input from stdin or X11 selection/clipboard (requires xsel)
 
 import argparse
 import decimal
+import math
 import os
 import re
 import subprocess
 import sys
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', '--only_matching', action='store_true',
-                    help='Find decimals by regex, parse and sum up only them')
+                        help='Find decimals by regex, parse and sum up only them')
     parser.add_argument('-b', '--clipboard', action='store_true',
-                    help='Use X11 clipboard instead of selection buffer')
-    parser.add_argument('--avg', default=sys.argv[0].endswith('xavg'), action='store_true')
+                        help='Use X11 clipboard instead of selection buffer')
+    parser.add_argument('-a', '--avg', action='store_true',
+                        help='Compute arithmetic mean')
+    parser.add_argument('-g', '--geo', action='store_true',
+                        help='Compute geometric mean: (a1 * a2 * ...)^(1/n)')
+    parser.add_argument('-H', '--harmonic', action='store_true',
+                        help='Compute harmonic mean: 1/(1/a1 + 1/a2 + ...)')
+
     args = parser.parse_args()
+    if sys.argv[0].endswith('xavg') and not args.geo and not args.harmonic:
+        args.avg = True
 
-    input_it = sys.stdin
+    input_iter = sys.stdin
 
-    if os.isatty(0) and os.isatty(1) and os.environ.get('DISPLAY') and \
-            os.path.exists('/usr/bin/xsel'):
+    if os.isatty(0) and os.environ.get('DISPLAY') and os.path.exists('/usr/bin/xsel'):
         xsel = subprocess.check_output(['/usr/bin/xsel', '-b' if args.clipboard else '-p'])
         xsel = xsel.strip().decode('utf-8').split('\n')
         if len(xsel) > 0:
-            print('(read %d lines from %s)' % (len(xsel), 'clipboard' if args.clipboard else 'selection'))
-            input_it = xsel
+            if os.isatty(1):
+                print('Read %d lines from %s' % (len(xsel), 'clipboard' if args.clipboard else 'selection'))
+            input_iter = xsel
 
     find_regexp = re.compile('[-+]?(?:[0-9]+(?:[.,][0-9]*)?|[.,][0-9]+?)(?:e-?[0-9]+)?')
-    result = decimal.Decimal(0)
-    count = 0
 
-    for line_no, line in enumerate(input_it):
+    val_count = 0
+    val_sum = decimal.Decimal(0)
+    val_logsum = 0
+    val_harm = 0
+
+    for line_no, line in enumerate(input_iter):
         tokens = []
         for token in line.strip().split():
             if args.only_matching:
                 tokens += find_regexp.findall(token)
             else:
-                tokens += [token]
+                try:
+                    val = decimal.Decimal(token.replace(',', '.'))
+                    tokens += [token]
+                except decimal.InvalidOperation:
+                    sys.stderr.write("Line %d is not a number: %s\nSwitching to finding substrings\n" % (line_no + 1, token))
+                    args.only_matching = True
+                    tokens += find_regexp.findall(token)
+                    continue
 
         for token in tokens:
             try:
@@ -48,13 +66,26 @@ def main():
                 sys.stderr.write("Bad token on line %d: %s\n" % (line_no + 1, token))
                 sys.exit(1)
 
-            result += val
-            count += 1
+            val_count += 1
+            val_sum += val
+            if args.geo:
+                val_logsum += math.log(val)
+            if args.harmonic:
+                val_harm += 1.0 / float(val)
 
-    if args.avg:
-        print(result / count)
+    if val_count == 0:
+        print('No values')
+    elif args.avg + args.geo + args.harmonic == 0:
+        print(val_sum)
     else:
-        print(result)
+        prefix = (args.avg + args.geo + args.harmonic) > 1
+        if args.avg:
+            print('%s%s'    % ('Average:   ' if prefix else '', val_sum / val_count))
+        if args.geo:
+            g = math.exp(val_logsum / val_count)
+            print('%s%.20g' % ('Geometric: ' if prefix else '', g))
+        if args.harmonic:
+            print('%s%s'    % ('Harmonic:  ' if prefix else '', val_count / val_harm))
 
 
 if __name__ == '__main__':
