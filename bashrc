@@ -102,6 +102,8 @@ alias cx='chmod a+x'
 alias df='df -h'
 alias diff='diff -u'
 alias dokcer=docker
+alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
+alias dr='podman run --rm -it -v "$PWD:$PWD" -w "$PWD"'
 alias du='du -h'
 alias eg=egrep
 alias egrep='egrep --color=auto'
