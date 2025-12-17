@@ -101,9 +101,6 @@ alias cp='cp -i'
 alias cx='chmod a+x'
 alias df='df -h'
 alias diff='diff -u'
-alias dokcer=docker
-alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
-alias dr='podman run --rm -it -v "$PWD:$PWD" -w "$PWD"'
 alias du='du -h'
 alias eg=egrep
 alias egrep='egrep --color=auto'
@@ -176,6 +173,8 @@ alias tsd='ts "%Y-%m-%d %.T"'
 if [[ "$OSTYPE" == darwin* ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
   alias ls='ls --color=auto'
+  __maybe_alias docker=container
+  __maybe_alias podman=container
 else
   if [[ "$TERM" == dumb ]]; then  # e.g. vim
     alias ls='ls --group-directories-first'
@@ -184,6 +183,31 @@ else
   fi
   alias ping=~/.dotfiles/bin/ping.sh
 fi
+
+alias dokcer=docker
+
+alias dr='docker run --rm -it -v "$PWD:$PWD" -w "$PWD"'
+alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
+
+# Launch Jupyter Docker Stacks container in current directory
+# https://github.com/jupyter/docker-stacks
+function dr-lab() {
+  local image="quay.io/jupyter/scipy-notebook"
+  while [[ $# > 0 ]]; do
+    if [[ "$1" =~ (scipy|datascience|torch|r|julia) ]]; then
+      image="quay.io/jupyter/$1-notebook";
+    elif [[ "$1" =~ (lab|notebook|nbclassic) ]]; then
+      cmd="$1"
+    elif [[ "$1" == nb ]]; then
+      cmd="notebook"
+    else
+      image="$1"
+    fi
+    shift
+  done
+  local port=$(find-free-port.py 8888)
+  (set -ex; dr -u root -p "$port:$port" "$image" jupyter "$cmd" --ip=0.0.0.0 --port=$port --allow-root)
+}
 
 # }}}
 
