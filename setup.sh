@@ -18,6 +18,13 @@ if ! [[ -f "$HOME/.dotfiles/setup.sh" && "$HOME/.dotfiles/setup.sh" -ef "$0" ]];
 fi
 cd ~/.dotfiles
 
+if [[ -z "${USER:-}" ]]; then
+  USER=$(whoami)
+  if [[ -z "${USER:-}" ]]; then
+    USER=$(id -u -n)
+  fi
+fi
+
 if [[ $UID == 0 ]]; then
   ROOT_HOME="$(cat /etc/passwd | grep ^root: | cut -f 6 -d :)"
   if ! [[ $HOME -ef $ROOT_HOME ]]; then
