@@ -80,6 +80,10 @@ if [[ -z "$SHELL" && -f /bin/bash ]]; then
   export SHELL=/bin/bash
 fi
 
+if hash nvim >/dev/null 2>&1; then
+  export EDITOR=nvim
+fi
+
 if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
   shopt -s checkhash checkwinsize no_empty_cmd_completion
 fi
@@ -157,6 +161,7 @@ __maybe_alias iwconfig=/sbin/iwconfig
 __maybe_alias nb=jupyter-notebook
 __maybe_alias py=python3; __maybe_alias py=ipython3
 __maybe_alias python=python3
+__maybe_alias qvim=nvim-qt
 __maybe_alias route=/sbin/route
 __maybe_alias speedify_cli=/usr/share/speedify/speedify_cli
 __maybe_alias sysctl=/sbin/sysctl

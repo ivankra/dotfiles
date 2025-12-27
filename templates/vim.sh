@@ -1,2 +1,0 @@
-%BASH_SHEBANG%
-%CURSOR%

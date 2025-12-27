@@ -32,7 +32,7 @@ setup_gen() {
   done
 
   local dst="$2"
-  local tmp="$(basename -- "$dst").tmp"
+  local tmp="$(mktemp)"
   cat "$1" >"$tmp"
 
   if ((check)) && [[ -s "$dst" ]] &&

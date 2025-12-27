@@ -25,7 +25,7 @@ if [[ -z "${USER:-}" ]]; then
   fi
 fi
 
-if [[ $UID == 0 ]]; then
+if [[ $UID == 0 && ${1:-} != --allow-root ]]; then
   ROOT_HOME="$(cat /etc/passwd | grep ^root: | cut -f 6 -d :)"
   if ! [[ $HOME -ef $ROOT_HOME ]]; then
     echo "Error: root's HOME=$HOME doesn't match home from /etc/passwd: $ROOT_HOME"
@@ -63,11 +63,12 @@ setup_ln profile
 setup_ln vim
 setup_ln vimrc
 
+setup_ln htoprc ~/.config/htop/htoprc
+setup_ln nvim ~/.config/nvim
+setup_ln nvim/site ~/.local/share/nvim/site
+
 if hash tmux >/dev/null 2>&1; then
   setup_ln tmux.conf
-fi
-if hash htop >/dev/null 2>&1; then
-  setup_ln htoprc ~/.config/htop/htoprc
 fi
 if hash ipython >/dev/null 2>&1 || hash ipython3 >/dev/null 2>&1; then
   #setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
