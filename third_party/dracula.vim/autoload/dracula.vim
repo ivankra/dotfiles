@@ -1,17 +1,20 @@
 " Palette: {{{
 
 let g:dracula#palette           = {}
-let g:dracula#palette.fg        = ['#F8F8F2', 253]
+let g:dracula#palette.fg        = ['#FFFFFF', 253]    " Original: #F8F8F2
 
 let g:dracula#palette.bglighter = ['#424450', 238]
 let g:dracula#palette.bglight   = ['#343746', 237]
-let g:dracula#palette.bg        = ['#282A36', 236]
-let g:dracula#palette.bgdark    = ['#21222C', 235]
-let g:dracula#palette.bgdarker  = ['#191A21', 234]
+let g:dracula#palette.bg        = ['#22212C', 236]    " Original: #282A36, Dracula Pro: #22212C, Dracula At Night: #0E1419
+let g:dracula#palette.bgdark    = ['#22212C', 235]    " Original: #21222C
+let g:dracula#palette.bgdarker  = ['#000000', 234]    " Original: #191A21
 
 let g:dracula#palette.comment   = ['#6272A4',  61]
+let g:dracula#palette.commentlight = ['#8095D6', 61]  " #7970A9 #99b2ff
+let g:dracula#palette.commentdark = ['#414d71', 61]
 let g:dracula#palette.selection = ['#44475A', 239]
 let g:dracula#palette.subtle    = ['#424450', 238]
+let g:dracula#palette.subtlelighter  = ['#4c4f5d', 238]  " listchars
 
 let g:dracula#palette.cyan      = ['#8BE9FD', 117]
 let g:dracula#palette.green     = ['#50FA7B',  84]
