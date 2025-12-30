@@ -119,7 +119,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--expand", type=int, metavar="N",
-        help="Expand %Y and %d placeholders with last 12 months, dedup and print filenames")
+        help="Expand date placeholders with last 12 months, dedup and print filenames")
     parser.add_argument("filename")
     args = parser.parse_args()
 
