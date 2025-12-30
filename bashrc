@@ -89,7 +89,7 @@ fi
 
 __BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
 
-# Aliases {{{
+# Aliases/functions {{{
 
 alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
@@ -150,7 +150,6 @@ __maybe_alias() {
 __maybe_alias b=byobu-tmux
 __maybe_alias bat=batcat
 __maybe_alias blaze=bazel
-__maybe_alias docker=podman
 __maybe_alias fd=fdfind
 __maybe_alias ifconfig=/sbin/ifconfig
 __maybe_alias ipython=ipython3
@@ -173,9 +172,13 @@ alias tsd='ts "%Y-%m-%d %.T"'
 if [[ "$OSTYPE" == darwin* ]]; then
   export BASH_SILENCE_DEPRECATION_WARNING=1
   alias ls='ls --color=auto'
-  __maybe_alias docker=container
-  __maybe_alias podman=container
+  if hash container >/dev/null 2>&1; then
+    alias docker=container
+  fi
 else
+  if hash podman >/dev/null 2>&1; then
+    alias docker=podman
+  fi
   if [[ "$TERM" == dumb ]]; then  # e.g. vim
     alias ls='ls --group-directories-first'
   else
@@ -184,29 +187,16 @@ else
   alias ping=~/.dotfiles/bin/ping.sh
 fi
 
-alias dokcer=docker
+echo_and_run() { local cmd=$(printf '%q ' "$@"); echo "+ $cmd"; eval "$cmd"; }
+__v_git() { if [[ -d .git ]]; then echo -v "$PWD/.git:$PWD/.git:ro"; fi; }
 
-alias dr='docker run --rm -it -v "$PWD:$PWD" -w "$PWD"'
+alias dr='echo_and_run ${BASH_ALIASES[docker]:-docker} run --rm -it -v "$PWD:$PWD" $(__v_git) -w "$PWD"'
 alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
 
-# Launch Jupyter Docker Stacks container in current directory
 # https://github.com/jupyter/docker-stacks
 function dr-lab() {
-  local image="quay.io/jupyter/scipy-notebook"
-  while [[ $# > 0 ]]; do
-    if [[ "$1" =~ (scipy|datascience|torch|r|julia) ]]; then
-      image="quay.io/jupyter/$1-notebook";
-    elif [[ "$1" =~ (lab|notebook|nbclassic) ]]; then
-      cmd="$1"
-    elif [[ "$1" == nb ]]; then
-      cmd="notebook"
-    else
-      image="$1"
-    fi
-    shift
-  done
-  local port=$(find-free-port.py 8888)
-  (set -ex; dr -u root -p "$port:$port" "$image" jupyter "$cmd" --ip=0.0.0.0 --port=$port --allow-root)
+  local port=$(find-free-port.py 8888 2>/dev/null || echo 8888)
+  dr -u root -p "$port:$port" "quay.io/jupyter/scipy-notebook" jupyter lab --ip=0.0.0.0 --port=$port --allow-root
 }
 
 # }}}
