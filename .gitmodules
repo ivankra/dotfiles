@@ -1,0 +1,81 @@
+[submodule "modules/catppuccin.nvim"]
+	path = modules/catppuccin.nvim
+	url = https://github.com/catppuccin/nvim.git
+[submodule "modules/which-key.nvim"]
+	path = modules/which-key.nvim
+	url = https://github.com/folke/which-key.nvim
+[submodule "modules/lazy.nvim"]
+	path = modules/lazy.nvim
+	url = https://github.com/folke/lazy.nvim.git
+[submodule "modules/gruvbox.nvim"]
+	path = modules/gruvbox.nvim
+	url = https://github.com/ellisonleao/gruvbox.nvim.git
+[submodule "modules/toggleterm.nvim"]
+	path = modules/toggleterm.nvim
+	url = https://github.com/akinsho/toggleterm.nvim.git
+[submodule "modules/guess-indent.nvim"]
+	path = modules/guess-indent.nvim
+	url = https://github.com/NMAC427/guess-indent.nvim.git
+[submodule "modules/indent-o-matic"]
+	path = modules/indent-o-matic
+	url = https://github.com/Darazaki/indent-o-matic.git
+[submodule "modules/Comment.nvim"]
+	path = modules/Comment.nvim
+	url = https://github.com/numToStr/Comment.nvim.git
+[submodule "modules/oil.nvim"]
+	path = modules/oil.nvim
+	url = https://github.com/stevearc/oil.nvim.git
+[submodule "modules/lualine.nvim"]
+	path = modules/lualine.nvim
+	url = https://github.com/nvim-lualine/lualine.nvim.git
+[submodule "modules/nvim-tree.lua"]
+	path = modules/nvim-tree.lua
+	url = https://github.com/nvim-tree/nvim-tree.lua.git
+[submodule "modules/telescope.nvim"]
+	path = modules/telescope.nvim
+	url = https://github.com/nvim-telescope/telescope.nvim.git
+[submodule "modules/plenary.nvim"]
+	path = modules/plenary.nvim
+	url = https://github.com/nvim-lua/plenary.nvim.git
+[submodule "modules/github-nvim-theme"]
+	path = modules/github-nvim-theme
+	url = https://github.com/projekt0n/github-nvim-theme.git
+[submodule "modules/tokyonight.nvim"]
+	path = modules/tokyonight.nvim
+	url = https://github.com/folke/tokyonight.nvim.git
+[submodule "modules/onedark.vim"]
+	path = modules/onedark.vim
+	url = https://github.com/joshdick/onedark.vim.git
+[submodule "modules/sonokai"]
+	path = modules/sonokai
+	url = https://github.com/sainnhe/sonokai.git
+[submodule "modules/vim-beancount"]
+	path = modules/vim-beancount
+	url = https://github.com/nathangrigg/vim-beancount.git
+[submodule "modules/vim-jsonnet"]
+	path = modules/vim-jsonnet
+	url = https://github.com/google/vim-jsonnet.git
+[submodule "modules/mini.icons"]
+	path = modules/mini.icons
+	url = https://github.com/nvim-mini/mini.icons.git
+[submodule "modules/todo-comments.nvim"]
+	path = modules/todo-comments.nvim
+	url = https://github.com/folke/todo-comments.nvim.git
+[submodule "modules/nui.nvim"]
+	path = modules/nui.nvim
+	url = https://github.com/MunifTanjim/nui.nvim.git
+[submodule "modules/neo-tree.nvim"]
+	path = modules/neo-tree.nvim
+	url = https://github.com/nvim-neo-tree/neo-tree.nvim.git
+[submodule "modules/nvim-colorizer.lua"]
+	path = modules/nvim-colorizer.lua
+	url = https://github.com/catgoose/nvim-colorizer.lua.git
+[submodule "modules/bufferline.nvim"]
+	path = modules/bufferline.nvim
+	url = https://github.com/akinsho/bufferline.nvim.git
+[submodule "modules/gitsigns.nvim"]
+	path = modules/gitsigns.nvim
+	url = https://github.com/lewis6991/gitsigns.nvim.git
+[submodule "modules/vim-fugitive"]
+	path = modules/vim-fugitive
+	url = https://github.com/tpope/vim-fugitive.git
