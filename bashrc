@@ -522,8 +522,11 @@ if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
-if [[ -f ~/.dotfiles/bashrc.local ]]; then
-  source ~/.dotfiles/bashrc.local
+if [[ -f ~/.iac/bashrc.local ]]; then
+  source ~/.iac/bashrc.local
+fi
+if [[ -f ~/.bashrc.local ]]; then
+  source ~/.bashrc.local
 fi
 
 eval "$__BASHRC_EPILOGUE"
