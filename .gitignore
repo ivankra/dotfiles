@@ -1,5 +1,6 @@
 *.local
 *.pyc
+.claude
 __pycache__
 fcitx5/conf/cached_layouts
 jupyter/jupyter_notebook_config.json

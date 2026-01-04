@@ -193,6 +193,18 @@ __v_git() { if [[ -d .git ]]; then echo -v "$PWD/.git:$PWD/.git:ro"; fi; }
 alias dr='echo_and_run ${BASH_ALIASES[docker]:-docker} run --rm -it -v "$PWD:$PWD" $(__v_git) -w "$PWD"'
 alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
 
+# Completion for dr: complete first arg with docker/podman image names
+_dr_completion() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  if [[ $COMP_CWORD -eq 1 ]]; then
+    local images=$(${BASH_ALIASES[docker]:-docker} images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -v '<none>')
+    # Add short names: strip localhost/ and :latest
+    local short_names=$(echo "$images" | sed -E 's|^localhost/([^:]+):latest$|\1|; t; d')
+    COMPREPLY=($(compgen -W "$images $short_names" -- "$cur"))
+  fi
+}
+complete -F _dr_completion -o default dr
+
 # https://github.com/jupyter/docker-stacks
 function dr-lab() {
   local port=$(find-free-port.py 8888 2>/dev/null || echo 8888)
