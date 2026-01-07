@@ -34,8 +34,7 @@ fi
 
 cd "$SCRIPT_DIR"
 
-
-# Bookmarks and home subdirs/symlinks
+# Bookmarks and home subdirs/symlinks {{{
 
 mkdir -p ~/.config/gtk-3.0
 
@@ -105,8 +104,9 @@ if [[ -f ~/.config/user-dirs.dirs ]]; then
   fi
 fi
 
+# }}}
 
-# DBUS settings
+# dconf {{{
 
 if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]]; then
   # Start dbus daemon if not running inside an existing GUI session
@@ -236,16 +236,23 @@ if [[ "$virt" == "none" ]]; then
   dconf write /org/gnome/gnome-panel/layout/object-id-list "['menu-bar', 'notification-area', 'system-indicators', 'clock', 'user-menu', 'window-list', 'multiload', 'workspace-switcher', 'launcher', 'launcher-0', 'launcher-1', 'launcher-2', 'launcher-3', 'launcher-4']"
 fi
 
-# Cinnamon applets' configs
+# }}}
+
+# Cinnamon applets
 if [[ -x /usr/bin/cinnamon-session ]]; then
-  # System Monitor by orcuscz
-  # https://cinnamon-spices.linuxmint.com/applets/view/88
-  # https://github.com/linuxmint/cinnamon-spices-applets/tree/master/sysmonitor%40orcus
-  if ! [[ sysmonitor@orcus -ef ~/.local/share/cinnamon/applets/sysmonitor@orcus ]]; then
-    rm -rf ~/.local/share/cinnamon/applets/sysmonitor@orcus
-    mkdir -p ~/.local/share/cinnamon/applets
-    ln -sfT ../../../../.dotfiles/gui/sysmonitor@orcus ~/.local/share/cinnamon/applets/sysmonitor@orcus
-  fi
+  # Adding a new applet:
+  # * vendor into ~/.dotfiles/third_party/cinnamon-spices-applets/
+  # * adjust org/cinnamon/enabled-applets and org/cinnamon/next-applet-id in dconf-panels.json
+  for dir in ~/.dotfiles/third_party/cinnamon-spices-applets/*; do
+    name="$(basename "$dir")"
+    applet_dir="$dir/files/$name"
+    target_dir="$HOME/.local/share/cinnamon/applets/$name"
+    if [[ -d "$applet_dir" && ! "$applet_dir" -ef "$target_dir" ]]; then
+      rm -rf "$target_dir"
+      mkdir -p "$HOME/.local/share/cinnamon/applets"
+      ln -sfT "../../../../.dotfiles/third_party/cinnamon-spices-applets/$name/files/$name" "$target_dir"
+    fi
+  done
 
   # Configs for cinnamon applets
   # <n>.json must match trailing numbers in org/cinnamon/enabled-applets
@@ -406,3 +413,4 @@ if [[ -x /usr/bin/gnome-terminal ]]; then
 fi
 
 # TODO default apps ~/.config/mimelist
+# vim: fdm=marker
