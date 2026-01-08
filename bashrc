@@ -534,9 +534,14 @@ if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   source "$CONDA_ROOT/etc/profile.d/conda.sh"
 fi
 
+if [[ -d ~/.iac || -d ~/.keys ]] && hash npm >/dev/null 2>&1; then
+  echo -e '\e[97;41mAction required: uninstall npm from workstation!\e[0m'
+fi
+
 if [[ -f ~/.iac/bashrc.local ]]; then
   source ~/.iac/bashrc.local
 fi
+
 if [[ -f ~/.bashrc.local ]]; then
   source ~/.bashrc.local
 fi
