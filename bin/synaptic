@@ -1,6 +1,7 @@
 #!/bin/bash
-if [[ -f ~/.dotfiles/synaptic.conf && ! -f ~/.synaptic/synaptic.conf ]]; then
-  mkdir -m 0700 ~/.synaptic
-  cp -f ~/.dotfiles/synaptic.conf ~/.synaptic/synaptic.conf
+if [[ -f ~/.dotfiles/synaptic.conf && ! -f ~/.config/synaptic/synaptic.conf ]]; then
+  mkdir -m 0700 ~/.config/synaptic
+  cp -f ~/.dotfiles/synaptic.conf ~/.config/synaptic/synaptic.conf
 fi
+rm -rf ~/.synaptic
 exec /usr/sbin/synaptic "$@"

@@ -115,17 +115,6 @@ if [[ $UID != 0 ]]; then
       setup_cp virt-manager.desktop ~/.local/share/applications/virt-manager.desktop
     fi
   fi
-elif [[ -x /usr/sbin/synaptic ]]; then
-  mkdir -m 0700 -p ~/.config/synaptic
-  rm -rf ~/.synaptic
-  setup_cp synaptic.conf ~/.config/synaptic/synaptic.conf
-  if [[ -f /var/lib/synaptic/preferences ]]; then
-    if ! [[ -s /var/lib/synaptic/preferences ]]; then
-      rm -f /var/lib/synaptic/preferences || true
-    else
-      chmod 0644 /var/lib/synaptic/preferences || true
-    fi
-  fi
 fi
 
 mkdir -p -m 0700 ~/.ssh
