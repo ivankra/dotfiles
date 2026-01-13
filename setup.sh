@@ -25,10 +25,20 @@ if [[ -z "${USER:-}" ]]; then
   fi
 fi
 
-if [[ $UID == 0 && ${1:-} != --allow-root ]]; then
+IN_CONTAINER=0
+if [[ -n "$container" || -f /run/.containerenv || -f /.dockerenv ]]; then
+  IN_CONTAINER=1
+fi
+
+# When running under root, verify that home directory is /root to avoid
+# accidentally messing up another user's home directory.
+#
+# Skip for containers to support rootless containers with container root
+# mapped to current user on the host with HOME passed through.
+if [[ $UID == 0 && $IN_CONTAINER == 0 ]]; then
   ROOT_HOME="$(cat /etc/passwd | grep ^root: | cut -f 6 -d :)"
   if ! [[ $HOME -ef $ROOT_HOME ]]; then
-    echo "Error: root's HOME=$HOME doesn't match home from /etc/passwd: $ROOT_HOME"
+    echo "Error: HOME=$HOME doesn't match root's home from /etc/passwd: $ROOT_HOME"
     exit 1
   fi
 fi

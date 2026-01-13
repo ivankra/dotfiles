@@ -123,6 +123,7 @@ require("lazy").setup({
   pkg = { enabled = false },
   rocks = { enabled = false },
   doc = { generate = false },
+  -- lockfile = vim.fn.stdpath("data") .. "/path/to/your/custom-lazy-lock.json",
 
   performance = {
     rtp = {
