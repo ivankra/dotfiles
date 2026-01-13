@@ -1,11 +1,15 @@
 #!/bin/bash -e
-SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-IMAGE=$(basename "$SCRIPT_DIR")
+# Usage: run.sh <image> [<args>]
+
+#SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+#IMAGE=$(basename "$SCRIPT_DIR")
+IMAGE="$1"
 
 mkdir -p "$HOME/.docker/$IMAGE"
 
 CMD=(
   podman run -it --rm
+  --name "$IMAGE-$(openssl rand -hex 4)"
   -w "$PWD"
   -v "$PWD:$PWD"
   -v "$HOME/.docker/$IMAGE:/root"
@@ -18,6 +22,3 @@ fi
 
 set -x
 exec "${CMD[@]}" "localhost/$IMAGE" "$@"
-
-# Initial auth is broken, requires connection to localhost:1455, -p 1455:1455 broken too
-# Workaround: podman exec -it to container, curl -v <url>, then curl -v <redirect url>

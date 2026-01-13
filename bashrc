@@ -198,6 +198,11 @@ __v_git() { if [[ -d .git ]]; then echo -v "$PWD/.git:$PWD/.git:ro"; fi; }
 alias dr='echo_and_run ${BASH_ALIASES[docker]:-docker} run --rm -it -v "$PWD:$PWD" $(__v_git) -w "$PWD"'
 alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
 
+alias claude='~/.dotfiles/docker/agents/run.sh claude'
+alias codex='~/.dotfiles/docker/agents/run.sh codex'
+alias opencode='~/.dotfiles/docker/agents/run.sh opencode'
+alias gemini='~/.dotfiles/docker/agents/run.sh gemini'
+
 # Completion for dr: complete first arg with docker/podman image names
 _dr_completion() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
