@@ -1,0 +1,11 @@
+#!/bin/bash
+# Wrapper around /usr/bin/pdflatex that removes common aux files on success.
+
+/usr/bin/pdflatex "$@"
+status=$?
+
+if [[ $status -eq 0 && -n $1 ]]; then
+  rm -f -- "$1".{aux,log,nav,out,toc}
+fi
+
+exit $status
