@@ -1,0 +1,19 @@
+diff --git a/com.logseq.Logseq.yml b/com.logseq.Logseq.yml
+index 7f6bb43..34c68a7 100644
+--- a/com.logseq.Logseq.yml
++++ b/com.logseq.Logseq.yml
+@@ -17,14 +17,8 @@ finish-args:
+   - --socket=x11
+   - --socket=wayland
+   - --socket=pulseaudio
+-  - --share=network
+-  - --filesystem=home
+-  # for using ssh for remote graph
+-  - --socket=ssh-auth
+-  - --env=SSH_ASKPASS=/app/libexec/openssh/ssh-askpass
+   # required to fix cursor scaling on wayland, especially with fractional scaling
+   - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+-  - --persist=~/.ssh
+ modules:
+   - name: node-gyp
+     buildsystem: simple

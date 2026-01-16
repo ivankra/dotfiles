@@ -1,0 +1,27 @@
+diff --git a/io.mpv.Mpv.yml b/io.mpv.Mpv.yml
+index 084bdc4..212fe6a 100644
+--- a/io.mpv.Mpv.yml
++++ b/io.mpv.Mpv.yml
+@@ -10,21 +10,15 @@ finish-args:
+   - --share=ipc
+   - --socket=x11
+   - --socket=wayland
+-  - --device=all
+-  - --share=network
++  - --device=dri
+   - --socket=pulseaudio
+-  - --filesystem=/tmp:rw
+-  - --filesystem=xdg-pictures:rw
+-  - --filesystem=xdg-videos:rw
+   - --filesystem=home/.var/app/io.mpv.Mpv/config/mpv/scripts:create
+-  - --filesystem=host:ro
+   - --env=LC_NUMERIC=C
+   - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+   - --filesystem=xdg-run/pipewire-0:ro
+ 
+ #  mpris support via dbus
+   - --own-name=org.mpris.MediaPlayer2.mpv.*
+-  - --talk-name=org.gnome.SessionManager
+ 
+ cleanup:
+   - '*.la'

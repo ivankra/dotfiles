@@ -1,0 +1,15 @@
+diff --git a/io.neovim.nvim.yaml b/io.neovim.nvim.yaml
+index 686b525..4e7c3de 100644
+--- a/io.neovim.nvim.yaml
++++ b/io.neovim.nvim.yaml
+@@ -10,10 +10,6 @@ rename-appdata-file: nvim.appdata.xml
+ rename-icon: nvim
+ 
+ finish-args:
+-  # Edit anything
+-  - --filesystem=host
+-  - --filesystem=/tmp
+-  - --filesystem=/var/tmp
+   # Plugin updates
+   - --share=network
+   # Clipboard access

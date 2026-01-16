@@ -1,0 +1,27 @@
+diff --git a/com.visualstudio.code.yaml b/com.visualstudio.code.yaml
+index 06d9a6b..9fdc12c 100644
+--- a/com.visualstudio.code.yaml
++++ b/com.visualstudio.code.yaml
+@@ -14,20 +14,14 @@ finish-args:
+   - --socket=wayland
+   - --socket=fallback-x11
+   - --socket=pulseaudio
+-  - --socket=ssh-auth
+-  - --device=all
++  - --device=dri
+   - --allow=devel
+-  - --filesystem=host
++  - --env=FLATPAK_ENABLE_SDK_EXT=*
+   - --env=NPM_CONFIG_GLOBALCONFIG=/app/etc/npmrc
+   - --env=LD_LIBRARY_PATH=/app/lib
+   # required to fix cursor scaling on wayland
+   - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+-  - --system-talk-name=org.freedesktop.login1
+   - --talk-name=org.freedesktop.Notifications
+-  - --talk-name=org.freedesktop.secrets
+-  - --talk-name=org.freedesktop.Flatpak
+-  - --talk-name=com.canonical.AppMenu.Registrar
+-  - --talk-name=com.canonical.AppMenu.Registrar.*
+ add-extensions:
+   com.visualstudio.code.tool:
+     directory: tools

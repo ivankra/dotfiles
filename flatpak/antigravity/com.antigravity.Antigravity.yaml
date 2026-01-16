@@ -1,0 +1,72 @@
+# Based on https://github.com/flathub/com.vscodium.codium/blob/master/com.vscodium.codium.yaml
+
+app-id: com.antigravity.Antigravity
+runtime: org.freedesktop.Sdk
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '25.08'
+command: com.antigravity.Antigravity
+separate-locales: false
+finish-args:
+  - --allow=devel
+  - --device=dri
+  - --env=FLATPAK_ENABLE_SDK_EXT=*
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+  - --share=ipc
+  - --share=network
+  - --socket=pulseaudio
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --system-talk-name=org.freedesktop.login1
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.portal.Desktop
+  # - --filesystem=host-os
+add-extensions:
+  com.visualstudio.code.tool:
+    directory: tools
+    subdirectories: true
+    version: '25.08'
+    add-ld-path: lib
+    no-autodownload: true
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/gtk-doc
+  - '*.la'
+
+modules:
+  - name: antigravity
+    buildsystem: simple
+    build-commands:
+      - ar x antigravity.deb
+      - tar -xf data.tar.* -C /app
+      - rm -f debian-binary control.tar.* data.tar.* antigravity.deb
+      - install -D -m 0644 com.antigravity.Antigravity.desktop /app/share/applications/com.antigravity.Antigravity.desktop
+      - install -D -m 0644 com.antigravity.Antigravity.metainfo.xml /app/share/metainfo/com.antigravity.Antigravity.metainfo.xml
+      - install -D -m 0644 com.antigravity.Antigravity.svg /app/share/icons/hicolor/scalable/apps/com.antigravity.Antigravity.svg
+    sources:
+      - type: file
+        path: download-dir/antigravity.deb
+      - type: file
+        path: com.antigravity.Antigravity.desktop
+      - type: file
+        path: com.antigravity.Antigravity.metainfo.xml
+      - type: file
+        path: com.antigravity.Antigravity.svg
+  - name: wrapper-flatpak-wrapper
+    buildsystem: meson
+    config-opts:
+      - -Deditor_binary=/app/usr/share/antigravity/antigravity
+      - -Deditor_args=[ '/app/usr/share/antigravity/resources/app/out/cli.js', '--extensions-dir', '$XDG_DATA_HOME/antigravity/extensions' ]
+      - -Dprogram_name=com.antigravity.Antigravity
+      - -Deditor_title=Antigravity
+      - -Dzypak=enabled
+      - -Dzypak_args=[ 'host', '-' ]
+      - -Denvs=[ "ELECTRON_RUN_AS_NODE=1" ]
+      - -Denvs_inner=[ "ZYPAK_SPAWN_LATEST_ON_REEXEC=0" ]
+      - -Dflagfile_prefix=flatpak-antigravity
+    sources:
+      - type: git
+        url: https://github.com/flathub-infra/ide-flatpak-wrapper.git
+        commit: f8f6485adfe7df52db5f241e3a99f5c7540aff9f

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Cursor
+Comment=AI-first Code Editor
+GenericName=Text Editor
+Exec=com.cursor.Cursor %F
+Icon=com.cursor.Cursor
+Type=Application
+StartupNotify=true
+StartupWMClass=Cursor
+Categories=Utility;TextEditor;Development;IDE;
+MimeType=application/javascript;application/json;application/x-httpd-php;application/x-php;application/x-ruby;application/x-shellscript;application/xml;text/css;text/html;text/plain;text/x-c;text/x-c++;text/x-csharp;text/x-csrc;text/x-diff;text/x-go;text/x-java;text/x-makefile;text/x-markdown;text/x-python;text/x-rust;text/x-sql;text/xml;text/x-yaml;
+Actions=new-empty-window;
+Keywords=vscode;cursor;editor;code;
+
+[Desktop Action new-empty-window]
+Name=New Empty Window
+Exec=com.cursor.Cursor --new-window %F
+Icon=com.cursor.Cursor

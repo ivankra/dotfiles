@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Antigravity
+GenericName=IDE
+Comment=Antigravity IDE
+Exec=com.antigravity.Antigravity
+Icon=com.antigravity.Antigravity
+Terminal=false
+Categories=Development;IDE;

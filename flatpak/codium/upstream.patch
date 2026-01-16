@@ -1,0 +1,21 @@
+diff --git a/com.vscodium.codium.yaml b/com.vscodium.codium.yaml
+index ed87b6d..885e1a3 100644
+--- a/com.vscodium.codium.yaml
++++ b/com.vscodium.codium.yaml
+@@ -14,15 +14,11 @@ finish-args:
+   - --socket=pulseaudio
+   - --socket=ssh-auth
+   - --share=network
+-  - --device=all
+-  - --filesystem=host
+   - --persist=.vscode-oss
+   - --allow=devel
+-  - --talk-name=org.freedesktop.secrets
+   - --talk-name=org.kde.kwalletd5
+-  - --talk-name=org.freedesktop.Flatpak
++  - --env=FLATPAK_ENABLE_SDK_EXT=*
+   - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+-  - --filesystem=xdg-run/gnupg:ro
+   - --filesystem=xdg-config/kdeglobals:ro
+   - --talk-name=com.canonical.AppMenu.Registrar
+   - --system-talk-name=org.freedesktop.login1

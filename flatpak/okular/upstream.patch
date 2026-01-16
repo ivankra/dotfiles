@@ -1,0 +1,18 @@
+diff --git a/org.kde.okular.json b/org.kde.okular.json
+index 3963c69..9a55159 100644
+--- a/org.kde.okular.json
++++ b/org.kde.okular.json
+@@ -7,13 +7,11 @@
+     "rename-icon": "okular",
+     "finish-args": [
+         "--share=ipc",
+-        "--share=network",
+         "--socket=cups",
+         "--socket=pulseaudio",
+         "--socket=fallback-x11",
+         "--socket=wayland",
+         "--device=dri",
+-        "--filesystem=host",
+         "--allow=bluetooth",
+         "--talk-name=org.freedesktop.ScreenSaver",
+         "--talk-name=org.freedesktop.login1"

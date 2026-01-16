@@ -1,0 +1,89 @@
+# Based on https://github.com/flathub/com.vscodium.codium/blob/master/com.vscodium.codium.yaml
+
+app-id: com.cursor.Cursor
+runtime: org.freedesktop.Sdk
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '25.08'
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.golang
+command: com.cursor.Cursor
+separate-locales: false
+finish-args:
+  - --allow=devel
+  - --device=dri
+  - --env=FLATPAK_ENABLE_SDK_EXT=*
+  - --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
+  - --share=ipc
+  - --share=network
+  - --socket=pulseaudio
+  - --socket=wayland
+  - --socket=x11
+  - --system-talk-name=org.freedesktop.login1
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.portal.Desktop
+  # - --filesystem=host-os
+add-extensions:
+  com.visualstudio.code.tool:
+    directory: tools
+    subdirectories: true
+    version: '25.08'
+    add-ld-path: lib
+    no-autodownload: true
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/gtk-doc
+  - '*.la'
+
+modules:
+  - name: squashfs-tools
+    buildsystem: simple
+    build-commands:
+      - make -C squashfs-tools -j${FLATPAK_BUILDER_N_JOBS}
+        XZ_SUPPORT=1 LZO_SUPPORT=1 LZ4_SUPPORT=1 ZSTD_SUPPORT=1
+      - install -Dm755 squashfs-tools/unsquashfs /app/bin/unsquashfs
+    sources:
+      - type: git
+        url: https://github.com/plougher/squashfs-tools.git
+        tag: '4.6.1'
+        commit: d8cb82d9840330f9344ec37b992595b5d7b44184
+
+  - name: cursor
+    buildsystem: simple
+    build-commands:
+      - |
+        offset=$(grep -aobm1 'hsqs' cursor.AppImage | cut -d: -f1)
+        /app/bin/unsquashfs -offset "$offset" -dest squashfs-root cursor.AppImage
+        mkdir -p /app/cursor
+        cp -r squashfs-root/* /app/cursor/
+        rm -rf squashfs-root cursor.AppImage
+      - install -D -m 0644 com.cursor.Cursor.desktop /app/share/applications/com.cursor.Cursor.desktop
+      - install -D -m 0644 com.cursor.Cursor.metainfo.xml /app/share/metainfo/com.cursor.Cursor.metainfo.xml
+      - install -D -m 0644 cursor-icon.svg /app/share/icons/hicolor/scalable/apps/com.cursor.Cursor.svg
+    sources:
+      - type: file
+        path: download-dir/cursor.AppImage
+      - type: file
+        path: com.cursor.Cursor.desktop
+      - type: file
+        path: com.cursor.Cursor.metainfo.xml
+      - type: file
+        path: cursor-icon.svg
+  - name: wrapper-flatpak-wrapper
+    buildsystem: meson
+    config-opts:
+      - -Deditor_binary=/app/cursor/usr/share/cursor/cursor
+      - -Deditor_args=[ '/app/cursor/usr/share/cursor/resources/app/out/cli.js', '--extensions-dir', '$XDG_DATA_HOME/cursor/extensions' ]
+      - -Dprogram_name=com.cursor.Cursor
+      - -Deditor_title=Cursor
+      - -Dzypak=enabled
+      - -Dzypak_args=[ 'host', '-' ]
+      - -Denvs=[ "ELECTRON_RUN_AS_NODE=1" ]
+      - -Denvs_inner=[ "ZYPAK_SPAWN_LATEST_ON_REEXEC=0" ]
+      - -Dflagfile_prefix=flatpak-cursor
+    sources:
+      - type: git
+        url: https://github.com/flathub-infra/ide-flatpak-wrapper.git
+        commit: f8f6485adfe7df52db5f241e3a99f5c7540aff9f

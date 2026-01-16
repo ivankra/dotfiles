@@ -1,0 +1,24 @@
+diff --git a/md.obsidian.Obsidian.yml b/md.obsidian.Obsidian.yml
+index 90d5dae..6ee64a0 100644
+--- a/md.obsidian.Obsidian.yml
++++ b/md.obsidian.Obsidian.yml
+@@ -15,19 +15,9 @@ tags:
+ finish-args:
+   - --socket=x11
+   - --socket=pulseaudio
+-  - --socket=ssh-auth
+   - --device=dri
+-  - --filesystem=home
+-  - --filesystem=/mnt
+-  - --filesystem=/run/media
+-  - --filesystem=/media
+-  - --filesystem=xdg-run/app/com.discordapp.Discord:create
+-  - --filesystem=xdg-run/gnupg:ro
+-  - --filesystem=~/.local/share/fonts:ro
+   - --share=network
+   - --share=ipc
+-  - --persist=~/.ssh
+-  - --env=SSH_ASKPASS=/app/libexec/openssh/ssh-askpass
+   - --env=GH_PATH=gh
+   - --env=OBSIDIAN_DISABLE_GPU=0
+   - --env=OBSIDIAN_ENABLE_AUTOSCROLL=0

@@ -1,0 +1,33 @@
+diff --git a/org.chromium.Chromium.yaml b/org.chromium.Chromium.yaml
+index 144c4da..ac92b09 100644
+--- a/org.chromium.Chromium.yaml
++++ b/org.chromium.Chromium.yaml
+@@ -7,9 +7,8 @@ base-version: '24.08'
+ command: chromium
+ finish-args:
+   - --require-version=1.8.2
+-  - --filesystem=home
+   - --filesystem=/run/.heim_org.h5l.kcm-socket
+-  - --device=all
++  - --device=dri
+   - --env=LD_LIBRARY_PATH=/app/chromium/nonfree-codecs/lib
+   - --share=ipc
+   - --share=network
+@@ -17,17 +16,7 @@ finish-args:
+   - --socket=pulseaudio
+   - --socket=x11
+   - --socket=wayland
+-  - --system-talk-name=org.bluez
+-  - --system-talk-name=org.freedesktop.Avahi
+-  - --system-talk-name=org.freedesktop.UPower
+-  - --talk-name=com.canonical.AppMenu.Registrar
+-  - --talk-name=org.freedesktop.FileManager1
+   - --talk-name=org.freedesktop.Notifications
+-  - --talk-name=org.freedesktop.ScreenSaver
+-  - --talk-name=org.freedesktop.secrets
+-  - --talk-name=org.kde.kwalletd5
+-  - --talk-name=org.kde.kwalletd6
+-  - --talk-name=org.gnome.SessionManager
+   - --own-name=org.mpris.MediaPlayer2.chromium.*
+ 
+ add-extensions:

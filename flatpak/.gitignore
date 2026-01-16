@@ -1,0 +1,6 @@
+upstream/
+build-dir/
+repo/
+download-dir/
+.flatpak-builder
+*.flatpak

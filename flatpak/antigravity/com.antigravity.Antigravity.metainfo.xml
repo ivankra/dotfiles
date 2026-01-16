@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.antigravity.Antigravity</id>
+  <name>Antigravity</name>
+  <summary>Antigravity IDE</summary>
+  <description>
+    <p>Antigravity is an IDE focused on fast project startup and launch.</p>
+  </description>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Proprietary</project_license>
+  <launchable type="desktop-id">com.antigravity.Antigravity.desktop</launchable>
+  <categories>
+    <category>Development</category>
+    <category>IDE</category>
+  </categories>
+</component>
