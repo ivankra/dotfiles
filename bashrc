@@ -519,6 +519,10 @@ if [[ -n "$VTE_VERSION" ]]; then
     source /etc/profile.d/vte-2.91.sh
   fi
 fi
+# Workaround to disable "Command complete" notifications in ptyxis
+if [[ -n $PTYXIS_PROFILE ]]; then
+  __vte_termprop_signal() { return; }
+fi
 
 if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
   if [[ -f /usr/share/bash-completion/bash_completion ]]; then
