@@ -412,5 +412,9 @@ if [[ -x /usr/bin/gnome-terminal ]]; then
   echo org.gnome.Terminal.desktop >~/.config/xdg-terminals.list
 fi
 
+if [[ -x /usr/bin/ptyxis ]]; then
+  dconf write /org/cinnamon/desktop/applications/terminal/exec "'ptyxis --new-window'"
+fi
+
 # TODO default apps ~/.config/mimelist
 # vim: fdm=marker
