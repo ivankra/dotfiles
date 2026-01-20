@@ -6,4 +6,4 @@ deps:
 	make -C ../agents-base
 
 build:
-	podman build -t $(IMAGE) .
+	podman build -t $(IMAGE) --no-cache .
