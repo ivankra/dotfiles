@@ -11,16 +11,11 @@ APPS=(
   7z:none
   7za:none
   7zr:none
-  eog
-  evince:org.gnome.Evince.desktop
-  geeqie
-  mpv
-  okular:org.kde.okular.desktop
   p7zip:none
-  qpdfview
   rar:none
   unzip:none
-  vlc
+  # mpv
+  # vlc
 )
 
 install() {

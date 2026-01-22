@@ -113,10 +113,6 @@ if [[ $UID != 0 ]]; then
 
     mkdir -p ~/.local/share/applications
     rm -f ~/.local/share/applications/gnome-system-monitor.desktop
-    if hash code >/dev/null 2>&1; then
-      envsubst <code.desktop >~/.local/share/applications/code.desktop
-      setup_ln code ~/.local/bin/code
-    fi
     if hash keepassxc >/dev/null 2>&1; then
       setup_cp keepassxc.desktop ~/.local/share/applications/org.keepassxc.KeePassXC.desktop
       setup_ln keepassxc.ini ~/.config/keepassxc/keepassxc.ini
