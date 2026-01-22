@@ -145,4 +145,4 @@ require("lazy").setup({
 -- fileline.vim: interpret 'filename[:line[:col]]' filenames
 -- projectionist.vim: vim-projectionist config
 -- vscode.vim: vscode-like key bindinds
--- wrap.vim: toggle line wrapping with <A-z> / <leader>uw
+-- ui.vim: UI toggles (<leader>u*)

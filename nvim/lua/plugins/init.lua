@@ -96,11 +96,9 @@ return {
     opts = {
       preset = "helix",  -- show floating window at the right
       spec = {
-        {
-          { "<leader>b", group = "buffer" },
-          { "<leader>f", group = "file/find" },
-          { "<leader>u", group = "ui" },
-        }
+        { "<leader>b", group = "buffer" },
+        { "<leader>f", group = "file/find" },
+        { "<leader>u", group = "ui" },
       }
     },
     keys = {
