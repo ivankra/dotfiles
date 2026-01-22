@@ -82,6 +82,7 @@ fi
 
 if hash nvim >/dev/null 2>&1; then
   export EDITOR=nvim
+  alias n=nvim
 fi
 
 if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
