@@ -26,7 +26,7 @@ if [[ -z "${USER:-}" ]]; then
 fi
 
 IN_CONTAINER=0
-if [[ -n "$container" || -f /run/.containerenv || -f /.dockerenv ]]; then
+if [[ "${container:-}" != "" || -f /run/.containerenv || -f /.dockerenv ]]; then
   IN_CONTAINER=1
 fi
 
