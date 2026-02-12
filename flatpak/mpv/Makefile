@@ -66,6 +66,9 @@ config:
 	  --nofilesystem=host \
 	  --unshare=network \
 	  $(APP_ID)
+	rm -rf ~/.var/app/io.mpv.Mpv/config/mpv
+	cp -a ~/.dotfiles/mpv ~/.var/app/io.mpv.Mpv/config/mpv
+	~/.var/app/io.mpv.Mpv/config/mpv/mpv.conf.sh >~/.var/app/io.mpv.Mpv/config/mpv/mpv.conf
 	../install-launcher.sh $(APP_ID)
 
 run:

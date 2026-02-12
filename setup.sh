@@ -45,8 +45,6 @@ fi
 
 remove_dotfiles_symlinks \
   ~/.config/autostart/gnome-keyring-ssh.desktop \
-  ~/.config/mpv \
-  ~/.config/mpv/input.conf \
   ~/.config/qpdfview \
   ~/.config/qpdfview/shortcuts.conf \
   ~/.fonts \
@@ -92,9 +90,10 @@ if hash R >/dev/null 2>&1; then
 fi
 
 if [[ $UID != 0 ]]; then
-  setup_cp mpv-input.conf ~/.config/mpv/input.conf
+  setup_cp mpv/input.conf ~/.config/mpv/input.conf
+  setup_ln mpv/scripts ~/.config/mpv/scripts
+  setup_gen <(./mpv/mpv.conf.sh) ~/.config/mpv/mpv.conf
   setup_cp vlcrc ~/.config/vlc/vlcrc
-  setup_gen <(./mpv.conf.sh) ~/.config/mpv/mpv.conf
   if hash tkdiff >/dev/null 2>&1; then
     setup_ln tkdiffrc
   fi

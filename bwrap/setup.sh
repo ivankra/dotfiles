@@ -14,7 +14,7 @@ APPS=(
   p7zip:none
   rar:none
   unzip:none
-  # mpv
+  mpv
   # vlc
 )
 
