@@ -78,42 +78,42 @@ local function ll_pretty_path()
 end
 
 local mode_map = {
-  ["n"]      = "N",        -- NORMAL
-  ["no"]     = "OP",       -- O-PENDING
-  ["nov"]    = "OP",       -- O-PENDING
-  ["noV"]    = "OP",       -- O-PENDING
-  ["no\22"]  = "OP",       -- O-PENDING
-  ["niI"]    = "N",        -- NORMAL
-  ["niR"]    = "N",        -- NORMAL
-  ["niV"]    = "N",        -- NORMAL
-  ["nt"]     = "N",        -- NORMAL
-  ["ntT"]    = "N",        -- NORMAL
-  ["v"]      = "V",        -- VISUAL
-  ["vs"]     = "V",        -- VISUAL
-  ["V"]      = "VL",       -- V-LINE
-  ["Vs"]     = "VL",       -- V-LINE
-  ["\22"]    = "VB",       -- V-BLOCK
-  ["\22s"]   = "VB",       -- V-BLOCK
-  ["s"]      = "S",        -- SELECT
-  ["S"]      = "SL",       -- S-LINE
-  ["\19"]    = "SB",       -- S-BLOCK
-  ["i"]      = "I",        -- INSERT
-  ["ic"]     = "I",        -- INSERT
-  ["ix"]     = "I",        -- INSERT
-  ["R"]      = "R",        -- REPLACE
-  ["Rc"]     = "R",        -- REPLACE
-  ["Rx"]     = "R",        -- REPLACE
-  ["Rv"]     = "VR",       -- V-REPLACE
-  ["Rvc"]    = "VR",       -- V-REPLACE
-  ["Rvx"]    = "VR",       -- V-REPLACE
-  ["c"]      = "C",        -- COMMAND
-  ["cv"]     = "EX",       -- EX
-  ["ce"]     = "EX",       -- EX
-  ["r"]      = "R",        -- REPLACE
-  ["rm"]     = "MORE",     -- MORE
-  ["r?"]     = "CONFIRM",  -- CONFIRM
-  ["!"]      = "SH",       -- SHELL
-  ["t"]      = "T",        -- TERMINAL
+  ["n"]      = "N",          -- NORMAL
+  ["no"]     = "O-PENDING",  -- O-PENDING
+  ["nov"]    = "O-PENDING",  -- O-PENDING
+  ["noV"]    = "O-PENDING",  -- O-PENDING
+  ["no\22"]  = "O-PENDING",  -- O-PENDING
+  ["niI"]    = "N",          -- NORMAL
+  ["niR"]    = "N",          -- NORMAL
+  ["niV"]    = "N",          -- NORMAL
+  ["nt"]     = "N",          -- NORMAL
+  ["ntT"]    = "N",          -- NORMAL
+  ["v"]      = "V",          -- VISUAL
+  ["vs"]     = "V",          -- VISUAL
+  ["V"]      = "V-LINE",     -- V-LINE
+  ["Vs"]     = "V-LINE",     -- V-LINE
+  ["\22"]    = "V-BLOCK",    -- V-BLOCK
+  ["\22s"]   = "V-BLOCK",    -- V-BLOCK
+  ["s"]      = "SELECT",     -- SELECT
+  ["S"]      = "S-LINE",     -- S-LINE
+  ["\19"]    = "S-BLOCK",    -- S-BLOCK
+  ["i"]      = "I",          -- INSERT
+  ["ic"]     = "I",          -- INSERT
+  ["ix"]     = "I",          -- INSERT
+  ["R"]      = "REPLACE",    -- REPLACE
+  ["Rc"]     = "REPLACE",    -- REPLACE
+  ["Rx"]     = "REPLACE",    -- REPLACE
+  ["Rv"]     = "V-REPLACE",  -- V-REPLACE
+  ["Rvc"]    = "V-REPLACE",  -- V-REPLACE
+  ["Rvx"]    = "V-REPLACE",  -- V-REPLACE
+  ["c"]      = "COMMAND",    -- COMMAND
+  ["cv"]     = "EX",         -- EX
+  ["ce"]     = "EX",         -- EX
+  ["r"]      = "REPLACE",    -- REPLACE
+  ["rm"]     = "MORE",       -- MORE
+  ["r?"]     = "CONFIRM",    -- CONFIRM
+  ["!"]      = "SH",         -- SHELL
+  ["t"]      = "TERM",       -- TERMINAL
 }
 
 local function ll_mode()
@@ -168,7 +168,7 @@ return {
       },
       sections = {
         lualine_a = {
-          { "mode" },
+          { ll_mode },
         },
         lualine_b = {
           { "branch", icon = "", cond = min_width(100) },

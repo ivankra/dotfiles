@@ -32,10 +32,18 @@ vim.opt.smartindent = true              -- C-like indent (between autoindent and
 vim.opt.softtabstop = -1                -- Use shiftwidth value
 
 -- Status column
--- vim.opt.number = true                 -- Show line numbers
--- vim.opt.signcolumn = "yes"            -- Always show sign column
--- vim.opt.statuscolumn = "%4l %s"
-vim.g.gitsigns_signcolumn = false
+vim.opt.number = true                   -- Show line numbers
+vim.opt.numberwidth = 3
+vim.opt.signcolumn = "yes"              -- Always show sign column
+vim.g.gitsigns_signcolumn = true        -- gitsigns's signcolumn via lua/plugins/init.lua
+vim.opt.statuscolumn = "%3l%s"
+
+-- Add a LineNr-colored bar in signcolumn when there are no signs, in order to blend in with gitsigns
+-- _G.get_statuscol = function()
+--   local signs = vim.fn.sign_getplaced(vim.api.nvim_get_current_buf(), {group = "*", lnum = vim.v.lnum})[1].signs
+--   if #signs > 0 then return "%3l%s" else return "%3l%#LineNr#│%" end
+-- end
+-- vim.o.statuscolumn = "%!v:lua.get_statuscol()"
 
 vim.g.mapleader = " "                   -- <leader> key
 vim.g.maplocalleader = "\\"

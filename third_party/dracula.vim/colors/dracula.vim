@@ -48,6 +48,7 @@ let s:subtlelighter    = g:dracula#palette.subtlelighter
 
 let s:cyan      = g:dracula#palette.cyan
 let s:green     = g:dracula#palette.green
+let s:greendark = g:dracula#palette.greendark
 let s:orange    = g:dracula#palette.orange
 let s:pink      = g:dracula#palette.pink
 let s:purple    = g:dracula#palette.purple
@@ -180,6 +181,7 @@ call s:h('DraculaGreen', s:green)
 call s:h('DraculaGreenBold', s:green, s:none, [s:attrs.bold])
 call s:h('DraculaGreenItalic', s:green, s:none, [s:attrs.italic])
 call s:h('DraculaGreenItalicUnderline', s:green, s:none, [s:attrs.italic, s:attrs.underline])
+call s:h('DraculaGreenDark', s:greendark)
 
 call s:h('DraculaOrange', s:orange)
 call s:h('DraculaOrangeBold', s:orange, s:none, [s:attrs.bold])
@@ -1036,6 +1038,8 @@ if has('nvim')
   hi! link NvimTreeFolderName DraculaPurple
   hi! link NvimTreeGitDirty DraculaOrange
   hi! link NvimTreeGitNew DraculaGreen
+  hi! link NvimTreeGitStaged DraculaGreenDark
+
   hi! link NvimTreeIndentMarker DraculaCommentMedium
   hi! link NvimTreeOpenedFolderName DraculaPurple
   hi! link NvimTreeRootFolder DraculaPurpleBold

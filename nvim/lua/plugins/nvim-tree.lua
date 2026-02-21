@@ -26,11 +26,13 @@ return {
           dotfiles = false,
           git_ignored = false,
         },
+        filesystem_watchers = { enable = true },
         renderer = {
           -- Don't append /.. to the path of root folder
           root_folder_label = ":~",
           -- Don't add weird highlights to README/Makefile/etc
           special_files = {},
+          highlight_git = "all",
           icons = {
             modified_placement = "signcolumn",
             git_placement = "right_align",
