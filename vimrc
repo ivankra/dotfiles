@@ -76,6 +76,8 @@ cabbr <expr> %% expand("%:p:h")
 " Ctrl-L clears search highlight in addition to redraw
 noremap <silent> <C-L> :nohls<CR><C-L>
 
+nnoremap <C-Q> :bd<CR>
+
 if has("syntax")
   syntax on
 endif

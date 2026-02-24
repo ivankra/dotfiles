@@ -11,7 +11,7 @@ inoremap <C-S> <C-O>:w<CR>
 " [Ctrl+Q]: close tab / quit
 " Note - in insert/command mode, <C-Q>/<C-V> inserts special characters,
 " <C-W> is needed for vim window management - do not redefine.
-nnoremap <C-Q> :q<CR>
+" nnoremap <C-Q> :q<CR>
 
 " [Ctrl+Z]: undo (note: overrides suspend/:stop command)
 nnoremap <C-Z> u

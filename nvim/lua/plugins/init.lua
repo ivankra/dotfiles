@@ -59,6 +59,28 @@ return {
     },
   },
 
+  -- Delete buffers while preserving window layout
+  {
+    "nvim-mini/mini.bufremove",
+    dev = true,
+    cmd = { "Bd" },
+    keys = {
+      { "<leader>bd", "<cmd>Bd<cr>", desc = "Delete buffer" },
+      { "<C-Q>", "<cmd>Bd<cr>", desc = "Delete buffer" },
+    },
+    opts = {},
+    config = function(_, opts)
+      require("mini.bufremove").setup(opts)
+      vim.api.nvim_create_user_command("Bd", function(cmd_opts)
+        require("mini.bufremove").delete(0, cmd_opts.bang)
+      end, { bang = true, desc = "Delete buffer via mini.bufremove" })
+    end,
+    init = function()
+      vim.cmd([[cabbr <expr> bd (getcmdtype() == ':' && getcmdline() ==# 'bd') ? 'Bd' : 'bd']])
+      vim.cmd([[cabbr <expr> bd! (getcmdtype() == ':' && getcmdline() ==# 'bd!') ? 'Bd!' : 'bd!']])
+    end,
+  },
+
   -- Modern take on vidir, editable file explorer buffers
   {
     "stevearc/oil.nvim",
