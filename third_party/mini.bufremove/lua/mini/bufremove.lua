@@ -86,7 +86,15 @@ MiniBufremove.config = {
 MiniBufremove.delete = function(buf_id, force)
   if H.is_disabled() then return end
 
-  return H.unshow_and_cmd(buf_id, force, 'bdelete')
+  buf_id = H.normalize_buf_id(buf_id)
+  local is_last = #vim.fn.getbufinfo({ buflisted = 1 }) <= 1
+
+  local result = H.unshow_and_cmd(buf_id, force, 'bdelete')
+
+  -- If this was the last listed buffer, close window (or quit if last window)
+  if result and is_last then vim.cmd(force and 'quit!' or 'quit') end
+
+  return result
 end
 
 --- Wipeout buffer `buf_id` with |:bwipeout| after unshowing it
