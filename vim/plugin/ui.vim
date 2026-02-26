@@ -100,4 +100,5 @@ else
   nmap <leader>us :call ToggleSpell()<CR>
   nmap <leader>uw :call ToggleWrap()<CR>
   nmap <A-z> :call ToggleWrap()<CR>
+  nmap <Esc>z :call ToggleWrap()<CR>
 endif

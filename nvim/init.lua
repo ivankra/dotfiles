@@ -18,13 +18,6 @@ vim.opt.undofile = true                 -- Persistent undo history
 vim.opt.virtualedit = "block"           -- Allow cursor to move nd end-of-line in block selection mode
 vim.opt.wildmode = "longest:full,full"  -- Completion mode like readline's show-all-if-ambiguous
 
--- Wrapping
-vim.opt.wrap = false                    --  No line wrapping by default
-vim.opt.linebreak = true                --  Wrap line at whitespace
-vim.opt.breakindent = true              --  Continue original indentation on wrapped lines
-vim.opt.breakindentopt = "shift:2,sbr"  --  At least 2 column indent and enable showbreak
-vim.opt.showbreak = "↪"                 --  Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
-
 -- Default indent options. Will get adjusted by guess-indent.nvim.
 vim.opt.expandtab = true                -- Expand tabs
 vim.opt.shiftwidth = 2                  -- 2 space indent
@@ -38,6 +31,14 @@ vim.opt.signcolumn = "yes"              -- Always show sign column
 vim.g.gitsigns_signcolumn = true        -- gitsigns's signcolumn via lua/plugins/init.lua
 vim.opt.statuscolumn = "%3l%s"
 
+-- Wrapping
+vim.opt.wrap = false                    --  No line wrapping by default
+vim.opt.linebreak = true                --  Wrap line at whitespace
+vim.opt.breakindent = true              --  Continue original indentation on wrapped lines
+-- With line numbers on, don't want showbreak
+-- vim.opt.breakindentopt = "shift:2,sbr"  --  At least 2 column indent and enable showbreak
+-- vim.opt.showbreak = "↪"                 --  Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
+
 -- Add a LineNr-colored bar in signcolumn when there are no signs, in order to blend in with gitsigns
 -- _G.get_statuscol = function()
 --   local signs = vim.fn.sign_getplaced(vim.api.nvim_get_current_buf(), {group = "*", lnum = vim.v.lnum})[1].signs
@@ -48,7 +49,7 @@ vim.opt.statuscolumn = "%3l%s"
 vim.g.mapleader = " "                   -- <leader> key
 vim.g.maplocalleader = "\\"
 
--- Window navigation
+-- Window navigation: Ctrl+hjkl/arrows to switch windows
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Go to left window" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Go to lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Go to upper window" })
@@ -59,9 +60,9 @@ vim.keymap.set("n", "<S-Up>", "<C-w><C-k>", { desc = "Go to upper window" })
 vim.keymap.set("n", "<S-Right>", "<C-w>l", { desc = "Go to right window", silent = true })
 
 -- Buffers (bufferline will override some of these if loaded)
--- Shift+PgUp/PgDown to switch between buffers, rationale: next to Ctrl (switch tabs)
-vim.keymap.set("n", "<S-PageUp>", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
-vim.keymap.set("n", "<S-PageDown>", "<cmd>bnext<cr>", { desc = "Next buffer" })
+-- Shift+PgUp/Down to switch buffers (rationale: next to Ctrl - switch tabs)
+vim.keymap.set({"n", "i"}, "<S-PageUp>", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
+vim.keymap.set({"n", "i"}, "<S-PageDown>", "<cmd>bnext<cr>", { desc = "Next buffer" })
 vim.keymap.set("n", "[b", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
 vim.keymap.set("n", "]b", "<cmd>bnext<cr>", { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to other buffer" })
@@ -91,6 +92,15 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave
   callback = function()
     if vim.o.buftype ~= "nofile" then
       vim.cmd("checktime")
+    end
+
+    -- Refresh nvim-tree if it's open
+    local tree_api = package.loaded["nvim-tree.api"]
+    if tree_api and tree_api.tree and tree_api.tree.is_visible and tree_api.tree.reload then
+      local ok_visible, is_visible = pcall(tree_api.tree.is_visible)
+      if ok_visible and is_visible then
+        pcall(tree_api.tree.reload)
+      end
     end
   end,
 })

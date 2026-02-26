@@ -22,19 +22,19 @@ set virtualedit=block                   " Allow cursor to move beyond end-of-lin
 set wildmode=longest:full,full          " Completion mode like readline
 set wildoptions=pum                     " Show a popup menu for autocompletions
 
-" Wrapping
-set nowrap                              " No line wrapping by default
-set linebreak                           " Wrap line at whitespace
-set breakindent                         " Continue original indentation on wrapped lines
-set breakindentopt="shift:2,sbr"        " At least 2 column indent and enable showbreak
-set showbreak="↪"                       " Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
-
 " Default indent options. Will get adjusted by vim-sleuth.
 set autoindent                          " Basic autoindent
 set smartindent                         " C-like indent (between autoindent and cindent)
 set expandtab                           " Expand tabs
 set softtabstop=-1                      " Use shiftwidth value
 set shiftwidth=2                        " 2 space indent
+
+" Wrapping
+set nowrap                              " No line wrapping by default
+set linebreak                           " Wrap line at whitespace
+set breakindent                         " Continue original indentation on wrapped lines
+set breakindentopt="shift:2,sbr"        " At least 2 column indent and enable showbreak
+set showbreak="↪"                       " Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
 
 set statusline=
 set statusline+=%<%f                    " File path
@@ -75,8 +75,6 @@ cabbr <expr> %% expand("%:p:h")
 
 " Ctrl-L clears search highlight in addition to redraw
 noremap <silent> <C-L> :nohls<CR><C-L>
-
-nnoremap <C-Q> :bd<CR>
 
 if has("syntax")
   syntax on
