@@ -1035,14 +1035,14 @@ if has('nvim')
   hi! link NvimTreeEmptyFolderName DraculaPurple
   hi! link NvimTreeExecFile DraculaGreen
   hi! link NvimTreeFolderIcon DraculaPurple
-  hi! link NvimTreeFolderName DraculaPurple
+  hi! link NvimTreeFolderName DraculaPurpleBold
   hi! link NvimTreeGitDirty DraculaOrange
   hi! link NvimTreeGitNew DraculaGreen
   hi! link NvimTreeGitStaged DraculaGreenDark
-
+  hi! link NvimTreeImageFile DraculaPink
   hi! link NvimTreeIndentMarker DraculaCommentMedium
-  hi! link NvimTreeOpenedFolderName DraculaPurple
-  hi! link NvimTreeRootFolder DraculaPurpleBold
+  hi! link NvimTreeOpenedFolderName DraculaPurpleBold
+  hi! link NvimTreeRootFolder DraculaPurpleItalic
   hi! link NvimTreeSymlink DraculaCyan
   hi! link NvimTreeSymlinkFolderName DraculaPurple
   " }}}
@@ -1055,7 +1055,7 @@ if has('nvim')
   hi! link MiniIconsGrey DraculaFg
   hi! link MiniIconsOrange DraculaOrange
   hi! link MiniIconsPurple DraculaPurple
-  hi! link MiniIconsRed DraculaPink
+  hi! link MiniIconsRed DraculaRed
   hi! link MiniIconsYellow DraculaYellow
   " }}}
 endif
