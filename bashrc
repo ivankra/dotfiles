@@ -132,7 +132,7 @@ alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
 alias nvimdiff='nvim -d'
 alias octave='octave -q'
 alias parallel='parallel --will-cite'
-alias qvimdiff='nvim-qt -d'
+alias qvimdiff='nvim-qt -- -d'
 alias rm='rm -i'
 alias rsync='rsync --info=progress2'
 alias rsyncp='rsync --info=progress2'
@@ -164,7 +164,6 @@ __maybe_alias iwconfig=/sbin/iwconfig
 __maybe_alias nb=jupyter-notebook
 __maybe_alias py=python3; __maybe_alias py=ipython3
 __maybe_alias python=python3
-__maybe_alias qvim=nvim-qt
 __maybe_alias route=/sbin/route
 __maybe_alias speedify_cli=/usr/share/speedify/speedify_cli
 __maybe_alias sysctl=/sbin/sysctl
