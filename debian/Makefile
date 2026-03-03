@@ -5,6 +5,7 @@
 # at the end of build script, before copying files out from it.
 
 DOCKER = podman
+PLATFORM ?= linux/arm64
 EQUIVS_PACKAGES = $(patsubst %.control,%,$(wildcard *.control))
 DOCKER_PACKAGES = $(patsubst %.Dockerfile,%,$(wildcard *.Dockerfile))
 SHELL_PACKAGES = $(patsubst %.sh,%,$(wildcard *.sh))
@@ -17,7 +18,7 @@ clean:
 # Build a package out of each *.Dockerfile using docker.
 # Assumes that the container will place final product into /dist/
 %: %.Dockerfile
-	$(DOCKER) build -f $< -t builder-$@ .
+	$(DOCKER) build --platform=$(PLATFORM) -f $< -t builder-$@ .
 	rm -f $@.cid
 	$(DOCKER) run --cidfile $@.cid builder-$@
 	$(DOCKER) cp "$$(cat $@.cid):/dist/." ./
@@ -25,7 +26,7 @@ clean:
 	$(DOCKER) image rm builder-$@
 
 %-sh: %.Dockerfile
-	$(DOCKER) build -f $< -t builder-$@ .
+	$(DOCKER) build --platform=$(PLATFORM) -f $< -t builder-$@ .
 	rm -f $@.cid
 	$(DOCKER) run --cidfile $@.cid builder-$@
 	$(DOCKER) run -it builder-$@ /bin/bash
