@@ -1036,6 +1036,7 @@ if has('nvim')
   hi! link NvimTreeExecFile DraculaGreen
   hi! link NvimTreeFolderIcon DraculaPurple
   hi! link NvimTreeFolderName DraculaPurpleBold
+  hi! link NvimTreeGitDeleted DraculaRed
   hi! link NvimTreeGitDirty DraculaOrange
   hi! link NvimTreeGitNew DraculaGreen
   hi! link NvimTreeGitStaged DraculaGreenDark
