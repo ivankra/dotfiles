@@ -194,10 +194,7 @@ else
   alias ping=~/.dotfiles/bin/ping.sh
 fi
 
-echo_and_run() { local cmd=$(printf '%q ' "$@"); echo "+ $cmd"; eval "$cmd"; }
-__v_git() { if [[ -d .git ]]; then echo -v "$PWD/.git:$PWD/.git:ro"; fi; }
-
-alias dr='echo_and_run ${BASH_ALIASES[docker]:-docker} run --rm -it -v "$PWD:$PWD" $(__v_git) -w "$PWD"'
+# alias dr='~/.dotfiles/bin/dr'
 alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
 
 alias claude='~/.dotfiles/docker/agents/run.sh claude'
@@ -205,15 +202,9 @@ alias codex='~/.dotfiles/docker/agents/run.sh codex'
 alias opencode='~/.dotfiles/docker/agents/run.sh opencode'
 alias gemini='~/.dotfiles/docker/agents/run.sh gemini'
 
-# Completion for dr: complete first arg with docker/podman image names
 _dr_completion() {
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  if [[ $COMP_CWORD -eq 1 ]]; then
-    local images=$(${BASH_ALIASES[docker]:-docker} images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -v '<none>')
-    # Add short names: strip localhost/ and :latest
-    local short_names=$(echo "$images" | sed -E 's|^localhost/([^:]+):latest$|\1|; t; d')
-    COMPREPLY=($(compgen -W "$images $short_names" -- "$cur"))
-  fi
+  local suggestions=$(~/.dotfiles/bin/dr --complete "${COMP_WORDS[@]:1}" 2>/dev/null)
+  COMPREPLY=($(compgen -W "$suggestions" -- "${COMP_WORDS[COMP_CWORD]}"))
 }
 complete -F _dr_completion -o default dr
 

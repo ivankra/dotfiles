@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+def parse_args(argv):
+    """Parse wrapper args, then attach the split `run`, image, and image-arg sections."""
+    parser = argparse.ArgumentParser(
+        prog="dr",
+        description="Wrapper for `docker run --rm -it -v $PWD:$PWD`"
+    )
+    parser.usage = "dr [options] [docker run args] IMAGE|DOCKERFILE [image args]"
+    parser.add_argument(
+        "--build-arg", action="append", default=[], metavar="KEY=VAL",
+        help="Build args to pass when building a dockerfile")
+    own_flags = {opt for action in parser._actions for opt in action.option_strings if opt.startswith("--")}
+    own_argv, run_args, image, image_args = split_args(argv, own_flags)
+    args = parser.parse_args(own_argv)
+    if image is None:
+        parser.print_help()
+        sys.exit(0)
+    args.run_args = run_args
+    args.image = image
+    args.image_args = image_args
+    return args
+
+
+def split_args(argv, own_flags=()):
+    """Split argv into wrapper args, container-run args, image, and image args."""
+    standalone_own = {"--help"}
+    standalone_long = {
+        "--detach", "--disable-content-trust", "--env-host", "--help", "--init",
+        "--interactive", "--no-healthcheck", "--no-hostname", "--no-hosts",
+        "--oom-kill-disable", "--passwd", "--privileged", "--publish-all", "--quiet",
+        "--read-only", "--read-only-tmpfs", "--replace", "--rm", "--rmi", "--rootfs",
+        "--sig-proxy", "--tls-verify", "--tty", "--unsetenv-all",
+    }
+    standalone_short = set("dhiPqt")
+
+    own_argv, run_args, image_args = [], [], []
+    image = None
+    i = 0
+
+    while i < len(argv):
+        arg = argv[i]
+
+        if not run_args and image is None:
+            own_flag = arg.split("=", 1)[0]
+            if own_flag in own_flags:
+                own_argv.append(arg)
+                i += 1
+                if own_flag in standalone_own or "=" in arg:
+                    continue
+                if i >= len(argv):
+                    sys.exit(f"dr: missing value for {own_flag}")
+                own_argv.append(argv[i])
+                i += 1
+                continue
+
+        if image is not None:
+            image_args.append(arg)
+            i += 1
+            continue
+
+        if arg == "--":
+            if i + 1 >= len(argv):
+                sys.exit("dr: missing image name after --")
+            image = argv[i + 1]
+            image_args = argv[i + 2 :]
+            break
+
+        if arg.startswith("--"):
+            if "=" in arg or arg in standalone_long:
+                run_args.append(arg)
+                i += 1
+            else:
+                if i + 1 >= len(argv):
+                    sys.exit(f"dr: missing value for {arg}")
+                run_args += [arg, argv[i + 1]]
+                i += 2
+            continue
+
+        if arg.startswith("-") and arg != "-":
+            cluster = arg[1:]
+            if cluster and all(ch in standalone_short for ch in cluster):
+                run_args.append(arg)
+                i += 1
+            else:
+                run_args.append(arg)
+                if i + 1 >= len(argv):
+                    sys.exit(f"dr: missing value for {arg}")
+                run_args.append(argv[i + 1])
+                i += 2
+            continue
+
+        image = arg
+        i += 1
+
+    return own_argv, run_args, image, image_args
+
+
+assert split_args(["alpine"]) == ([], [], "alpine", [])
+assert split_args([]) == ([], [], None, [])
+assert split_args(["--rm", "-it", "-v", "/x:/x", "alpine", "sh"]) == ([], ["--rm", "-it", "-v", "/x:/x"], "alpine", ["sh"])
+assert split_args(["--build-arg", "A=B", "--pull=always", "Dockerfile", "bash"], own_flags={"--help", "--build-arg"}) == (["--build-arg", "A=B"], ["--pull=always"], "Dockerfile", ["bash"])
+assert split_args(["--build-arg=A=B", "--pull=always", "Dockerfile", "bash"], own_flags={"--help", "--build-arg"}) == (["--build-arg=A=B"], ["--pull=always"], "Dockerfile", ["bash"])
+assert split_args(["-e", "A=B", "-it", "img", "--", "-c"]) == ([], ["-e", "A=B", "-it"], "img", ["--", "-c"])
+assert split_args(["--help", "img"], own_flags={"--help", "--build-arg"}) == (["--help"], [], "img", [])
+assert split_args(["--", "img", "--help"]) == ([], [], "img", ["--help"])
+assert split_args(["--rm", "--build-arg", "A=B", "img"]) == ([], ["--rm", "--build-arg", "A=B"], "img", [])
+
+
+def get_docker_command():
+    for name in ("podman", "docker", "container"):
+        if shutil.which(name):
+            return name
+    sys.exit("dr: neither podman, docker, nor container found")
+
+
+def print_command(args):
+    print("+", shlex.join([str(x) for x in args]))
+
+
+def print_completion(words):
+    """Emit image-position completions: cached images plus local Dockerfiles and directories."""
+    current = words[-1] if words else ""
+    _, run_args, image, _ = split_args(words[:-1], own_flags={"--help", "--build-arg"})
+    if image is not None or current.startswith("-"):
+        return
+    if run_args:
+        return
+    runtime_dir = Path(os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}")
+    if not runtime_dir.is_dir():
+        runtime_dir = Path("/tmp")
+    cache_file = runtime_dir / "dr-images.txt"
+    try:
+        docker = get_docker_command()
+    except SystemExit:
+        return
+    if cache_file.exists() and time.time() - cache_file.stat().st_mtime < 60:
+        images = [line for line in cache_file.read_text().splitlines() if line]
+    else:
+        result = subprocess.run(
+            [docker, "images", "--format", "{{.Repository}}:{{.Tag}}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+        images = [line.strip() for line in result.stdout.splitlines() if line.strip() and "<none>" not in line]
+        short_names = []
+        for image in images:
+            match = re.fullmatch(r"localhost/([^:]+):latest", image)
+            if match:
+                short_names.append(match.group(1))
+        images = sorted(set(images + short_names))
+        try:
+            cache_file.write_text("".join(f"{image}\n" for image in images))
+        except OSError:
+            pass
+    paths = []
+    for path in Path.cwd().iterdir():
+        if path.is_dir():
+            paths.append(f"{path.name}/")
+        elif "Dockerfile" in path.name:
+            paths.append(path.name)
+    for item in sorted(set(images + paths)):
+        if item.startswith(current):
+            print(item)
+
+
+def main():
+    """Handle completion mode, optional Dockerfile build, then execute the container run."""
+    if len(sys.argv) > 1 and sys.argv[1] == "--complete":
+        print_completion(sys.argv[2:])
+        return
+
+    args = parse_args(sys.argv[1:])
+    pwd = Path.cwd()
+    docker = get_docker_command()
+
+    image_path = Path(args.image).expanduser()
+    # Treat a file path as a Dockerfile: build it first, then run the generated tag.
+    if image_path.is_file():
+        build_args = [item for value in args.build_arg for item in ("--build-arg", value)]
+        tag = "dr-" + re.sub(r"[^a-z0-9_.-]+", "-", (pwd.name or "root").lower()).strip("-")
+        build_cmd = [docker, "build", "-f", str(image_path), "-t", tag, *build_args, str(image_path.parent)]
+        print_command(build_cmd)
+        subprocess.run(build_cmd, check=True)
+        args.image = tag
+
+    cmd = [docker, "run", "--rm", "-it", "-v", f"{pwd}:{pwd}"]
+    git_dir = pwd / ".git"
+    if git_dir.is_dir():
+        cmd += ["-v", f"{git_dir}:{git_dir}:ro"]
+    cmd += ["-w", str(pwd)]
+    cmd += args.run_args
+    cmd += [args.image]
+    cmd += args.image_args
+    print_command(cmd)
+    sys.exit(subprocess.run(cmd).returncode)
+
+
+if __name__ == "__main__":
+    main()
