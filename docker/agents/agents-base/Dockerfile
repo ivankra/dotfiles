@@ -45,7 +45,6 @@ RUN apt-get update -y && \
         ghostscript \
         git \
         gnupg2 \
-        golang \
         gperf \
         graphviz \
         gzip \
@@ -75,13 +74,12 @@ RUN apt-get update -y && \
         mbuffer \
         miller \
         moreutils \
+        mypy \
         nano \
         net-tools \
         netcat-openbsd \
         nftables \
         ninja-build \
-        nodejs \
-        npm \
         openjdk-25-jdk-headless \
         openssl \
         p7zip-full \
@@ -122,6 +120,7 @@ RUN apt-get update -y && \
         tcpdump \
         tesseract-ocr \
         time \
+        byobu \
         tmux \
         tokei \
         traceroute \
@@ -140,12 +139,39 @@ RUN apt-get update -y && \
     echo "en_US.UTF-8 UTF-8" >/etc/locale.gen && \
     locale-gen
 
+ENV LC_ALL=en_US.UTF-8 \
+    SHELL=/bin/bash \
+    NVM_DIR=/usr/local/nvm \
+    UV_INSTALL_DIR=/usr/local/bin \
+    UV_TOOL_DIR=/usr/local/share/uv \
+    UV_TOOL_BIN_DIR=/usr/local/bin \
+    PATH=/root/.local/bin:/usr/local/node/bin:/usr/local/go/bin:$PATH
+
 RUN rustup toolchain install stable && rustup default stable && \
     rustup component add rust-analyzer
 
-ENV LC_ALL=en_US.UTF-8
-ENV PATH=/root/.local/bin:$PATH
-ENV SHELL=/bin/bash
+RUN GOLANG_ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
+    VER=$(curl -fsSL 'https://go.dev/VERSION?m=text' | head -n1 | sed 's/go//') && \
+    curl -fL -o /tmp/go.tar.gz https://go.dev/dl/go${VER}.linux-${GOLANG_ARCH}.tar.gz && \
+    tar -C /usr/local -xzf /tmp/go.tar.gz && \
+    rm -f /tmp/go.tar.gz
+
+RUN mkdir -p "$NVM_DIR" && \
+    curl -o /tmp/nvm-install.sh https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh && \
+    echo "4b7412c49960c7d31e8df72da90c1fb5b8cccb419ac99537b737028d497aba4f  /tmp/nvm-install.sh" | sha256sum -c && \
+    bash /tmp/nvm-install.sh && rm -f /tmp/nvm-install.sh && \
+    bash -c 'source /usr/local/nvm/nvm.sh && nvm install node' && \
+    ln -s /usr/local/nvm/versions/node/*/ /usr/local/node
+
+RUN npm install -g \
+        @biomejs/biome \
+        esbuild \
+        pnpm \
+        prettier \
+        rolldown \
+        serve \
+        tsx \
+        typescript
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     uv tool install ty && \

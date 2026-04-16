@@ -175,6 +175,21 @@ def print_completion(words):
             print(item)
 
 
+def ensure_volume_dirs(run_args):
+    i = 0
+    while i < len(run_args):
+        if run_args[i] == "-v" and i + 1 < len(run_args):
+            host_path = run_args[i + 1].split(":")[0]
+            Path(host_path).mkdir(parents=True, exist_ok=True)
+            i += 2
+        elif run_args[i].startswith("-v=") or run_args[i].startswith("--volume="):
+            host_path = run_args[i].split("=", 1)[1].split(":")[0]
+            Path(host_path).mkdir(parents=True, exist_ok=True)
+            i += 1
+        else:
+            i += 1
+
+
 def main():
     """Handle completion mode, optional Dockerfile build, then execute the container run."""
     if len(sys.argv) > 1 and sys.argv[1] == "--complete":
@@ -185,21 +200,33 @@ def main():
     pwd = Path.cwd()
     docker = get_docker_command()
 
+    def slug(s):
+        s = re.sub(r"[^a-z0-9_-]+", "-", s.lower())
+        return re.sub(r"-+", "-", s).strip("-")
+
+    dir_slug = slug(pwd.name or "root")
+
     image_path = Path(args.image).expanduser()
     # Treat a file path as a Dockerfile: build it first, then run the generated tag.
     if image_path.is_file():
+        name = f"dr-{dir_slug}"
         build_args = [item for value in args.build_arg for item in ("--build-arg", value)]
-        tag = "dr-" + re.sub(r"[^a-z0-9_.-]+", "-", (pwd.name or "root").lower()).strip("-")
-        build_cmd = [docker, "build", "-f", str(image_path), "-t", tag, *build_args, str(image_path.parent)]
+        build_cmd = [docker, "build", "-f", str(image_path), "-t", name, *build_args, str(image_path.parent)]
         print_command(build_cmd)
         subprocess.run(build_cmd, check=True)
-        args.image = tag
+        args.image = name
+    else:
+        image_slug = slug(args.image.split("/")[-1].split(":")[0])
+        name = f"dr-{image_slug}-{dir_slug}"
 
-    cmd = [docker, "run", "--rm", "-it", "-v", f"{pwd}:{pwd}"]
+    name += "-" + os.urandom(4).hex()
+
+    cmd = [docker, "run", "--rm", "-it", "--name", name, "-v", f"{pwd}:{pwd}"]
     git_dir = pwd / ".git"
     if git_dir.is_dir():
         cmd += ["-v", f"{git_dir}:{git_dir}:ro"]
     cmd += ["-w", str(pwd)]
+    ensure_volume_dirs(args.run_args)
     cmd += args.run_args
     cmd += [args.image]
     cmd += args.image_args

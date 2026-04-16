@@ -194,14 +194,6 @@ else
   alias ping=~/.dotfiles/bin/ping.sh
 fi
 
-# alias dr='~/.dotfiles/bin/dr'
-alias dr-claude='dr -v ~/.claude:/root/.claude -v ~/.claude/.claude.json:/root/.claude.json claude'
-
-alias claude='~/.dotfiles/docker/agents/run.sh claude'
-alias codex='~/.dotfiles/docker/agents/run.sh codex'
-alias opencode='~/.dotfiles/docker/agents/run.sh opencode'
-alias gemini='~/.dotfiles/docker/agents/run.sh gemini'
-
 _dr_completion() {
   local suggestions=$(~/.dotfiles/bin/dr --complete "${COMP_WORDS[@]:1}" 2>/dev/null)
   COMPREPLY=($(compgen -W "$suggestions" -- "${COMP_WORDS[COMP_CWORD]}"))
@@ -213,6 +205,12 @@ function dr-lab() {
   local port=$(find-free-port.py 8888 2>/dev/null || echo 8888)
   dr -u root -p "$port:$port" "quay.io/jupyter/scipy-notebook" jupyter lab --ip=0.0.0.0 --port=$port --allow-root
 }
+
+alias claude='dr -v $HOME/.docker/claude:/root claude claude'
+alias claude2='dr -v $HOME/.docker/claude2:/root claude claude'
+alias codex='dr -v $HOME/.docker/codex:/root codex codex'
+alias opencode='dr -v $HOME/.docker/opencode:/root opencode opencode'
+alias gemini='dr -v $HOME/.docker/gemini:/root gemini gemini'
 
 # }}}
 
