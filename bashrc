@@ -207,8 +207,8 @@ function dr-lab() {
 }
 
 alias claude='dr -v $HOME/.docker/claude:/root claude claude'
-alias claude2='dr -v $HOME/.docker/claude2:/root claude claude'
-alias codex='dr -v $HOME/.docker/codex:/root codex codex'
+alias claudem='dr -v $HOME/.docker/claudem:/root claudem claudem'
+alias codex='dr -v $HOME/.docker/codex:/root codex codex -c check_for_update_on_startup=false'
 alias opencode='dr -v $HOME/.docker/opencode:/root opencode opencode'
 alias gemini='dr -v $HOME/.docker/gemini:/root gemini gemini'
 
