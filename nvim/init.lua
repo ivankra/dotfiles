@@ -127,6 +127,12 @@ vim.g.in_container = in_container()
 vim.g.icons_provider = "nvim-mini/mini.icons"
 -- vim.g.icons_provider = "nvim-tree/nvim-web-devicons"
 
+-- lazy.nvim requires 0.8+
+local version = vim.version()
+if version.major == 0 and version.minor < 8 then
+  return
+end
+
 require("lazy").setup({
   -- Unless in container, load plugins from submodules only,
   -- don't install from git or check for updates.
