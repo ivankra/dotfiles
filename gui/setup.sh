@@ -1,5 +1,8 @@
 #!/bin/bash
 # Usage: setup.sh [--dark|--light] [--hi-dpi|--low-dpi]
+# Defaults to a light theme on a hi-dpi display
+
+# Initialization and flags {{{
 set -e -o pipefail
 
 SCRIPT_PATH=$(readlink -f "$0")
@@ -33,7 +36,59 @@ if [[ $UID == 0 ]]; then
 fi
 
 cd "$SCRIPT_DIR"
+mkdir -p ~/.config
+# }}}
+# Helpers {{{
 
+# Prints the full path of an installed .desktop file, if any
+desktop_file() {
+  local dir
+  for dir in "$HOME/.local/share/applications" /usr/local/share/applications /usr/share/applications; do
+    if [[ -f "$dir/$1" ]]; then
+      echo "$dir/$1"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Prints the installed apps among its arguments, dropping the rest. An argument
+# may list fallbacks separated by "|", of which only the first installed one is
+# printed, e.g. 'google-chrome.desktop|chromium.desktop'
+filter_apps() {
+  local arg app
+  for arg in "$@"; do
+    for app in ${arg//|/ }; do
+      if desktop_file "$app" >/dev/null || [[ -x "/usr/bin/${app/.desktop}" ]]; then
+        echo "$app"
+        break
+      fi
+    done
+  done
+}
+
+# Prints the elements of a dconf array of strings, one per line
+dconf_list() {
+  dconf read "$1" | tr -d "[]'" | tr ',' '\n' | sed -e 's/^ *//; s/ *$//' | grep -v '^$' || true
+}
+
+# Formats its input lines as a dconf array of strings
+dconf_array() {
+  local line out=''
+  while IFS= read -r line; do
+    if [[ -n "$line" ]]; then
+      out+="${out:+, }'$line'"
+    fi
+  done
+  if [[ -z "$out" ]]; then
+    # dconf has no schemas to go by and can't infer the type of a bare []
+    echo '@as []'
+  else
+    echo "[$out]"
+  fi
+}
+
+# }}}
 # Bookmarks and home subdirs/symlinks {{{
 
 mkdir -p ~/.config/gtk-3.0
@@ -105,7 +160,6 @@ if [[ -f ~/.config/user-dirs.dirs ]]; then
 fi
 
 # }}}
-
 # dconf {{{
 
 if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]]; then
@@ -162,6 +216,8 @@ else
   dconf write /org/gnome/desktop/interface/scaling-factor 'uint32 2'
   dconf write /org/gnome/desktop/interface/text-scaling-factor 1.0
   dconf write /org/mate/desktop/interface/window-scaling-factor 2
+  # The panel scales with the display here, so it keeps the size dconf-panels
+  # .json gives it; only the low-dpi branch above has to bump it
 fi
 
 dconf write /org/cinnamon/desktop/interface/font-name "'$interface_font'"
@@ -233,12 +289,61 @@ if [[ "$virt" == "none" ]]; then
   dconf write /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type "'blank'"
   #dconf write /org/mate/power-manager/sleep-computer-ac 1200
 
-  dconf write /org/gnome/gnome-panel/layout/object-id-list "['menu-bar', 'notification-area', 'system-indicators', 'clock', 'user-menu', 'window-list', 'multiload', 'workspace-switcher', 'launcher', 'launcher-0', 'launcher-1', 'launcher-2', 'launcher-3', 'launcher-4']"
+  # multiload (a load graph) is pointless in a VM. The launcher objects are
+  # appended to this list by the panel launchers section further down
+  dconf write /org/gnome/gnome-panel/layout/object-id-list "['menu-bar', 'notification-area', 'system-indicators', 'clock', 'user-menu', 'window-list', 'multiload', 'workspace-switcher']"
 fi
 
 # }}}
+# Preferred terminal app {{{
 
-# Cinnamon applets
+# In order of preference. Fields: binary | .desktop candidates | command opening a new window
+# Also used by merge_panel_launchers().
+terminal_candidates=(
+  'ptyxis|org.gnome.Ptyxis.desktop app.devsuite.Ptyxis.desktop|ptyxis --new-window'
+  'gnome-terminal|org.gnome.Terminal.desktop|gnome-terminal'
+  'konsole|org.kde.konsole.desktop konsole.desktop|konsole'
+  'xterm|debian-xterm.desktop xterm.desktop|xterm'
+)
+terminal_exec=
+terminal_desktop=
+
+for candidate in "${terminal_candidates[@]}"; do
+  IFS='|' read -r term_bin term_desktops term_exec <<<"$candidate"
+  if ! command -v "$term_bin" >/dev/null 2>&1; then
+    continue
+  fi
+  terminal_exec="$term_exec"
+  for term_desktop in $term_desktops; do
+    if desktop_file "$term_desktop" >/dev/null; then
+      terminal_desktop="$term_desktop"
+      break
+    fi
+  done
+  break
+done
+
+if [[ -n "$terminal_exec" ]]; then
+  dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings \
+    "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']"
+  dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding "'<Control><Alt>t'"
+  dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command "'$terminal_exec'"
+  dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name "'$terminal_exec'"
+
+  dconf write /org/cinnamon/desktop/applications/terminal/exec "'$terminal_exec'"
+  dconf write /org/mate/desktop/applications/terminal/exec "'$terminal_exec'"
+fi
+
+if [[ -n "$terminal_desktop" ]]; then
+  echo "$terminal_desktop" >~/.config/X-Cinnamon-xdg-terminals.list
+  echo "$terminal_desktop" >~/.config/xdg-terminals.list
+fi
+
+# }}}
+# Cinnamon applets {{{
+
+cinnamon_reload_xlets=()
+
 if [[ -x /usr/bin/cinnamon-session ]]; then
   # Adding a new applet:
   # * vendor into ~/.dotfiles/third_party/cinnamon-spices-applets/
@@ -256,128 +361,262 @@ if [[ -x /usr/bin/cinnamon-session ]]; then
 
   # Configs for cinnamon applets
   # <n>.json must match trailing numbers in org/cinnamon/enabled-applets
-  mkdir -p ~/.config/cinnamon/spices
-  cp -r config-cinnamon-spices/* ~/.config/cinnamon/spices/
+  # Copy only what changed: a running cinnamon has to be told to reload an
+  # applet whose config we touch (see ReloadXlet below)
+  for src in config-cinnamon-spices/*/*.json; do
+    uuid="$(basename "$(dirname "$src")")"
+    dst="$HOME/.config/cinnamon/spices/$uuid/$(basename "$src")"
+    # panel-launchers is generated from the detected apps further down
+    if [[ "$uuid" == panel-launchers@cinnamon.org && -f "$dst" ]]; then
+      continue
+    fi
+    if ! cmp -s "$src" "$dst"; then
+      mkdir -p "$(dirname "$dst")"
+      cp -f "$src" "$dst"
+      cinnamon_reload_xlets+=("$uuid")
+    fi
+  done
 fi
 
+# }}}
+# Panel launchers {{{
 
-filter_apps() {
-  for app in $*; do
-    if [[ -f "/usr/share/applications/$app" || -x "/usr/bin/${app/.desktop}" ]]; then
+# The apps to put everywhere, in order. Same "|" fallbacks as filter_apps
+launcher_apps=(
+  'google-chrome.desktop|chromium.desktop'
+  'firefox-bwrap.desktop|firefox.desktop|firefox-esr.desktop'
+  "$terminal_desktop"
+  'nemo.desktop|org.gnome.Nautilus.desktop'
+)
+# Added to those on a panel, which has room for more than a handful of icons
+extra_apps=(
+  virt-manager.desktop
+  org.keepassxc.KeePassXC.desktop
+)
+
+# Usage: merge_panel_launchers <desktop-env> [<.desktop already on the panel>...]
+# Prints one .desktop name per line: the installed launcher_apps first, then
+# whatever else is on the panel already, i.e. what the user put there by hand.
+# Arguments may be paths, only their basename is printed.
+merge_panel_launchers() {
+  local de="$1"; shift
+  local apps=("${launcher_apps[@]}")
+  case "$de" in
+    # Panel launchers, and gnome's dash, which is the same thing
+    cinnamon|flashback|gnome) apps+=("${extra_apps[@]}");;
+    # Favorites in cinnamon's main menu, which only shows a few before it
+    # starts scrolling. Every app is a search away there anyway
+    cinnamon-menu) ;;
+    *) echo "merge_panel_launchers: unknown desktop environment: $de" >&2; return 1;;
+  esac
+
+  local -A known=() printed=()
+  local entry app desktops
+  # The alternatives of an entry count as known even when we didn't pick them,
+  # so that a chromium the user pinned doesn't sit next to the chrome we chose
+  for entry in "${apps[@]}"; do
+    for app in ${entry//|/ }; do
+      known[$app]=1
+    done
+  done
+  # Likewise every terminal we could have picked: switching the preferred
+  # terminal should replace the launcher an earlier run left on the panel
+  for entry in "${terminal_candidates[@]}"; do
+    IFS='|' read -r _ desktops _ <<<"$entry"
+    for app in $desktops; do
+      known[$app]=1
+    done
+  done
+
+  while read -r app; do
+    if [[ -n "$app" && -z "${printed[$app]:-}" ]]; then
+      printed[$app]=1
       echo "$app"
-    elif [[ "$app" == nemo.desktop && -x /usr/bin/nautilus ]]; then
-      echo org.gnome.Nautilus.desktop
-    elif [[ "$app" == firefox-bwrap.desktop && -f /usr/share/applications/firefox.desktop ]]; then
-      echo firefox.desktop
-    elif [[ "$app" == firefox-bwrap.desktop && -f /usr/share/applications/firefox-esr.desktop ]]; then
-      echo firefox-esr.desktop
-    elif [[ "$app" == google-chrome.desktop && -x /usr/bin/chromium ]]; then
-      echo chromium.desktop
+    fi
+  done < <(filter_apps "${apps[@]}")
+
+  for app in "$@"; do
+    app="${app##*/}"
+    if [[ -n "$app" && -z "${known[$app]:-}" && -z "${printed[$app]:-}" ]]; then
+      printed[$app]=1
+      echo "$app"
     fi
   done
 }
 
-# Launchers in cinnamon's main menu
-dconf write /org/cinnamon/favorite-apps \
-  "$(filter_apps \
-       google-chrome.desktop \
-       firefox-bwrap.desktop \
-       org.gnome.Terminal.desktop \
-       nemo.desktop \
-     | uniq | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
-
-# Gnome dash pinned apps
-dconf write /org/gnome/shell/favorite-apps \
-  "$(filter_apps \
-       google-chrome.desktop \
-       chromium.desktop \
-       firefox-bwrap.desktop \
-       firefox-esr.desktop \
-       org.gnome.Terminal.desktop \
-       nemo.desktop \
-     | uniq | tr '\n' ' ' | sed -e "s/ $/']/; s/^/['/; s/ /', '/g")"
-
-# Flashback panel launchers
-flashback_objlist=$(dconf read /org/gnome/gnome-panel/layout/object-id-list | sed -e "s/, 'launcher-*[0-9]*'//g" | tr -d '[]')
-flashback_n=0
-for app in \
-  $(filter_apps \
-      google-chrome.desktop \
-      chromium.desktop \
-      firefox-bwrap.desktop \
-      org.gnome.Terminal.desktop \
-      nemo.desktop \
-      virt-manager.desktop \
-      org.keepassxc.KeePassXC.desktop \
-    | uniq); do
-  if [[ -f /usr/share/applications/"$app" ]]; then
-    if [[ "$((++flashback_n))" == "1" ]]; then
-      launcher="launcher"
-    else
-      launcher="launcher-$((flashback_n-2))"
-    fi
-    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/instance-config/location "'/usr/share/applications/$app'"
-    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/object-iid "'org.gnome.gnome-panel.launcher::launcher'"
-    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/pack-index $flashback_n
-    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/pack-type "'start'"
-    dconf write /org/gnome/gnome-panel/layout/objects/$launcher/toplevel-id "'top-panel'"
-    flashback_objlist+=", '$launcher'"
-  fi
-done
-dconf write /org/gnome/gnome-panel/layout/object-id-list "[$flashback_objlist]"
-
-# Cinnamon panel launchers
-cinnamon_panel_launchers=$( \
-  filter_apps \
-    google-chrome.desktop \
-    chromium.desktop \
-    firefox-bwrap.desktop \
-    org.gnome.Terminal.desktop \
-    nemo.desktop \
-    virt-manager.desktop \
-    org.keepassxc.KeePassXC.desktop \
-  | uniq)
-if [[ -f ~/.config/cinnamon/spices/panel-launchers@cinnamon.org/ ]]; then
-  cat >~/.config/cinnamon/spices/panel-launchers@cinnamon.org/1.json <<EOF
-{
-    "section1": {
-        "type": "section",
-        "description": "Behavior"
-    },
-    "launcherList": {
-        "type": "generic",
-        "default": [
-            "firefox.desktop",
-            "org.gnome.Terminal.desktop",
-            "nemo.desktop"
-        ],
-        "value": [
-            "$(echo $cinnamon_panel_launchers | tr -d '\n' | sed -e 's/ /", "/g')"
-        ]
-    },
-    "allow-dragging": {
-        "type": "switch",
-        "default": true,
-        "description": "Allow dragging of launchers",
-        "value": true
-    },
-    "__md5__": "366f8e129abf9622014c95f26ce5aa0f"
-}
-EOF
+# Launchers in cinnamon's main menu. An empty list means nothing we know of is
+# installed and the menu had no favorites of its own, so leave it be
+mapfile -t cinnamon_favorites < <(dconf_list /org/cinnamon/favorite-apps)
+mapfile -t cinnamon_favorites < <(merge_panel_launchers cinnamon-menu "${cinnamon_favorites[@]}")
+if [[ ${#cinnamon_favorites[@]} -gt 0 ]]; then
+  dconf write /org/cinnamon/favorite-apps \
+    "$(printf '%s\n' "${cinnamon_favorites[@]}" | dconf_array)"
 fi
 
-# Desktop icons
+# Gnome dash pinned apps
+mapfile -t gnome_favorites < <(dconf_list /org/gnome/shell/favorite-apps)
+mapfile -t gnome_favorites < <(merge_panel_launchers gnome "${gnome_favorites[@]}")
+if [[ ${#gnome_favorites[@]} -gt 0 ]]; then
+  dconf write /org/gnome/shell/favorite-apps \
+    "$(printf '%s\n' "${gnome_favorites[@]}" | dconf_array)"
+fi
+
+# Rewrites the launcher objects on the gnome-flashback panel from scratch,
+# leaving every other object on it alone
+write_flashback_launchers() {
+  local path=/org/gnome/gnome-panel/layout
+  local obj entry location app app_path launcher n=0 id=0
+  local objects=() found=() locations=() old_ids=()
+  local -A paths=() custom=() written=()
+
+  # Objects other than the launchers, in the order the panel has them
+  for obj in $(dconf_list "$path/object-id-list"); do
+    if [[ "$obj" != launcher && "$obj" != launcher-* ]]; then
+      objects+=("$obj")
+    fi
+  done
+
+  # The launchers currently on the panel. They are looked up in dconf rather
+  # than in object-id-list above because dconf-panels.json has just dropped
+  # them from it, and gnome-panel names them launcher-<n> whether they came
+  # from here or from the user, so there is no telling the two apart anyway
+  # pack-index leads so that sort puts them in panel order
+  mapfile -t found < <(
+    for obj in $(dconf list "$path/objects/" | tr -d /); do
+      if [[ "$(dconf read "$path/objects/$obj/object-iid")" == *launcher* ]]; then
+        location=$(dconf read "$path/objects/$obj/instance-config/location" | tr -d "'")
+        echo "$(dconf read "$path/objects/$obj/pack-index")|$obj|$location"
+      fi
+    done | sort -t'|' -k1,1n -k2,2)
+
+  for entry in "${found[@]}"; do
+    IFS='|' read -r _ obj location <<<"$entry"
+    if [[ -z "$location" ]]; then
+      # A launcher without one is a custom launcher (its own command and icon),
+      # which we know nothing about: keep it, and keep off its object id
+      objects+=("$obj")
+      custom[$obj]=1
+      continue
+    fi
+    locations+=("$location")
+    old_ids+=("$obj")
+    paths["${location##*/}"]="$location"
+  done
+
+  for app in $(merge_panel_launchers flashback "${locations[@]}"); do
+    # For a launcher that was on the panel already keep the path it points at:
+    # it may live somewhere desktop_file doesn't look, e.g. a flatpak export
+    app_path=$(desktop_file "$app") || app_path="${paths[$app]:-}"
+    if [[ ! -f "$app_path" ]]; then
+      continue
+    fi
+    n=$((n+1))
+    # The first launcher is plain "launcher", the rest are launcher-<n>
+    while :; do
+      if [[ "$((++id))" == "1" ]]; then
+        launcher="launcher"
+      else
+        launcher="launcher-$((id-2))"
+      fi
+      if [[ -z "${custom[$launcher]:-}" ]]; then
+        break
+      fi
+    done
+    dconf write "$path/objects/$launcher/instance-config/location" "'$app_path'"
+    dconf write "$path/objects/$launcher/object-iid" "'org.gnome.gnome-panel.launcher::launcher'"
+    dconf write "$path/objects/$launcher/pack-index" "$n"
+    dconf write "$path/objects/$launcher/pack-type" "'start'"
+    dconf write "$path/objects/$launcher/toplevel-id" "'top-panel'"
+    written[$launcher]=1
+    objects+=("$launcher")
+  done
+
+  # Whatever the merged list didn't reuse holds a duplicate of a launcher we
+  # just wrote, so drop it rather than leave it for the next run to pick up
+  for obj in "${old_ids[@]}"; do
+    if [[ -z "${written[$obj]:-}" ]]; then
+      dconf reset -f "$path/objects/$obj/"
+    fi
+  done
+
+  # Not something that happens on a panel that has a menu and a clock on it,
+  # but an empty list here would take everything off the panel
+  if [[ ${#objects[@]} -gt 0 ]]; then
+    dconf write "$path/object-id-list" "$(printf '%s\n' "${objects[@]}" | dconf_array)"
+  fi
+}
+
+# Flashback panel launchers
+write_flashback_launchers
+
+# Cinnamon panel launchers
+# Prints the launchers a panel-launchers applet config holds, one per line
+launcher_list() {
+  python3 -c '
+import json, sys
+
+with open(sys.argv[1]) as f:
+    conf = json.load(f)
+for app in conf.get("launcherList", {}).get("value", []):
+    print(app)
+' "$1" 2>/dev/null || true
+}
+# Patch launcherList in place rather than regenerating the file: the applet
+# instance id isn't always 1, and cinnamon resets the config to the schema
+# defaults (which include gnome-terminal) when __md5__ doesn't match the
+# settings-schema.json of the installed applet.
+# Leaves the file alone when it already holds the right list, so that a
+# non-zero exit means the config is broken (malformed, unwritable, ...)
+patch_cinnamon_launcher_list() {
+  python3 -c '
+import json, sys
+
+path, apps = sys.argv[1], sys.argv[2:]
+with open(path) as f:
+    conf = json.load(f)
+entry = conf.setdefault("launcherList", {"type": "generic", "default": apps})
+if entry.get("value") != apps:
+    entry["value"] = apps
+    with open(path, "w") as f:
+        json.dump(conf, f, indent=4)
+        f.write("\n")
+' "$@"
+}
+
+for cfg in ~/.config/cinnamon/spices/panel-launchers@cinnamon.org/*.json \
+           ~/.cinnamon/configs/panel-launchers@cinnamon.org/*.json; do
+  if [[ -f "$cfg" ]]; then
+    mapfile -t cinnamon_launchers < <(launcher_list "$cfg")
+    mapfile -t cinnamon_launchers < <(merge_panel_launchers cinnamon "${cinnamon_launchers[@]}")
+    if [[ ${#cinnamon_launchers[@]} -gt 0 ]] && \
+       ! patch_cinnamon_launcher_list "$cfg" "${cinnamon_launchers[@]}"; then
+      echo "Warning: could not set the launchers in $cfg" >&2
+    fi
+    # Reload even when the file already had the right list: it may well be
+    # a running cinnamon that is out of date, not the file
+    cinnamon_reload_xlets+=("panel-launchers@cinnamon.org")
+  fi
+done
+
+if [[ -x /usr/bin/cinnamon-session ]] && \
+   ! dconf read /org/cinnamon/enabled-applets | fgrep -q 'panel-launchers@cinnamon.org'; then
+  echo "Note: panel-launchers@cinnamon.org is not in /org/cinnamon/enabled-applets;" \
+       "the launchers on your panel come from some other applet" >&2
+fi
+
+# }}}
+# Desktop icons {{{
+
 mkdir -p ~/Desktop
 for x in \
   $(filter_apps \
-      google-chrome.desktop \
-      chromium.desktop \
-      firefox-bwrap.desktop \
-      firefox-esr.desktop \
-      org.gnome.Terminal.desktop \
+      'google-chrome.desktop|chromium.desktop' \
+      'firefox-bwrap.desktop|firefox.desktop|firefox-esr.desktop' \
+      "$terminal_desktop" \
     | uniq); do
-  if ! [[ -f ~/Desktop/"$x" && -f /usr/share/applications/"$x" ]]; then
-    cat /usr/share/applications/"$x" >~/Desktop/"$x"
+  x_path=$(desktop_file "$x") || continue
+  if ! [[ -f ~/Desktop/"$x" ]]; then
+    cat "$x_path" >~/Desktop/"$x"
   fi
   if [[ -f ~/Desktop/"$x" ]]; then
     tmp=$(mktemp)  # avoid spurious sedXXXXXX files on desktop from sed -i
@@ -392,11 +631,31 @@ for x in \
   gio set ~/Desktop/"$x" metadata::trusted true || true
 done
 
-# Autostart
+# }}}
+# Reload cinnamon applets {{{
+
+# Applets cache their settings in memory, so a config file we rewrote behind
+# their back only shows up once cinnamon reloads them. Fails harmlessly when
+# cinnamon isn't running or is too old to have ReloadXlet.
+if [[ ${#cinnamon_reload_xlets[@]} -gt 0 ]] && command -v dbus-send >/dev/null 2>&1; then
+  for uuid in $(printf '%s\n' "${cinnamon_reload_xlets[@]}" | sort -u); do
+    dbus-send --session --dest=org.Cinnamon --type=method_call \
+      /org/Cinnamon org.Cinnamon.ReloadXlet "string:$uuid" string:APPLET \
+      >/dev/null 2>&1 || true
+  done
+fi
+
+# }}}
+# Autostart {{{
+
 if [[ -f /usr/share/applications/guake.desktop && ! -f ~/.config/autostart/guake.desktop ]]; then
   mkdir -p ~/.config/autostart
-  cp -af /usr/share/applications/guake.desktop ~/.config/autostart/guake.desktop
+  rm -f ~/.config/autostart/guake.desktop
+  cp -f /usr/share/applications/guake.desktop ~/.config/autostart/guake.desktop
 fi
+
+# }}}
+# Misc {{{
 
 # wget https://raw.githubusercontent.com/dracula/gedit/master/dracula.xml
 if [[ -x /usr/bin/gedit ]]; then
@@ -407,14 +666,8 @@ fi
 
 rm -f ~/.face ~/.face.icon
 echo yes >~/.config/gnome-initial-setup-done
-if [[ -x /usr/bin/gnome-terminal ]]; then
-  echo org.gnome.Terminal.desktop >~/.config/X-Cinnamon-xdg-terminals.list
-  echo org.gnome.Terminal.desktop >~/.config/xdg-terminals.list
-fi
 
-if [[ -x /usr/bin/ptyxis ]]; then
-  dconf write /org/cinnamon/desktop/applications/terminal/exec "'ptyxis --new-window'"
-fi
+# }}}
 
 # TODO default apps ~/.config/mimelist
 # vim: fdm=marker
