@@ -146,6 +146,59 @@ link_or_copy() {
 setup_ln() { link_or_copy link "$@"; }
 setup_cp() { link_or_copy copy "$@"; }
 
+# setup_cp_dir <source dir> <destination dir>
+# Recursively copies a directory, overwriting existing files.
+# A destination symlink left over from an older setup_ln is replaced with a dir.
+setup_cp_dir() {
+  if [[ "$OSTYPE" == darwin* ]]; then
+    local src_path=$HOME/.dotfiles/"$1"
+  else
+    local src_path=$(cd ~/.dotfiles; readlink -f "$1")
+  fi
+  local dst_path="${2%/}"
+  local dst_dir="$(dirname "$dst_path")"
+  local dotfiles_dir="$(cd ~/.dotfiles; pwd -P)"
+  local src dst dst_real
+
+  if ! [[ -d "$src_path" ]]; then
+    echo "Error: $src_path doesn't exist"
+    exit 1
+  fi
+
+  if [[ -L "$dst_path" ]]; then
+    rm -f "$dst_path"
+    echo "Removed symlink $dst_path"
+  fi
+  if [[ -d "$dst_dir" ]]; then
+    dst_real="$(cd "$dst_dir"; pwd -P)"
+    if [[ "$dst_real" == "$dotfiles_dir" || "$dst_real" == "$dotfiles_dir"/* ]]; then
+      echo "Error: $dst_dir is symlinking inside ~/.dotfiles/"
+      exit 1
+    fi
+  fi
+  if ! [[ -d "$dst_path" ]]; then
+    rm -f "$dst_path"
+    mkdir -p -m 0700 "$dst_path"
+    echo "Created $dst_path"
+  fi
+
+  # find lists a directory before its contents, so parents exist in time
+  while IFS= read -r -d '' src; do
+    dst="$dst_path/${src#$src_path/}"
+    if [[ -d "$src" ]]; then
+      if ! [[ -d "$dst" ]]; then
+        rm -f "$dst"
+        mkdir -p -m 0700 "$dst"
+        echo "Created $dst"
+      fi
+    elif [[ -L "$dst" || ! -f "$dst" ]] || ! cmp --silent "$src" "$dst"; then
+      rm -rf "$dst"
+      cp -af "$src" "$dst"
+      echo "Copied $src to $dst"
+    fi
+  done < <(find "$src_path" -mindepth 1 -name .gitignore -prune -o -print0)
+}
+
 remove_dotfiles_symlinks() {
   for f in "$@"; do
     if [[ -L "$f" ]] && (readlink -f -- "$f" | fgrep -q /.dotfiles/); then

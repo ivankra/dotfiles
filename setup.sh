@@ -101,7 +101,7 @@ if [[ $UID != 0 ]]; then
     setup_ln xonshrc
   fi
   if [[ "$OSTYPE" != darwin* ]]; then
-    setup_ln fcitx5 ~/.config/fcitx5
+    setup_cp_dir fcitx5 ~/.config/fcitx5
     setup_cp okularpartrc ~/.config/okularpartrc
     setup_ln plasma-localerc ~/.config/plasma-localerc
     setup_cp qpdfview-shortcuts.conf ~/.config/qpdfview/shortcuts.conf
