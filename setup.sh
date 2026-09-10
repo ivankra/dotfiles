@@ -49,6 +49,7 @@ remove_dotfiles_symlinks \
   ~/.config/qpdfview/shortcuts.conf \
   ~/.fonts \
   ~/.gdb \
+  ~/.local/bin/code \
   ~/.sqliterc
 
 if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
