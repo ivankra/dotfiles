@@ -55,6 +55,13 @@ if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
 fi
 
+# Keep a remote pointing at the upstream repo, even if origin is a local mirror.
+# -m sets refs/remotes/github/HEAD, i.e. the remote's default branch.
+if [[ -f ~/.dotfiles/.git/config ]] && hash git >/dev/null 2>&1 &&
+   ! grep -q '^\[remote "github"\]' ~/.dotfiles/.git/config; then
+  (set -x; git remote add -m master github https://github.com/ivankra/dotfiles.git)
+fi
+
 if [[ -f ~/.dotfiles/gitconfig.local ]]; then
   setup_ln gitconfig.local ~/.gitconfig
 else
