@@ -7,4 +7,11 @@ iosevka: iosevka.Dockerfile iosevka.toml
 	      $(DOCKER) cp "`cat iosevka.cid`:/dist/." . && \
 	      $(DOCKER) rm "`cat iosevka.cid`" && \
 	      rm -f iosevka.cid)
-	#$(DOCKER) image rm iosevka-builder
+
+sh:
+	$(DOCKER) run -it iosevka-builder /bin/bash
+
+clean:
+	$(DOCKER) image rm -f iosevka-builder
+	rm -rf iosevka
+	rm -f fonts-iosevka_*.deb
