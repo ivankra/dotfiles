@@ -139,6 +139,10 @@ if [[ $UID != 0 ]]; then
   fi
 fi
 
+if [[ "$OSTYPE" != darwin* ]]; then
+  ./mimeapps.py
+fi
+
 mkdir -p -m 0700 ~/.ssh
 setup_gen -c <(./ssh-config.sh) ~/.ssh/config
 chmod 0700 ~/.ssh
