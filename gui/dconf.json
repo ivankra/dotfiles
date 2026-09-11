@@ -118,6 +118,7 @@
   "org/nemo/desktop/home-icon-visible": "true",
   "org/nemo/desktop/trash-icon-visible": "false",
   "org/nemo/desktop/volumes-visible": "true",
+  "org/nemo/list-view/enable-folder-expansion": "true",
   "org/nemo/preferences/date-font-choice": "'no-mono'",
   "org/nemo/preferences/date-format": "'iso'",
   "org/nemo/preferences/date-format-monospace": "false",
