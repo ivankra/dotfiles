@@ -7,14 +7,16 @@ gen() {
 continuousMode=true
 parallelSearchExecution=false
 prefetch=true
-prefetchDistance=15
+prefetchDistance=10
 scaleMode=1
 
 [mainWindow]
 exitAfterLastTab=true
 
 [pageItem]
-cacheSize=1073741824
+cacheSize=1048576K
+useDevicePixelRatio=true
+useLogicalDpi=true
 EOF
 }
 
