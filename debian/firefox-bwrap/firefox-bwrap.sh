@@ -35,6 +35,17 @@ FLAGS=(
 if [[ -d /lib64 ]]; then
   FLAGS+=(--ro-bind /lib64 /lib64)
 fi
+
+# gdk-pixbuf hands SVG (and other formats) to glycin, which runs each loader in
+# a bwrap sandbox of its own. Without the loaders and a bwrap to start them,
+# loading an icon fails and gtk aborts the browser over it
+if [[ -d /usr/libexec/glycin-loaders ]]; then
+  FLAGS+=(
+    --ro-bind /usr/libexec/glycin-loaders /usr/libexec/glycin-loaders
+    --ro-bind /usr/bin/bwrap /usr/bin/bwrap
+    --ro-bind /usr/bin/true /usr/bin/true  # glycin probes its sandbox with it
+  )
+fi
 if [[ -d /run/user/$UID/pulse ]]; then
   FLAGS+=(--bind /run/user/$UID/pulse /run/user/$UID/pulse)
 fi
