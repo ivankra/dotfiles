@@ -67,6 +67,15 @@ filter_apps() {
   done
 }
 
+# Prints the first value of a key in a section of an ini-like file (a .desktop
+# file, mimeapps.list, ...), if any
+# Usage: ini_get <file> <section> <key>
+ini_get() {
+  local out
+  out=$(sed -n -e "/^\[$2\]/,/^\[/ { s|^$3=||p }" "$1" 2>/dev/null) || true
+  echo "${out%%$'\n'*}"
+}
+
 # Prints the elements of a dconf array of strings, one per line
 dconf_list() {
   dconf read "$1" | tr -d "[]'" | tr ',' '\n' | sed -e 's/^ *//; s/ *$//' | grep -v '^$' || true
@@ -295,33 +304,28 @@ if [[ "$virt" == "none" ]]; then
 fi
 
 # }}}
+# Default apps {{{
+
+python3 ../mimeapps.py
+
+# }}}
 # Preferred terminal app {{{
 
-# In order of preference. Fields: binary | .desktop candidates | command opening a new window
-# Also used by merge_panel_launchers().
-terminal_candidates=(
-  'ptyxis|org.gnome.Ptyxis.desktop app.devsuite.Ptyxis.desktop|ptyxis --new-window'
-  'gnome-terminal|org.gnome.Terminal.desktop|gnome-terminal'
-  'konsole|org.kde.konsole.desktop konsole.desktop|konsole'
-  'xterm|debian-xterm.desktop xterm.desktop|xterm'
-)
+# Get whatever mimeapps.py just made the default for the (non-standard)
+# x-scheme-handler/terminal, and the command out of its .desktop file
+terminal_desktop=$(ini_get ~/.config/mimeapps.list 'Default Applications' x-scheme-handler/terminal)
+terminal_desktop="${terminal_desktop%%;*}"
 terminal_exec=
-terminal_desktop=
 
-for candidate in "${terminal_candidates[@]}"; do
-  IFS='|' read -r term_bin term_desktops term_exec <<<"$candidate"
-  if ! command -v "$term_bin" >/dev/null 2>&1; then
-    continue
+if [[ -n "$terminal_desktop" ]] && terminal_path=$(desktop_file "$terminal_desktop"); then
+  terminal_exec=$(ini_get "$terminal_path" 'Desktop Entry' Exec)
+  terminal_exec="${terminal_exec// %[a-zA-Z]/}"  # drop the %u/%F field codes
+  if [[ "$terminal_desktop" == *Ptyxis.desktop ]]; then
+    terminal_exec+=" --new-window"
   fi
-  terminal_exec="$term_exec"
-  for term_desktop in $term_desktops; do
-    if desktop_file "$term_desktop" >/dev/null; then
-      terminal_desktop="$term_desktop"
-      break
-    fi
-  done
-  break
-done
+else
+  terminal_desktop=
+fi
 
 if [[ -n "$terminal_exec" ]]; then
   dconf write /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings \
@@ -335,9 +339,9 @@ if [[ -n "$terminal_exec" ]]; then
 fi
 
 if [[ -n "$terminal_desktop" ]]; then
-  echo "$terminal_desktop" >~/.config/X-Cinnamon-xdg-terminals.list
   echo "$terminal_desktop" >~/.config/xdg-terminals.list
 fi
+rm -f ~/.config/X-Cinnamon-xdg-terminals.list
 
 # }}}
 # Cinnamon applets {{{
@@ -385,7 +389,7 @@ fi
 launcher_apps=(
   'google-chrome.desktop|chromium.desktop'
   'firefox-bwrap.desktop|firefox.desktop|firefox-esr.desktop'
-  "$terminal_desktop"
+  "$terminal_desktop|org.gnome.Terminal.desktop"
   'nemo.desktop|org.gnome.Nautilus.desktop'
 )
 # Added to those on a panel, which has room for more than a handful of icons
@@ -393,7 +397,6 @@ extra_apps=(
   virt-manager.desktop
   org.keepassxc.KeePassXC.desktop
 )
-
 # Usage: merge_panel_launchers <desktop-env> [<.desktop already on the panel>...]
 # Prints one .desktop name per line: the installed launcher_apps first, then
 # whatever else is on the panel already, i.e. what the user put there by hand.
@@ -416,14 +419,6 @@ merge_panel_launchers() {
   # so that a chromium the user pinned doesn't sit next to the chrome we chose
   for entry in "${apps[@]}"; do
     for app in ${entry//|/ }; do
-      known[$app]=1
-    done
-  done
-  # Likewise every terminal we could have picked: switching the preferred
-  # terminal should replace the launcher an earlier run left on the panel
-  for entry in "${terminal_candidates[@]}"; do
-    IFS='|' read -r _ desktops _ <<<"$entry"
-    for app in $desktops; do
       known[$app]=1
     done
   done
@@ -709,5 +704,4 @@ fi
 
 # }}}
 
-# TODO default apps ~/.config/mimelist
 # vim: fdm=marker
