@@ -668,6 +668,46 @@ rm -f ~/.face ~/.face.icon
 echo yes >~/.config/gnome-initial-setup-done
 
 # }}}
+# Password-less login keyring when autologin is enabled {{{
+# To avoid annoying password prompts to unlock/create keyring.
+# If keyring already exists, it will be backed up and replaced
+# with an empty one.
+
+autologin_enabled=0
+if grep -qsx "autologin-user=$USER" /etc/lightdm/lightdm.conf ||
+   { grep -qsx "AutomaticLoginEnable = true" /etc/gdm3/daemon.conf &&
+     grep -qsx "AutomaticLogin = $USER" /etc/gdm3/daemon.conf; }; then
+  autologin_enabled=1
+fi
+
+login_keyring="$HOME/.local/share/keyrings/login.keyring"
+if (( autologin_enabled )) && [[ "$(head -c 9 "$login_keyring" 2>/dev/null)" != '[keyring]' ]]; then
+  keyring_dir="$(dirname "$login_keyring")"
+  mkdir -p "$keyring_dir"
+  chmod 700 "$keyring_dir"
+  if [[ -e "$login_keyring" ]]; then
+    backup_keyring="$login_keyring.$(date +%Y%m%d%H%M%S).bak"
+    mv -f "$login_keyring" "$backup_keyring"
+    echo "Backed up old login keyring: $login_keyring -> $backup_keyring"
+  fi
+  rm -f "$login_keyring"
+  cat >"$login_keyring" <<EOF
+[keyring]
+display-name=login
+ctime=$(date +%s)
+mtime=0
+lock-on-idle=false
+lock-timeout=0
+EOF
+  chmod 600 "$login_keyring"
+  # Without this apps get prompted to create a "Default keyring" instead
+  if [[ ! -s "$keyring_dir/default" ]]; then
+    echo login >"$keyring_dir/default"
+  fi
+  echo "Created password-less $login_keyring"
+fi
+
+# }}}
 
 # TODO default apps ~/.config/mimelist
 # vim: fdm=marker
