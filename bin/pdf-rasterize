@@ -1,14 +1,55 @@
 #!/bin/bash
 
-if [[ -t 0 || -t 1 ]]; then
-  echo "Usage: $0 [density] <input.pdf >output.pdf"
+usage() {
+  echo "Usage: ${0##*/} [density] [input.pdf] >output.pdf   (reads stdin if no input given)"
+  echo "Rasterizes every page to a plain image at the given density in dpi (default 300)"
+}
+
+die() {
+  usage >&2
   exit 1
+}
+
+if [[ $1 == -h || $1 == --help ]]; then
+  usage
+  exit 0
+fi
+
+DENSITY=300
+if [[ $1 =~ ^[0-9]+$ ]]; then
+  DENSITY=$1
+  shift
+fi
+
+if [[ $# -gt 1 ]]; then
+  die
+elif [[ $# -eq 1 ]]; then
+  [[ -f $1 && -r $1 ]] || { echo "${0##*/}: cannot read $1" >&2; exit 1; }
+  INPUT=$(realpath -- "$1")
+elif [[ ! -t 0 ]]; then
+  INPUT=-
+else
+  die
+fi
+
+if [[ -t 1 ]]; then
+  die
+fi
+
+if ! command -v convert >/dev/null; then
+  echo "${0##*/}: convert (ImageMagick) is not installed, installing it now..." >&2
+  (set -x; sudo apt-get install -y imagemagick) >&2 || exit 1
+  command -v convert >/dev/null || { echo "${0##*/}: convert still not available" >&2; exit 1; }
 fi
 
 set -e -o pipefail
 TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
 cd "$TMP"
-cat >input.pdf
-(set -x; convert -density "${1:-300}" input.pdf output.pdf)
+if [[ $INPUT == - ]]; then
+  cat >input.pdf
+else
+  cp -- "$INPUT" input.pdf
+fi
+(set -x; convert -density "$DENSITY" input.pdf output.pdf)
 cat output.pdf
-rm -rf "$TMP"

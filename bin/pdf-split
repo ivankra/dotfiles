@@ -1,0 +1,100 @@
+#!/bin/bash
+
+usage() {
+  echo "Usage: ${0##*/} [-f] [input.pdf]   (reads stdin if no input given)"
+  echo "Writes one file per page, <name>.p01.pdf ..., into the current directory"
+  echo "Uses pdfseparate from poppler-utils if installed, otherwise pdftk"
+  echo "Options:"
+  echo "  -f, --force   overwrite existing page files"
+}
+
+die() {
+  usage >&2
+  exit 1
+}
+
+FORCE=
+ARGS=()
+for ARG in "$@"; do
+  case $ARG in
+    -h|--help) usage; exit 0 ;;
+    -f|--force) FORCE=1 ;;
+    -*) echo "${0##*/}: unknown option $ARG" >&2; die ;;
+    *) ARGS+=("$ARG") ;;
+  esac
+done
+set -- "${ARGS[@]}"
+
+if [[ $# -gt 1 ]]; then
+  die
+elif [[ $# -eq 1 ]]; then
+  [[ -f $1 && -r $1 ]] || { echo "${0##*/}: cannot read $1" >&2; exit 1; }
+  INPUT=$(realpath -- "$1")
+  BASE=$(basename -- "$1")
+  BASE=${BASE%.[Pp][Dd][Ff]}
+elif [[ ! -t 0 ]]; then
+  INPUT=-
+  BASE=page
+else
+  die
+fi
+
+# either tool can do this; pdftk is the fallback for systems without poppler
+if command -v pdfseparate >/dev/null; then
+  SPLIT=pdfseparate
+elif command -v pdftk >/dev/null; then
+  SPLIT=pdftk
+else
+  echo "${0##*/}: neither pdfseparate nor pdftk is installed, installing poppler-utils now..." >&2
+  (set -x; sudo apt-get install -y poppler-utils) >&2 || exit 1
+  command -v pdfseparate >/dev/null || { echo "${0##*/}: pdfseparate still not available" >&2; exit 1; }
+  SPLIT=pdfseparate
+fi
+
+set -e -o pipefail
+OUT=$PWD
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+if [[ $INPUT == - ]]; then
+  cat >"$TMP/input.pdf"
+else
+  cp -- "$INPUT" "$TMP/input.pdf"
+fi
+
+# split to a fixed pattern, since $BASE may itself contain a % that printf would eat;
+# pdftk burst also drops doc_data.txt in the working directory, so split inside $TMP
+if [[ $SPLIT == pdfseparate ]]; then
+  (cd "$TMP"; set -x; pdfseparate input.pdf "page-%02d.pdf")
+else
+  (cd "$TMP"; set -x; pdftk input.pdf burst output "page-%02d.pdf")
+fi
+rm -f "$TMP/input.pdf" "$TMP/doc_data.txt"
+
+shopt -s nullglob
+SPLITS=("$TMP"/page-*.pdf)
+if [[ ${#SPLITS[@]} -eq 0 ]]; then
+  echo "${0##*/}: $SPLIT produced no pages" >&2
+  exit 1
+fi
+
+# give them their real names now that no printf pattern is involved
+PAGES=()
+for SPLIT_PAGE in "${SPLITS[@]}"; do
+  NUMBER=${SPLIT_PAGE##*/page-}
+  mv -- "$SPLIT_PAGE" "$TMP/$BASE.p$NUMBER"
+  PAGES+=("$TMP/$BASE.p$NUMBER")
+done
+
+CLOBBER=()
+for PAGE in "${PAGES[@]}"; do
+  [[ -e $OUT/$(basename -- "$PAGE") ]] && CLOBBER+=("$(basename -- "$PAGE")")
+done
+if [[ ${#CLOBBER[@]} -gt 0 && -z $FORCE ]]; then
+  echo "${0##*/}: refusing to overwrite: ${CLOBBER[*]} (use -f to force)" >&2
+  exit 1
+fi
+
+mv -- "${PAGES[@]}" "$OUT"/
+for PAGE in "${PAGES[@]}"; do
+  basename -- "$PAGE"
+done

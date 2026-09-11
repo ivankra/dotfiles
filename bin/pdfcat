@@ -1,10 +1,110 @@
 #!/bin/bash
 # Concatenates input pdf files, writing to stdout.
 
-if [[ -t 1 || -z "$1" ]]; then
-  echo "Usage: $0 input1.pdf input2.pdf ... >output.pdf"
+usage() {
+  echo "Usage: ${0##*/} [--paper SIZE] input1.pdf input2.pdf ... >output.pdf"
+  echo "Concatenates the input pdfs into one, writing it to stdout"
+  echo "Uses pdfunite from poppler-utils if installed, otherwise pdftk"
+  echo "Options:"
+  echo "  --paper SIZE   scale every page to one paper size (A4, A3, letter, legal)"
+  echo "                 always done by poppler, pdftk cannot resize pages"
+}
+
+die() {
+  usage >&2
   exit 1
+}
+
+require() {
+  command -v "$1" >/dev/null && return
+  echo "${0##*/}: $1 is not installed, installing it now..." >&2
+  (set -x; sudo apt-get install -y "$2") >&2 || exit 1
+  command -v "$1" >/dev/null || { echo "${0##*/}: $1 still not available" >&2; exit 1; }
+}
+
+PAPER=
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help) usage; exit 0 ;;
+    -paper|--paper) [[ -n $2 ]] || die; PAPER=$2; shift 2 ;;
+    -paper=*|--paper=*) PAPER=${1#*=}; shift ;;
+    -*) echo "${0##*/}: unknown option $1" >&2; die ;;
+    *) ARGS+=("$1"); shift ;;
+  esac
+done
+set -- "${ARGS[@]}"
+
+if [[ $# -eq 0 || -t 1 ]]; then
+  die
 fi
 
-set -e -x
-pdftk "$@" cat output /dev/stdout
+for FILE in "$@"; do
+  [[ -f $FILE && -r $FILE ]] || { echo "${0##*/}: cannot read $FILE" >&2; exit 1; }
+done
+
+# pdftocairo is picky about the spelling of the paper names it knows
+case ${PAPER,,} in
+  a4) PAPER=A4 ;;
+  a3) PAPER=A3 ;;
+  letter|legal|match) PAPER=${PAPER,,} ;;
+esac
+
+# poppler by default; pdftk concatenates just as well, but cannot do --paper
+if command -v pdfunite >/dev/null; then
+  CAT=pdfunite
+elif [[ -z $PAPER ]] && command -v pdftk >/dev/null; then
+  CAT=pdftk
+else
+  require pdfunite poppler-utils
+  CAT=pdfunite
+fi
+if [[ -n $PAPER ]]; then
+  require pdftocairo poppler-utils
+fi
+
+set -e -o pipefail
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+
+if [[ $# -eq 1 ]]; then
+  cp -- "$1" "$TMP/joined.pdf"
+elif [[ $CAT == pdfunite ]]; then
+  (set -x; pdfunite "$@" "$TMP/joined.pdf")
+else
+  (set -x; pdftk "$@" cat output "$TMP/joined.pdf")
+fi
+
+RESULT=$TMP/joined.pdf
+if [[ -n $PAPER ]]; then
+  (set -x; pdftocairo -pdf -paper "$PAPER" -expand "$TMP/joined.pdf" "$TMP/fitted.pdf")
+  RESULT=$TMP/fitted.pdf
+fi
+cat "$RESULT"
+
+# the pdf itself goes to stdout, so report on stderr; the output is already written
+# and complete at this point, so nothing below may fail the run
+set +e
+MSG="${0##*/}: wrote"
+if command -v pdfinfo >/dev/null; then
+  PAGES=$(pdfinfo "$RESULT" 2>/dev/null | awk '/^Pages:/ {print $2}')
+  if [[ $PAGES == 1 ]]; then
+    MSG="$MSG 1 page,"
+  elif [[ -n $PAGES ]]; then
+    MSG="$MSG $PAGES pages,"
+  fi
+fi
+if [[ -n $PAPER ]]; then
+  MSG="$MSG $PAPER,"
+fi
+SIZE=$(du -h "$RESULT" 2>/dev/null | cut -f1)
+if [[ -n $SIZE ]]; then
+  MSG="$MSG $SIZE"
+fi
+if [[ $# == 1 ]]; then
+  MSG="$MSG from 1 file"
+else
+  MSG="$MSG from $# files"
+fi
+echo "$MSG" >&2
+exit 0

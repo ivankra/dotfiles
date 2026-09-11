@@ -1,9 +1,9 @@
 #!/bin/bash
-# Inserts an empty page after every page in the input .pdf
+# Reverses the page order of the input .pdf
 
 usage() {
   echo "Usage: ${0##*/} [input.pdf] >output.pdf   (reads stdin if no input given)"
-  echo "Inserts a blank page of the same size after every page, for double-sided printing"
+  echo "Reverses the page order, so the last page of the input comes out first"
 }
 
 die() {
@@ -39,7 +39,6 @@ if [[ -t 1 ]]; then
 fi
 
 require pdftk pdftk-java
-require convert imagemagick
 
 set -e -o pipefail
 TMP=$(mktemp -d)
@@ -51,23 +50,10 @@ else
   cp -- "$INPUT" input.pdf
 fi
 
-# match the blank pages to the input instead of always printing A4 blanks
-PAGESIZE=A4
-if command -v pdfinfo >/dev/null; then
-  DIMENSIONS=$(pdfinfo input.pdf | awk '/^Page size:/ {printf "%dx%d", $3 + 0.5, $5 + 0.5}')
-  if [[ -n $DIMENSIONS ]]; then
-    PAGESIZE=$DIMENSIONS
-  fi
-fi
-
 set -x
 pdftk input.pdf burst output pg_%04d.pdf
-convert xc:none -page "$PAGESIZE" blank.pdf
-# pg_0001.pdf, pg_0001z.pdf, pg_0002.pdf, ... so the glob below interleaves the blanks
-for PAGE in pg_????.pdf; do
-  cp blank.pdf "${PAGE/.pdf}z.pdf"
-done
-pdftk pg_*.pdf cat output output.pdf
+mapfile -t PAGES < <(ls pg_????.pdf | tac)
+pdftk "${PAGES[@]}" cat output output.pdf
 set +x
 
 cat output.pdf
