@@ -2,11 +2,16 @@
 " https://code.visualstudio.com/shortcuts/keyboard-shortcuts-linux.pdf
 
 " [Ctrl+N]: new tab (note: overrides downward motion)
-nnoremap <C-N> :tabnew<CR>
+nnoremap <silent> <C-N> :tabnew<CR>
 
-" [Ctrl+S]: save file
-nnoremap <C-S> :w<CR>
-inoremap <C-S> <C-O>:w<CR>
+" [Ctrl+S]: save file (if modified)
+if has('nvim') || has('patch-8.2.1978')
+  nnoremap <C-S> <Cmd>update<CR>
+  inoremap <C-S> <Cmd>update<CR>
+else
+  nnoremap <silent> <C-S> :update<CR>
+  inoremap <silent> <C-S> <C-O>:update<CR>
+endif
 
 " [Ctrl+Q]: close tab / quit
 " Note - in insert/command mode, <C-Q>/<C-V> inserts special characters,
@@ -20,7 +25,8 @@ vnoremap <C-Z> u
 
 " [Ctrl+Y]: redo (note: overrides scroll up motion)
 nnoremap <C-Y> <C-R>
-inoremap <C-Y> <C-O><C-R>
+" Keep <C-Y> as "accept" in the completion popup
+inoremap <expr> <C-Y> pumvisible() ? "\<C-Y>" : "\<C-O>\<C-R>"
 vnoremap <C-Y> <C-R>
 
 " [Ctrl+X]: cut selection or current line (note: overrides subtract command)
@@ -34,16 +40,28 @@ vnoremap <C-C> "+y
 " [Ctrl+A]: select all, restore cursor on exit (note: overrides increment number command)
 if exists('##ModeChanged')
   let s:select_all_pos = []
-  function! s:SelectAllKeepCursor()
-    let s:select_all_pos = getpos('.')
+  " from_insert: <Esc> already moved the cursor left, use the '^ mark instead
+  function! s:SelectAllKeepCursor(from_insert)
+    let s:select_all_pos = a:from_insert ? getpos("'^") : getpos('.')
     autocmd! SelectAllRestore ModeChanged
-    autocmd SelectAllRestore ModeChanged *:n ++once call setpos('.', s:select_all_pos)
+    autocmd SelectAllRestore ModeChanged *:* call s:SelectAllOnModeChanged()
     normal! ggVG
   endfunction
+  " Restore the cursor only when the selection is left straight to Normal mode
+  " (Esc, y, >, :cmd), not e.g. after `c` + typing.
+  function! s:SelectAllOnModeChanged()
+    if v:event.new_mode =~# '^[vV\x16c]'
+      return
+    endif
+    autocmd! SelectAllRestore ModeChanged
+    if v:event.new_mode ==# 'n'
+      call setpos('.', s:select_all_pos)
+    endif
+  endfunction
   augroup SelectAllRestore | augroup END
-  nnoremap <silent> <C-A> :call <SID>SelectAllKeepCursor()<CR>
-  inoremap <silent> <C-A> <Esc>:call <SID>SelectAllKeepCursor()<CR>
-  vnoremap <silent> <C-A> <Esc>:call <SID>SelectAllKeepCursor()<CR>
+  nnoremap <silent> <C-A> :call <SID>SelectAllKeepCursor(0)<CR>
+  inoremap <silent> <C-A> <Esc>:call <SID>SelectAllKeepCursor(1)<CR>
+  vnoremap <silent> <C-A> <Esc>:call <SID>SelectAllKeepCursor(0)<CR>
 else
   nnoremap <C-A> ggVG
   inoremap <C-A> <Esc>ggVG
@@ -78,33 +96,65 @@ nnoremap <silent> <A-Up> :m .-2<CR>
 inoremap <silent> <A-Up> <Esc>:m .-2<CR>gi
 vnoremap <silent> <A-Up> :m '<-2<CR>gv
 
+" [Ctrl+Enter] / [Ctrl+Shift+Enter]: insert line below / above
+" GUIs send distinct keys. nvim keeps <C-CR> distinct from <CR>, so in terminals
+" without extended key reporting (kitty protocol etc) this just never fires.
+" Skip terminal Vim, where key encoding varies by version/terminal.
+if has('nvim') || has('gui_running')
+  nnoremap <C-CR> o
+  inoremap <C-CR> <C-O>o
+  nnoremap <C-S-CR> O
+  inoremap <C-S-CR> <C-O>O
+endif
+
+" [Home]: go to column 1 like vim; if already there, go to first non-blank char.
+" With 'wrap' on a continuation screen row, go to the start of that row first.
+if has('nvim') || has('patch-8.2.1978')
+  function! s:SmartHome()
+    let l:col = col('.')
+    if &wrap
+      normal! g0
+      " Landed past column 1: was on a continuation row
+      if col('.') != l:col && col('.') > 1
+        return
+      endif
+    endif
+    let l:first = match(getline('.'), '\S') + 1
+    call cursor(0, l:col == 1 && l:first > 1 ? l:first : 1)
+  endfunction
+  " <Cmd> keeps the mode, so the same function works in normal/visual/insert.
+  " Operator-pending not mapped: d<Home> stays d0.
+  nnoremap <Home> <Cmd>call <SID>SmartHome()<CR>
+  xnoremap <Home> <Cmd>call <SID>SmartHome()<CR>
+  inoremap <Home> <Cmd>call <SID>SmartHome()<CR>
+endif
+
 " [Tab]: indent current line/block
 nnoremap <silent> <Tab> >>
-vnoremap <silent> <Tab> >gv
+xnoremap <silent> <Tab> >gv
 
 " [Shift+Tab]: unindent current line/block
 nnoremap <silent> <S-Tab> <<
 inoremap <silent> <S-Tab> <C-D>
-vnoremap <silent> <S-Tab> <gv
+xnoremap <silent> <S-Tab> <gv
 
 " [Ctrl+Backspace]: delete word backward (vscode/readline)
 cnoremap <C-BS> <C-W>
 inoremap <C-BS> <C-W>
-vnoremap <C-BS> <C-W>
 if !has('gui_running') && !exists('g:GuiLoaded')
   " CLI terminals usually send ^H
   cnoremap <C-H> <C-W>
   inoremap <C-H> <C-W>
-  vnoremap <C-H> <C-W>
 endif
 
 " [Ctrl+Delete]: delete word forward (vscode/readline)
 nnoremap <C-Del> dw
-inoremap <C-Del> <C-O>dw
+" At end of line <C-O> moves onto the last char, so join the next line instead
+inoremap <expr> <C-Del> col('.') >= col('$') ? "\<Del>" : "\<C-O>dw"
 " ex mode: no direct equivalent
 
 " [Ctrl+\]: vertical split editor
-nnoremap <C-\> :vsplit<CR>
+nnoremap <silent> <C-\> :vsplit<CR>
 
 " [F3]: find next word under cursor
 "nnoremap <F3> *
@@ -172,12 +222,14 @@ function! s:SetupGui()
 
   " [Ctrl+Shift+V]: paste from clipboard
   " Note - in CLI normally handled by terminal emulator. ^V inserts special chars.
-  cmap <C-S-V> <C-R>+
-  nmap <C-S-V> "+p
-  imap <C-S-V> <Esc>"+pa
-  vmap <C-S-V> "+p
+  cnoremap <C-S-V> <C-R>+
+  nnoremap <C-S-V> "+p
+  " Paste at the cursor literally, without autoindent
+  inoremap <C-S-V> <C-R><C-O>+
+  " P: don't overwrite the clipboard with the replaced text (vim 9/nvim 0.8+)
+  xnoremap <C-S-V> "+P
   if has('nvim')
-    tmap <C-S-V> <C-\><C-N>"+pi
+    tnoremap <C-S-V> <C-\><C-N>"+pi
   endif
 
   " [Ctrl++]: zoom in
@@ -214,12 +266,12 @@ if has('nvim')
 
   " ===== telescope.nvim =====
   " [Ctrl+P]: fuzzy file search
-  nnoremap <C-P> :Telescope find_files<CR>
+  nnoremap <C-P> <Cmd>Telescope find_files<CR>
   " [Ctrl+Shift+F]: grep
-  nnoremap <C-S-F> :Telescope live_grep<CR>
+  nnoremap <C-S-F> <Cmd>Telescope live_grep<CR>
   if !exists('g:GuiLoaded')
     " CLI terminals usually send ^F
-    nnoremap <C-F> :Telescope live_grep<CR>
+    nnoremap <C-F> <Cmd>Telescope live_grep<CR>
   endif
 
   " ===== Comment.nvim =====
