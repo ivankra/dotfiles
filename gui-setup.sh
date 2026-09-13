@@ -339,46 +339,13 @@ fi
 rm -f ~/.config/X-Cinnamon-xdg-terminals.list
 
 # }}}
-# Cinnamon applets {{{
+# Panel launchers and applets {{{
 
-cinnamon_reload_xlets=()
-
+# Link cinnamon applets into ~/.local/share/cinnamon/applets,
+# install their configs, reload applets if needed.
 if [[ -x /usr/bin/cinnamon-session ]]; then
-  # Adding a new applet:
-  # * vendor into ~/.dotfiles/third_party/cinnamon-spices-applets/
-  # * adjust org/cinnamon/enabled-applets and org/cinnamon/next-applet-id in dconf.json
-  for dir in ~/.dotfiles/third_party/cinnamon-spices-applets/*; do
-    name="$(basename "$dir")"
-    applet_dir="$dir/files/$name"
-    target_dir="$HOME/.local/share/cinnamon/applets/$name"
-    if [[ -d "$applet_dir" && ! "$applet_dir" -ef "$target_dir" ]]; then
-      rm -rf "$target_dir"
-      mkdir -p "$HOME/.local/share/cinnamon/applets"
-      ln -sfT "../../../../.dotfiles/third_party/cinnamon-spices-applets/$name/files/$name" "$target_dir"
-    fi
-  done
-
-  # Configs for cinnamon applets
-  # <n>.json must match trailing numbers in org/cinnamon/enabled-applets
-  # Copy only what changed: a running cinnamon has to be told to reload an
-  # applet whose config we touch (see ReloadXlet below)
-  for src in config-cinnamon-spices/*/*.json; do
-    uuid="$(basename "$(dirname "$src")")"
-    dst="$HOME/.config/cinnamon/spices/$uuid/$(basename "$src")"
-    # panel-launchers is generated from the detected apps further down
-    if [[ "$uuid" == panel-launchers@cinnamon.org && -f "$dst" ]]; then
-      continue
-    fi
-    if ! cmp -s "$src" "$dst"; then
-      mkdir -p "$(dirname "$dst")"
-      cp -f "$src" "$dst"
-      cinnamon_reload_xlets+=("$uuid")
-    fi
-  done
+  ./cinnamon/install.sh
 fi
-
-# }}}
-# Panel launchers {{{
 
 # The apps to put everywhere, in order. Same "|" fallbacks as filter_apps
 launcher_apps=(
@@ -582,9 +549,15 @@ for cfg in ~/.config/cinnamon/spices/panel-launchers@cinnamon.org/*.json \
        ! patch_cinnamon_launcher_list "$cfg" "${cinnamon_launchers[@]}"; then
       echo "Warning: could not set the launchers in $cfg" >&2
     fi
-    # Reload even when the file already had the right list: it may well be
-    # a running cinnamon that is out of date, not the file
-    cinnamon_reload_xlets+=("panel-launchers@cinnamon.org")
+    # The applet caches its settings in memory, so tell cinnamon to reload it.
+    # Do so even when the file already had the right list: it may well be a
+    # running cinnamon that is out of date, not the file. Fails harmlessly
+    # when cinnamon isn't running or is too old to have ReloadXlet.
+    if command -v dbus-send >/dev/null 2>&1; then
+      dbus-send --session --dest=org.Cinnamon --type=method_call \
+        /org/Cinnamon org.Cinnamon.ReloadXlet string:panel-launchers@cinnamon.org string:APPLET \
+        >/dev/null 2>&1 || true
+    fi
   fi
 done
 
@@ -620,20 +593,6 @@ for x in \
   chmod a+x ~/Desktop/"$x"
   gio set ~/Desktop/"$x" metadata::trusted true || true
 done
-
-# }}}
-# Reload cinnamon applets {{{
-
-# Applets cache their settings in memory, so a config file we rewrote behind
-# their back only shows up once cinnamon reloads them. Fails harmlessly when
-# cinnamon isn't running or is too old to have ReloadXlet.
-if [[ ${#cinnamon_reload_xlets[@]} -gt 0 ]] && command -v dbus-send >/dev/null 2>&1; then
-  for uuid in $(printf '%s\n' "${cinnamon_reload_xlets[@]}" | sort -u); do
-    dbus-send --session --dest=org.Cinnamon --type=method_call \
-      /org/Cinnamon org.Cinnamon.ReloadXlet "string:$uuid" string:APPLET \
-      >/dev/null 2>&1 || true
-  done
-fi
 
 # }}}
 # Autostart {{{

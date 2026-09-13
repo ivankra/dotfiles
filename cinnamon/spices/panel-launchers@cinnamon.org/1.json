@@ -11,12 +11,13 @@
             "nemo.desktop"
         ],
         "value": [
-            "chromium.desktop",
-            "firefox.desktop",
-            "org.gnome.Terminal.desktop",
+            "google-chrome.desktop",
+            "firefox-bwrap.desktop",
+            "org.gnome.Ptyxis.desktop",
             "nemo.desktop",
-            "virt-manager.desktop",
-            "org.keepassxc.KeePassXC.desktop"
+            "firefox-bwrap.desktop:flatpak",
+            "md.obsidian.Obsidian.desktop:flatpak",
+            "jetbrains-idea-e52cb74c-ec21-41fd-a5b5-a21b5db70fa4.desktop"
         ]
     },
     "allow-dragging": {

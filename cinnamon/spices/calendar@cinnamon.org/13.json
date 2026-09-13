@@ -32,6 +32,14 @@
         "tooltip": "Set your custom format here.",
         "value": "%a %Y-%m-%d %H:%M %z"
     },
+    "custom-tooltip-format": {
+        "type": "entry",
+        "default": "%A, %B %e, %H:%M",
+        "description": "Date format for tooltip",
+        "dependency": "use-custom-format",
+        "tooltip": "Set your custom tooltip format here.",
+        "value": "%B %e, %Y%n%H:%M %Z (UTC%z)"
+    },
     "format-button": {
         "type": "button",
         "description": "Show information on date format syntax",
@@ -50,5 +58,5 @@
         "tooltip": "Set keybinding(s) to show the calendar.",
         "value": "<Super>c"
     },
-    "__md5__": "5ea063337a9b776b6c19825f31b2a320"
+    "__md5__": "de90b5cca13fa5a4289009477b98b2f7"
 }

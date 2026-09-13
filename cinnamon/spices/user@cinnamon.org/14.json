@@ -1,0 +1,15 @@
+{
+    "display-name": {
+        "type": "switch",
+        "default": false,
+        "description": "Display user name on panel",
+        "value": true
+    },
+    "display-image": {
+        "type": "switch",
+        "default": false,
+        "description": "Display the user image on the panel",
+        "value": false
+    },
+    "__md5__": "10f31112a33200e9b508150b5f21db4c"
+}
