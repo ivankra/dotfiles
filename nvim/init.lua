@@ -46,6 +46,15 @@ vim.opt.breakindent = true              --  Continue original indentation on wra
 -- end
 -- vim.o.statuscolumn = "%!v:lua.get_statuscol()"
 
+-- Initial GUI font. Set here rather than in ginit.vim to reduce flicker at startup.
+-- Must be a single existing font: nvim-qt pre-0.2.20 doesn't support fallback
+-- fonts and would report unknown fonts as an error with 1s freeze.
+if vim.loop.fs_stat("/usr/share/fonts/truetype/iosevka/IosevkaNerdFont-Medium.ttf") then
+  vim.o.guifont = "Iosevka NFM:h12"
+else
+  vim.o.guifont = "Monospace:h12"
+end
+
 vim.g.mapleader = " "                   -- <leader> key
 vim.g.maplocalleader = "\\"
 
