@@ -1,5 +1,5 @@
 #!/bin/bash
-source "$(dirname "$(readlink -f "$0")")/../gui/xcb-dark-variant.sh"
+source "$(dirname "$(readlink -f "$0")")/../xcb-dark-variant.sh"
 exec nvim-qt "$@"
 
 # Alternative without gcc: set the property after the window is mapped

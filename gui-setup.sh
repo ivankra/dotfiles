@@ -176,9 +176,8 @@ if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]]; then
   export $(dbus-launch)
 fi
 
-cat dconf.json | ../bin/json2dconf | dconf load /
-cat dconf-panels.json | ../bin/json2dconf | dconf load /
-cat dconf-terminal.json | ../bin/json2dconf | dconf load /
+cat dconf.json | bin/json2dconf | dconf load /
+cat dconf-terminal.json | bin/json2dconf | dconf load /
 
 for theme in Yaru Adwaita; do
   if [[ -d "/usr/share/themes/$theme" ]]; then
@@ -225,8 +224,8 @@ else
   dconf write /org/gnome/desktop/interface/scaling-factor 'uint32 2'
   dconf write /org/gnome/desktop/interface/text-scaling-factor 1.0
   dconf write /org/mate/desktop/interface/window-scaling-factor 2
-  # The panel scales with the display here, so it keeps the size dconf-panels
-  # .json gives it; only the low-dpi branch above has to bump it
+  # The panel scales with the display here, so it keeps the size dconf.json
+  # gives it; only the low-dpi branch above has to bump it
 fi
 
 dconf write /org/cinnamon/desktop/interface/font-name "'$interface_font'"
@@ -252,10 +251,6 @@ if [[ -d /usr/share/fonts/truetype/iosevka ]]; then
   dconf write /org/mate/desktop/interface/monospace-font-name "'$mono_font'"
 fi
 
-#  "org/cinnamon/desktop/keybindings/custom-list": "['custom0']",
-#  "org/cinnamon/desktop/keybindings/custom-keybindings/custom0/binding": "['Print']",
-#  "org/cinnamon/desktop/keybindings/custom-keybindings/custom0/command": "'scrot'",
-#  "org/cinnamon/desktop/keybindings/custom-keybindings/custom0/name": "'scrot'",
 #  "org/cinnamon/desktop/background/picture-options": "'zoom'",
 #  "org/cinnamon/desktop/background/picture-uri": "'file:///usr/share/desktop-base/emerald-theme/wallpaper/gnome-background.xml'",
 #  "org/cinnamon/desktop/background/slideshow/delay": "15",
@@ -306,7 +301,7 @@ fi
 # }}}
 # Default apps {{{
 
-python3 ../mimeapps.py
+python3 ./mimeapps.py
 
 # }}}
 # Preferred terminal app {{{
@@ -351,7 +346,7 @@ cinnamon_reload_xlets=()
 if [[ -x /usr/bin/cinnamon-session ]]; then
   # Adding a new applet:
   # * vendor into ~/.dotfiles/third_party/cinnamon-spices-applets/
-  # * adjust org/cinnamon/enabled-applets and org/cinnamon/next-applet-id in dconf-panels.json
+  # * adjust org/cinnamon/enabled-applets and org/cinnamon/next-applet-id in dconf.json
   for dir in ~/.dotfiles/third_party/cinnamon-spices-applets/*; do
     name="$(basename "$dir")"
     applet_dir="$dir/files/$name"
@@ -472,7 +467,7 @@ write_flashback_launchers() {
   done
 
   # The launchers currently on the panel. They are looked up in dconf rather
-  # than in object-id-list above because dconf-panels.json has just dropped
+  # than in object-id-list above because dconf.json has just dropped
   # them from it, and gnome-panel names them launcher-<n> whether they came
   # from here or from the user, so there is no telling the two apart anyway
   # pack-index leads so that sort puts them in panel order
