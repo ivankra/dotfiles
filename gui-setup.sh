@@ -629,17 +629,21 @@ elif grep -qs '/\.dotfiles/bin/qvim' "$nvim_qt_desktop"; then
 fi
 
 # }}}
-# Misc {{{
+# gedit theme {{{
 
-# wget https://raw.githubusercontent.com/dracula/gedit/master/dracula.xml
 if [[ -x /usr/bin/gedit ]]; then
-  mkdir -p ~/.local/share/gedit/styles
-  cp -f gedit-dracula.xml ~/.local/share/gedit/styles/gedit-dracula.xml
+  dracula_xml=dracula.xml
+  styles_dir=~/.local/share/gedit/styles
+  if (($(gedit --version | grep -oP 'Version \K[0-9]+') >= 46)); then
+    dracula_xml=dracula-46.xml
+    styles_dir=~/.local/share/libgedit-gtksourceview-300/styles
+  fi
+  mkdir -p $styles_dir
+  cp -f third_party/dracula-gedit/$dracula_xml $styles_dir/dracula.xml
   dconf write /org/gnome/gedit/preferences/editor/scheme "'dracula'"
+  dconf write /org/gnome/gedit/preferences/editor/style-scheme-for-dark-theme-variant "'dracula'"
+  dconf write /org/gnome/gedit/preferences/ui/theme-variant "'dark'"
 fi
-
-rm -f ~/.face ~/.face.icon
-echo yes >~/.config/gnome-initial-setup-done
 
 # }}}
 # Password-less login keyring when autologin is enabled {{{
@@ -680,6 +684,12 @@ EOF
   fi
   echo "Created password-less $login_keyring"
 fi
+
+# }}}
+# Misc {{{
+
+rm -f ~/.face ~/.face.icon
+echo yes >~/.config/gnome-initial-setup-done
 
 # }}}
 
