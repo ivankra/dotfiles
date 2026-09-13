@@ -3,10 +3,11 @@
 # A per-editor Makefile is just:
 #
 #     BASE := nvim-lazy          # optional, defaults to editors-base
+#     LAUNCHERS := foo foo-bar   # optional, defaults to the image name
 #     include ../editors-base/build.mk
 #
-# `make build` builds the image and symlinks $(BINDIR)/$(IMAGE) to this
-# directory's run script, so the containerised editor sits on $PATH. A symlink
+# `make build` builds the image and symlinks $(BINDIR)/<name> to this
+# directory's run script for each name in LAUNCHERS, so the containerised editor sits on $PATH. A symlink
 # rather than a generated wrapper: the run scripts carry the XDG/X11/GPU
 # plumbing these images need, and edits to them take effect immediately.
 #
@@ -17,8 +18,8 @@ IMAGE  := $(notdir $(CURDIR))
 BASE   ?= editors-base
 BINDIR ?= $(HOME)/.local/bin
 
-LAUNCHER := $(BINDIR)/$(IMAGE)
-RUN      := $(CURDIR)/run.sh
+LAUNCHERS ?= $(IMAGE)
+RUN       := $(CURDIR)/run.sh
 
 # Warn if the launcher will not be reachable.
 define warn-unless-on-path
@@ -51,11 +52,14 @@ image-nocache:
 launcher:
 	@test -f $(RUN) || { echo "$(RUN) is missing, nothing to link" >&2; exit 1; }
 	@mkdir -p $(BINDIR)
-	@if { [ -e $(LAUNCHER) ] || [ -L $(LAUNCHER) ]; } && \
-	    [ "$$(readlink $(LAUNCHER))" != "$(RUN)" ]; then \
-		echo "$(LAUNCHER) exists and is not a launcher symlink; refusing to replace it" >&2; \
-		exit 1; \
-	fi
-	@ln -sfn $(RUN) $(LAUNCHER)
-	@echo "linked $(LAUNCHER) -> $(RUN)"
+	@for name in $(LAUNCHERS); do \
+		l=$(BINDIR)/$$name; \
+		if { [ -e $$l ] || [ -L $$l ]; } && [ "$$(readlink $$l)" != "$(RUN)" ]; then \
+			echo "$$l exists and is not a launcher symlink; refusing to replace it" >&2; \
+			exit 1; \
+		fi; \
+	done
+	@for name in $(LAUNCHERS); do \
+		ln -sfn $(RUN) $(BINDIR)/$$name && echo "linked $(BINDIR)/$$name -> $(RUN)"; \
+	done
 	@$(warn-unless-on-path)
