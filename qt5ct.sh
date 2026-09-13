@@ -1,4 +1,4 @@
-#!/bin/bash
+# Generates ~/.config/qt5ct/qt5ct.conf
 set -e -u -o pipefail
 
 cat <<EOF

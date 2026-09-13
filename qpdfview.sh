@@ -1,4 +1,4 @@
-#!/bin/bash
+# Generates ~/.config/qpdfview/qpdfview.conf
 set -e -u -o pipefail
 
 gen() {
