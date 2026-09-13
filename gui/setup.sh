@@ -650,6 +650,31 @@ if [[ -f /usr/share/applications/guake.desktop && ! -f ~/.config/autostart/guake
 fi
 
 # }}}
+# nvim-qt launcher {{{
+
+# Launch nvim-qt through the qvim wrapper. The user copy shadows the system one
+nvim_qt_desktop="$HOME/.local/share/applications/nvim-qt.desktop"
+nvim_qt_system=
+for dir in /usr/local/share/applications /usr/share/applications; do
+  if [[ -f "$dir/nvim-qt.desktop" ]]; then
+    nvim_qt_system="$dir/nvim-qt.desktop"
+    break
+  fi
+done
+if [[ -n "$nvim_qt_system" ]]; then
+  mkdir -p "$(dirname "$nvim_qt_desktop")"
+  tmp=$(mktemp)
+  sed -e "s|^Exec=nvim-qt\\b|Exec=$HOME/.dotfiles/bin/qvim|" <"$nvim_qt_system" >"$tmp"
+  if ! cmp -s "$tmp" "$nvim_qt_desktop"; then
+    cat "$tmp" >"$nvim_qt_desktop"
+  fi
+  rm -f "$tmp"
+elif grep -qs '/\.dotfiles/bin/qvim' "$nvim_qt_desktop"; then
+  # nvim-qt got uninstalled, don't leave a launcher for it behind
+  rm -f "$nvim_qt_desktop"
+fi
+
+# }}}
 # Misc {{{
 
 # wget https://raw.githubusercontent.com/dracula/gedit/master/dracula.xml

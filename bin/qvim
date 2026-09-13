@@ -1,2 +1,19 @@
-#!/bin/sh
+#!/bin/bash
+source "$(dirname "$(readlink -f "$0")")/../gui/xcb-dark-variant.sh"
 exec nvim-qt "$@"
+
+# Alternative without gcc: set the property after the window is mapped
+# (title bar briefly flickers light).
+#
+# setsid nvim-qt --nofork "$@" </dev/null >/dev/null 2>&1 &
+# pid=$!
+# for _ in {1..100}; do
+#   for id in $(xprop -root _NET_CLIENT_LIST | grep -o '0x[0-9a-f]*'); do
+#     if [[ "$(xprop -id "$id" _NET_WM_PID 2>/dev/null)" == *" = $pid" ]]; then
+#       xprop -id "$id" -f _GTK_THEME_VARIANT 8u -set _GTK_THEME_VARIANT dark
+#       exit 0
+#     fi
+#   done
+#   kill -0 "$pid" 2>/dev/null || exit 0
+#   sleep 0.1
+# done
