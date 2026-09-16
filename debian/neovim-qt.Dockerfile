@@ -29,6 +29,8 @@ RUN apt-get source neovim-qt && \
     uscan --download --rename && \
     uupdate ../neovim-qt_$(cat /build/VERSION).orig.tar.gz
 
+COPY neovim-qt.patch /build/neovim-qt.patch
+
 # 0.2.20 switched to Qt6 and requires msgpack-c >= 6
 RUN ver=$(cat VERSION) && \
     cd neovim-qt-$ver && \
@@ -49,6 +51,9 @@ RUN ver=$(cat VERSION) && \
     else \
         rm debian/patches/msgpack-c-7-*.patch; \
     fi && \
+    cp /build/neovim-qt.patch debian/patches/restoregeometry.patch && \
+    echo restoregeometry.patch >>debian/patches/series && \
+    dch -a "restoregeometry patch." && \
     dch -r "" && \
     mk-build-deps --install --remove \
         --tool "apt-get -y --no-install-recommends" debian/control && \

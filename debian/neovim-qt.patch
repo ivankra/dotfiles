@@ -1,0 +1,18 @@
+diff --git a/src/gui/mainwindow.cpp b/src/gui/mainwindow.cpp
+index 0bae42e..820dc38 100644
+--- a/src/gui/mainwindow.cpp
++++ b/src/gui/mainwindow.cpp
+@@ -346,10 +346,9 @@ void MainWindow::restoreWindowGeometry()
+ 		return;
+ 	}
+ 	const QVariant geometry{ settings.value("window_geometry") };
+-	if (geometry.isValid()) {
+-		restoreGeometry(geometry.toByteArray());
+-	}
+-	else {
++	// QWidget::restoreGeometry() can fail, for example when Qt rejects the saved
++	// geometry after a large display resolution change. Fall back to the default size.
++	if (!geometry.isValid() || !restoreGeometry(geometry.toByteArray())) {
+ 		SetDefaultWindowSize(*this);
+ 	}
+ 	const QVariant state{ settings.value("window_state") };

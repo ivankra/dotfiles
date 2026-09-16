@@ -42,3 +42,21 @@ else
     endif
   endfor
 endif
+
+" Workaround for https://github.com/equalsraf/neovim-qt/issues/251
+" Resize a tiny window with xdotool
+function! s:FixTinyWindow(timer) abort
+  if (&columns >= 80 && &lines >= 24) || !executable('xdotool')
+    return
+  endif
+  call timer_stop(a:timer)
+  for l:ui in nvim_list_uis()
+    let l:client = get(nvim_get_chan_info(get(l:ui, 'chan', 0)), 'client', {})
+    let l:id = get(get(l:client, 'attributes', {}), 'windowid', 0)
+    if get(l:client, 'name', '') ==# 'nvim-qt' && l:id
+      call jobstart(['xdotool', 'windowsize', string(l:id), '50%', '80%'])
+    endif
+  endfor
+endfunction
+
+call timer_start(100, function('s:FixTinyWindow'), {'repeat': 3})
