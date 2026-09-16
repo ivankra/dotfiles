@@ -12,6 +12,9 @@ SHELL_PACKAGES = $(patsubst %.sh,%,$(wildcard *.sh))
 
 all: $(EQUIVS_PACKAGES) $(DOCKER_PACKAGES) $(SHELL_PACKAGES)
 
+# Recipe-less explicit targets so shell completion lists them
+$(DOCKER_PACKAGES) $(addsuffix -sh,$(DOCKER_PACKAGES)) $(SHELL_PACKAGES):
+
 clean:
 	rm -rf *.deb
 
