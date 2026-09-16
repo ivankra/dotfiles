@@ -1,0 +1,49 @@
+[alias]
+	br = "!git branch \"${@:--avv}\" #"
+	ca = commit --amend
+	ci = commit
+	co = checkout
+	cp = cherry-pick
+	lg = log --graph --oneline --abbrev-commit --decorate --all
+	rb = rebase
+	rba = rebase --abort
+	rbc = rebase --continue
+	st = status
+	sw = switch
+
+	pp = !git pull && git push
+	# Aggressive git gc with pruning and dropping reflog
+	gca = !git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc --prune=now
+
+	detach = switch --detach
+	unstage = restore --staged --
+	# Print the top-level directory of git repo
+	root = rev-parse --show-toplevel
+	# git set-origin <url> [<branch>]
+	set-origin = "!f() { git remote set-url origin \"$1\" && git fetch origin && { [ -z \"$2\" ] || git branch --set-upstream-to=\"origin/$2\" \"$2\"; }; }; f"
+
+[color]
+	ui = auto
+
+[core]
+	pager = less -FSRXi
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[pull]
+	ff = only
+	rebase = false
+
+[push]
+	default = matching
+
+[url "git@github.com:"]
+	pushInsteadOf = "git://github.com/"
+	pushInsteadOf = "https://github.com/"
+
+[url "git@gist.github.com:"]
+	pushInsteadOf = "git://gist.github.com/"
