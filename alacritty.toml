@@ -1,0 +1,57 @@
+[window]
+dimensions = { columns = 120, lines = 40 }
+padding = { x = 2, y = 2 }
+decorations_theme_variant = "Dark"
+
+[font]
+normal = { family = "Iosevka", style = "Medium" }
+bold = { family = "Iosevka", style = "Bold" }
+italic = { family = "Iosevka", style = "Medium Italic" }
+size = 12.0
+
+[mouse]
+hide_when_typing = true
+
+# Autostart tmux as alacritty doesn't have native tabs
+[terminal.shell]
+program = "tmux"
+args = ["new-session", "-A", "-s", "alacritty"]
+
+# Ctrl+Shift+T for tmux as explicit CSI u sequence
+[[keyboard.bindings]]
+key = "T"
+mods = "Control|Shift"
+chars = "\u001B[116;6u"
+
+# Dracula colors
+[colors.primary]
+background = "#282a36"
+foreground = "#f8f8f2"
+
+[colors.cursor]
+text = "#282a36"
+cursor = "#f8f8f2"
+
+[colors.selection]
+text = "CellForeground"
+background = "#44475a"
+
+[colors.normal]
+black = "#21222c"
+red = "#ff5555"
+green = "#50fa7b"
+yellow = "#f1fa8c"
+blue = "#bd93f9"
+magenta = "#ff79c6"
+cyan = "#8be9fd"
+white = "#f8f8f2"
+
+[colors.bright]
+black = "#6272a4"
+red = "#ff6e6e"
+green = "#69ff94"
+yellow = "#ffffa5"
+blue = "#d6acff"
+magenta = "#ff92df"
+cyan = "#a4ffff"
+white = "#ffffff"
