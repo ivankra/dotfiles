@@ -19,7 +19,7 @@ FALLBACKS = {
     'mpv.desktop': ['vlc.desktop'],
     'nemo.desktop': ['org.gnome.Nautilus.desktop', 'nautilus.desktop'],
     'nvim-qt.desktop': ['gvim.desktop'],
-    'org.gnome.Loupe.desktop': ['org.gnome.eog.desktop', 'eog.desktop'],
+    'org.gnome.eog.desktop': ['eog.desktop', 'org.gnome.Loupe.desktop'],
     # A non-standard x-scheme-handler/terminal is added for our gui-setup.sh
     'org.gnome.Ptyxis.desktop': ['org.gnome.Terminal.desktop', 'org.kde.konsole.desktop', 'xterm.desktop'],
 }
