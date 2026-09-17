@@ -2,7 +2,9 @@
 # Note: this file is also sourced from ~/.profile by non-bash shells
 
 export EDITOR=vim
-export LESS=-FRSXi
+# --mouse: scroll with the mouse wheel inside less (and man, git log);
+# select text with Shift+drag
+export LESS='-FRSXi --mouse'
 export LESSHISTFILE=-
 export PAGER=less
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
@@ -154,7 +156,6 @@ __maybe_alias() {
     fi
   fi
 }
-__maybe_alias b=byobu-tmux
 __maybe_alias bat=batcat
 __maybe_alias blaze=bazel
 __maybe_alias fd=fdfind
@@ -167,8 +168,20 @@ __maybe_alias python=python3
 __maybe_alias route=/sbin/route
 __maybe_alias speedify_cli=/usr/share/speedify/speedify_cli
 __maybe_alias sysctl=/sbin/sysctl
+__maybe_alias t=tmux
 __maybe_alias zfs=/sbin/zfs
 __maybe_alias zpool=/sbin/zpool
+
+# Attach to tmux session $1 with byobu, "b" by default, creating if needed
+b() {
+  if hash byobu-tmux 2>/dev/null; then
+    byobu-tmux new-session -A -s "${1:-b}"
+  elif [[ $# -gt 0 ]]; then
+    tmux new-session -A -s "$1"
+  else
+    tmux
+  fi
+}
 
 mk() { mkdir -p "$@" && cd "$@"; }
 mkd() { mkdir -p "$@" && cd "$@"; }
@@ -448,8 +461,8 @@ __bashrc_set_ps1() {
     PS1+='\$ '
   fi
 
-  # If this is an xterm set the title to user@host:dir
-  if [[ "$TERM" == xterm* || "$TERM" == rxvt* ]]; then
+  # If this is an xterm or tmux/screen set the title to user@host:dir
+  if [[ "$TERM" == xterm* || "$TERM" == rxvt* || "$TERM" == tmux* || "$TERM" == screen* ]]; then
     PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
   fi
 

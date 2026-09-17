@@ -200,7 +200,19 @@ setup_cp_dir() {
   done < <(find "$src_path" -mindepth 1 -name .gitignore -prune -o -print0)
 }
 
-remove_dotfiles_symlinks() {
+# Create empty marker files, keeping any that already exist
+setup_touch() {
+  for f in "$@"; do
+    if ! [[ -f "$f" ]]; then
+      mkdir -p -m 0700 "$(dirname "$f")"
+      touch "$f"
+      echo "Created $f"
+    fi
+  done
+}
+
+# Remove obsolete symlink pointing inside dotfiles repo
+remove_ln() {
   for f in "$@"; do
     if [[ -L "$f" ]] && (readlink -f -- "$f" | fgrep -q /.dotfiles/); then
       rm -rf "$f"
@@ -251,14 +263,13 @@ if [[ $UID == 0 && $IN_CONTAINER == 0 ]]; then
   fi
 fi
 
-remove_dotfiles_symlinks \
-  ~/.config/autostart/gnome-keyring-ssh.desktop \
-  ~/.config/qpdfview \
-  ~/.config/qpdfview/shortcuts.conf \
-  ~/.fonts \
-  ~/.gdb \
-  ~/.local/bin/code \
-  ~/.sqliterc
+remove_ln ~/.config/autostart/gnome-keyring-ssh.desktop
+remove_ln ~/.config/qpdfview
+remove_ln ~/.config/qpdfview/shortcuts.conf
+remove_ln ~/.fonts
+remove_ln ~/.gdb
+remove_ln ~/.local/bin/code
+remove_ln ~/.sqliterc
 
 if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
   (set -x; rm -f ~/.bin)
@@ -292,11 +303,31 @@ setup_ln htoprc ~/.config/htop/htoprc
 setup_ln kitty.conf ~/.config/kitty/kitty.conf
 setup_ln nvim ~/.config/nvim
 setup_ln nvim/site ~/.local/share/nvim/site
+setup_ln tmux.conf ~/.config/tmux/tmux.conf
 setup_ln wezterm.lua ~/.config/wezterm/wezterm.lua
 
+# Do not pollute home directory's root unnecessarily:
+# stuff that can't go into an XDG subdirectory should be guarded here.
+
+# ~/.tmux.conf for old pre-3.1 tmux only
 if hash tmux >/dev/null 2>&1; then
-  setup_ln tmux.conf
+  tmux_version=$(tmux -V | sed 's/^tmux //; s/[^0-9.].*//')
+  if [[ -n "$tmux_version" ]] &&
+     [[ "$(printf '%s\n3.1\n' "$tmux_version" | sort -V | head -1)" != "3.1" ]]; then
+    setup_ln tmux.conf
+  else
+    remove_ln ~/.tmux.conf
+  fi
 fi
+
+# byobu: drop old ~/.byobu in favor of ~/.config/byobu
+if [[ -e ~/.byobu ]]; then
+  rm -rf ~/.byobu
+  echo "Removed obsolete ~/.byobu"
+fi
+setup_ln tmux.conf ~/.config/byobu/.tmux.conf
+setup_touch ~/.config/byobu/{prompt,.welcome-displayed}
+
 if hash ipython >/dev/null 2>&1 || hash ipython3 >/dev/null 2>&1; then
   #setup_gen <(./jupyter/jupyter_notebook_config.json.sh) ~/.dotfiles/jupyter/jupyter_notebook_config.json
   setup_ln ipython_config.py ~/.ipython/profile_default/ipython_config.py
@@ -360,16 +391,6 @@ chmod 0700 ~/.ssh
 chmod 0600 ~/.ssh/config
 if [[ -f ~/.ssh/authorized_keys ]]; then
   chmod 0600 ~/.ssh/authorized_keys
-fi
-
-# don't show welcome message and mess up with prompt on first run
-if hash byobu >/dev/null 2>&1; then
-  for f in ~/.byobu/{prompt,.welcome-displayed}; do
-    if ! [[ -f "$f" ]]; then
-      mkdir -m 0700 -p ~/.byobu
-      (set -x; touch "$f")
-    fi
-  done
 fi
 
 if ! [[ -d ~/.local/bin ]]; then
