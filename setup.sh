@@ -288,6 +288,7 @@ setup_ln vim
 setup_ln vimrc
 
 setup_ln htoprc ~/.config/htop/htoprc
+setup_ln kitty.conf ~/.config/kitty/kitty.conf
 setup_ln nvim ~/.config/nvim
 setup_ln nvim/site ~/.local/share/nvim/site
 

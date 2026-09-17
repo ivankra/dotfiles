@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Fall back to software renderer on virgl
+if command -v glxinfo >/dev/null 2>&1 &&
+   [[ "$(glxinfo -B 2>/dev/null | sed -n 's/^OpenGL renderer string: //p')" == *virgl* ]]; then
+  export LIBGL_ALWAYS_SOFTWARE=1
+fi
+
+for kitty in ~/.local/kitty.app/bin/kitty {,/usr}/{bin,sbin}/kitty; do
+  if [[ -x "$kitty" ]]; then
+    exec "$kitty" "$@"
+  fi
+done
+
+echo "kitty: not found" >&2
+exit 127
