@@ -1,0 +1,45 @@
+x11: fix integrated title bar double-click to maximize
+
+The first press starts a WM drag; the WM grabs the keyboard for it,
+sending FocusOut/FocusIn with mode Grab/Ungrab. We treat that as focus
+loss and clear last_mouse_click, so the second press is never streak 2.
+
+Ignore focus events with mode Grab/Ungrab, like GLFW does:
+https://github.com/glfw/glfw/blob/92dcf4ce74f2e2554a98fea09be7c705c17daa5a/src/x11_window.c#L1745-L1751
+
+Needs 02-drag.patch, else the second press is swallowed.
+
+Tested on muffin (Cinnamon).
+
+diff --git a/window/src/os/x11/window.rs b/window/src/os/x11/window.rs
+index 8bc6f62..b0b7bb3 100644
+--- a/window/src/os/x11/window.rs
++++ b/window/src/os/x11/window.rs
+@@ -844,13 +844,25 @@ impl XWindowInner {
+                     self.verify_focus = true;
+                 }
+             }
++            // Grab/Ungrab focus events come from a keyboard grab, e.g. the
++            // WM grabbing during a window drag; focus hasn't really moved.
+             Event::X(xcb::x::Event::FocusIn(e)) => {
+-                if !matches!(e.detail(), xcb::x::NotifyDetail::Pointer) {
++                if !matches!(e.detail(), xcb::x::NotifyDetail::Pointer)
++                    && !matches!(
++                        e.mode(),
++                        xcb::x::NotifyMode::Grab | xcb::x::NotifyMode::Ungrab
++                    )
++                {
+                     self.focus_changed(true);
+                 }
+             }
+             Event::X(xcb::x::Event::FocusOut(e)) => {
+-                if !matches!(e.detail(), xcb::x::NotifyDetail::Pointer) {
++                if !matches!(e.detail(), xcb::x::NotifyDetail::Pointer)
++                    && !matches!(
++                        e.mode(),
++                        xcb::x::NotifyMode::Grab | xcb::x::NotifyMode::Ungrab
++                    )
++                {
+                     self.focus_changed(false);
+                 }
+             }

@@ -291,6 +291,7 @@ setup_ln htoprc ~/.config/htop/htoprc
 setup_ln kitty.conf ~/.config/kitty/kitty.conf
 setup_ln nvim ~/.config/nvim
 setup_ln nvim/site ~/.local/share/nvim/site
+setup_ln wezterm.lua ~/.config/wezterm/wezterm.lua
 
 if hash tmux >/dev/null 2>&1; then
   setup_ln tmux.conf
