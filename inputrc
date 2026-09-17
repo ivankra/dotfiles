@@ -1,7 +1,10 @@
 # Be 8 bit clean
 set input-meta on
 set output-meta on
-
+# No beep on ambiguous completion
+set bell-style none
+# Edits to recalled history lines don't stick to the history entry
+set revert-all-at-newline on
 # Autocompletion settings
 set colored-completion-prefix on
 set colored-stats on
@@ -14,10 +17,14 @@ set skip-completed-text on
 set visible-stats on
 set match-hidden-files off
 set expand-tilde off
+# Print long completion lists in full instead of a --More-- pager
+set page-completions off
+# With completion-ignore-case, treat - and _ as the same character
+set completion-map-case on
 
 # Tab once to show completions menu, twice to cycle between completions.
 # Shift-Tab to cycle backwards.
-# Ignore for Mac OS X's bash 3.x where this feature is broken.
+# Ignore on Mac's bash 3.x where this feature is broken.
 $if version >= 1.0
 TAB: menu-complete
 "\e[Z": menu-complete-backward
@@ -44,6 +51,10 @@ $endif
 "\e[5D": backward-word
 "\e\e[C": forward-word
 "\e\e[D": backward-word
+
+# Alt+Left, Alt+Right on Mac with wezterm
+"\e[1;3C": forward-word
+"\e[1;3D": backward-word
 
 #$if term=rxvt
 "\e[7~": beginning-of-line
