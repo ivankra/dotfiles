@@ -1,0 +1,5 @@
+# Guake colors, loaded by setup.sh at /org/guake/ and /apps/guake/ (pre-3.10)
+# Palette: 16 colors, foreground, background. Converted from gnome-terminal.dconf
+[style/font]
+palette='#181818181919:#fcfc5d5d7c7c:#9e9ed0d07272:#e7e7c6c66464:#7676cccce0e0:#b3b39d9df3f3:#f3f396966060:#e2e2e2e2e3e3:#7f7f84849090:#fcfc5d5d7c7c:#9e9ed0d07272:#e7e7c6c66464:#7676cccce0e0:#b3b39d9df3f3:#f3f396966060:#e2e2e2e2e3e3:#e2e2e2e2e3e3:#2c2c2e2e3434'
+palette-name='Custom'

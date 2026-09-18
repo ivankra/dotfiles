@@ -1,0 +1,26 @@
+# Sonokai, converted from alacritty.toml
+# Replaces the built-in Ptyxis/Gogh "Sonokai" palette, which swaps blue and
+# orange (colors 4/6) and uses the background as color 0
+
+[Palette]
+Name=Sonokai Default
+Primary=true
+Background=#2c2e34
+Foreground=#e2e2e3
+Cursor=#e2e2e3
+Color0=#181819
+Color1=#fc5d7c
+Color2=#9ed072
+Color3=#e7c664
+Color4=#76cce0
+Color5=#b39df3
+Color6=#f39660
+Color7=#e2e2e3
+Color8=#7f8490
+Color9=#fc5d7c
+Color10=#9ed072
+Color11=#e7c664
+Color12=#76cce0
+Color13=#b39df3
+Color14=#f39660
+Color15=#e2e2e3
