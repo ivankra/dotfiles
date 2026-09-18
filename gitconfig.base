@@ -1,4 +1,5 @@
 [alias]
+	# Common aliases
 	br = "!git branch \"${@:--avv}\" #"
 	ca = commit --amend
 	ci = commit
@@ -15,8 +16,12 @@
 	# Aggressive git gc with pruning and dropping reflog
 	gca = !git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc --prune=now
 
+	# Check out a commit (default HEAD) as detached HEAD (or: git checkout --detach)
 	detach = switch --detach
+	# Reset files in index to HEAD, keep working tree changes (or: git reset HEAD --)
 	unstage = restore --staged --
+	# Stop tracking files but keep them on disk (like hg forget)
+	untrack = rm -r --cached --
 	# Print the top-level directory of git repo
 	root = rev-parse --show-toplevel
 	# git set-origin <url> [<branch>]
