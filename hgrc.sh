@@ -1,4 +1,4 @@
-# Generates ~/.hgrc
+# Generates ~/.config/hg/hgrc
 set -e -u -o pipefail
 
 cd "$(dirname "$(readlink -f "$0")")"

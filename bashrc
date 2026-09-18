@@ -2,20 +2,20 @@
 # Note: this file is also sourced from ~/.profile by non-bash shells
 
 export EDITOR=vim
-# --mouse: scroll with the mouse wheel inside less (and man, git log);
-# select text with Shift+drag
-export LESS='-FRSXi --mouse'
+export IPYTHONDIR="$HOME/.config/ipython"
+export JUPYTER_CONFIG_DIR="$HOME/.config/jupyter"
+export LESS='-FRSXi'
 export LESSHISTFILE=-
 export PAGER=less
+export PYTHON_HISTORY="$HOME/.history/python"
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 export LC_COLLATE=C
 export LC_MEASUREMENT=C  # metric
-export LC_PAPER=C  # A4
-# Also see /var/lib/AccountsService/users/*, Language=en_US.UTF-8
-# ~/.config/plasma-localerc
+#export LC_PAPER=C  # A4
+# Also see /var/lib/AccountsService/users/*, Language=en_US.UTF-8, ~/.config/plasma-localerc
 
 # PATH {{{
 __setup_path_sh() {
