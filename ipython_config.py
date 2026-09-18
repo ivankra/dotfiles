@@ -25,12 +25,8 @@ dark = (os.environ.get('COLORFGBG', '').endswith(';0') or
 if dark:
     dotfiles.dracula.set_ipython(c)
 else:
-    from pygments.token import Name
+    import IPython
     c.TerminalInteractiveShell.colors = 'lightbg'
-    c.TerminalInteractiveShell.highlighting_style = 'manni'
-    c.TerminalInteractiveShell.highlighting_style_overrides = {
-        Name.Namespace: 'bold #00ABD6',
-    }
 
 c.TerminalInteractiveShell.confirm_exit = False
 c.TerminalInteractiveShell.banner1 = ''

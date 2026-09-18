@@ -135,8 +135,25 @@ def set_xonsh():
     xonsh.pyghooks.get_style_by_name = gsbn(xonsh.pyghooks.get_style_by_name)
 
 
+IPYTHON_PROMPT_STYLE = {
+    Token.Prompt: '#33cc33',
+    Token.PromptNum: '#66ff66 bold',
+    Token.OutPrompt: '#ff0000',
+    Token.OutPromptNum: '#ff0000 bold',
+}
+
+
 def set_ipython(c):
     import IPython
+    if IPython.version_info >= (9, 0):
+        # 9.0 dropped highlighting_style in favour of its own theme table,
+        # where a theme without a base carries the full token -> style map
+        from IPython.utils import PyColorize
+        PyColorize.theme_table['dracula'] = PyColorize.Theme(
+            'dracula', None, {**DraculaStyle.styles, **IPYTHON_PROMPT_STYLE})
+        c.TerminalInteractiveShell.colors = 'dracula'
+        return
+
     c.TerminalInteractiveShell.colors = 'linux'
     if IPython.version_info >= (5, 2, 0, ''):
         c.TerminalInteractiveShell.highlighting_style = DraculaStyle
@@ -145,9 +162,4 @@ def set_ipython(c):
         interactiveshell.get_style_by_name = gsbn(interactiveshell.get_style_by_name)
         c.TerminalInteractiveShell.highlighting_style = 'dracula'
 
-    c.TerminalInteractiveShell.highlighting_style_overrides = {
-        Token.Prompt: '#33cc33',
-        Token.PromptNum: '#66ff66 bold',
-        Token.OutPrompt: '#ff0000',
-        Token.OutPromptNum: '#ff0000 bold',
-    }
+    c.TerminalInteractiveShell.highlighting_style_overrides = IPYTHON_PROMPT_STYLE
