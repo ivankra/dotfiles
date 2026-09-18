@@ -1,9 +1,41 @@
 #!/bin/bash
-# Installs dotfiles. Idempotent - can be rerun multiple times.
 set -e -u -o pipefail
 umask 077
 
 # Vars and checks {{{
+
+usage() {
+  local themes=("$(dirname "$0")"/themes/*/)
+  themes=("${themes[@]%/}")
+  cat <<EOF
+Usage: ${0##*/} [--theme=<name>]
+
+Sets up dotfiles from ~/.dotfiles for the current user.
+Except for GUI tasks - run gui-setup.sh under GUI afterwards.
+Idempotent, can be rerun multiple times.
+
+Options:
+  --theme=<name>, --theme <name>
+              Switch ~/.config/theme to themes/<name>/.
+              Available: ${themes[*]##*/}
+  -h, --help  Show this help and exit.
+EOF
+}
+
+THEME=
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0;;
+    --theme=*) THEME="${1#--theme=}";;
+    --theme)
+      if [[ $# -lt 2 || "$2" == -* ]]; then
+        echo "Error: --theme requires a theme name"; exit 1
+      fi
+      THEME="$2"; shift;;
+    *)         echo "Unknown parameter: $1"; echo "Try '${0##*/} --help'."; exit 1;;
+  esac
+  shift
+done
 
 if ! [[ -f "$HOME/.dotfiles/setup.sh" ]]; then
   echo "Error: dotfiles must be installed in ~/.dotfiles"
@@ -24,7 +56,7 @@ if ! [[ -f "$HOME/.dotfiles/setup.sh" && "$HOME/.dotfiles/setup.sh" -ef "$0" ]];
     SCRIPT_USER=$(stat -c %U "$SCRIPT_PATH")
     if [[ "$SCRIPT_PATH" == "/home/$SCRIPT_USER/"* ]]; then
       echo "Will run setup under $SCRIPT_USER"
-      (set -x; sudo -u "$SCRIPT_USER" "$SCRIPT_PATH")
+      (set -x; sudo -u "$SCRIPT_USER" "$SCRIPT_PATH" ${THEME:+--theme="$THEME"})
       exit $?
     fi
   fi
@@ -32,6 +64,20 @@ if ! [[ -f "$HOME/.dotfiles/setup.sh" && "$HOME/.dotfiles/setup.sh" -ef "$0" ]];
   exit 1
 fi
 cd ~/.dotfiles
+
+if [[ -n "$THEME" ]]; then
+  if ! [[ "$THEME" =~ ^[a-z0-9][a-z0-9_.-]*$ && -d "themes/$THEME" ]]; then
+    themes=(themes/*/)
+    themes=("${themes[@]#themes/}")
+    echo "Error: unknown theme '$THEME', available: ${themes[*]%/}"
+    exit 1
+  fi
+  # Don't let setup_ln wipe a theme directory made by hand
+  if [[ -e ~/.config/theme && ! -L ~/.config/theme ]]; then
+    echo "Error: ~/.config/theme is not a symlink, move it away to use --theme"
+    exit 1
+  fi
+fi
 
 if [[ -z "${USER:-}" ]]; then
   USER=$(whoami)
@@ -362,7 +408,6 @@ setup_touch ~/.config/byobu/{prompt,.welcome-displayed}
 # Do not pollute home directory's root unnecessarily:
 # stuff that can't go into an XDG subdirectory should be guarded here.
 
-
 if hash R >/dev/null 2>&1; then
   setup_ln Rprofile
 fi
@@ -435,6 +480,16 @@ fi
 
 if [[ "$OSTYPE" != darwin* ]]; then
   ./mimeapps.py
+fi
+
+# }}}
+# ~/.config/theme {{{
+
+# Install/update ~/.config/theme symlink
+if [[ -n "$THEME" ]]; then
+  setup_ln "themes/$THEME" ~/.config/theme
+elif ! [[ -e ~/.config/theme ]]; then
+  setup_ln themes/dracula-custom ~/.config/theme
 fi
 
 # }}}

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: setup.sh [--dark|--light] [--hi-dpi|--low-dpi]
+# Usage: gui-setup.sh [--dark|--light] [--hi-dpi|--low-dpi]
 # Defaults to a light theme on a hi-dpi display
 
 # Initialization and flags {{{
@@ -177,7 +177,11 @@ if [[ -z "$DBUS_SESSION_BUS_ADDRESS" ]]; then
 fi
 
 cat dconf.json | bin/json2dconf | dconf load /
-cat dconf-terminal.json | bin/json2dconf | dconf load /
+
+# Guake before 3.10 keeps its settings in /apps/guake/ instead of /org/guake/
+if grep -qs 'path="/apps/guake/"' /usr/share/glib-2.0/schemas/org.guake.gschema.xml; then
+  sed 's|^  "org/guake/|  "apps/guake/|' dconf.json | bin/json2dconf | dconf load /
+fi
 
 for theme in Yaru Adwaita; do
   if [[ -d "/usr/share/themes/$theme" ]]; then
@@ -629,20 +633,10 @@ elif grep -qs '/\.dotfiles/bin/qvim' "$nvim_qt_desktop"; then
 fi
 
 # }}}
-# gedit theme {{{
+# Theme setup {{{
 
-if [[ -x /usr/bin/gedit ]]; then
-  dracula_xml=dracula.xml
-  styles_dir=~/.local/share/gedit/styles
-  if (($(gedit --version | grep -oP 'Version \K[0-9]+') >= 46)); then
-    dracula_xml=dracula-46.xml
-    styles_dir=~/.local/share/libgedit-gtksourceview-300/styles
-  fi
-  mkdir -p $styles_dir
-  cp -f third_party/dracula-gedit/$dracula_xml $styles_dir/dracula.xml
-  dconf write /org/gnome/gedit/preferences/editor/scheme "'dracula'"
-  dconf write /org/gnome/gedit/preferences/editor/style-scheme-for-dark-theme-variant "'dracula'"
-  dconf write /org/gnome/gedit/preferences/ui/theme-variant "'dark'"
+if [[ -x ~/.config/theme/setup.sh ]]; then
+  ~/.config/theme/setup.sh
 fi
 
 # }}}

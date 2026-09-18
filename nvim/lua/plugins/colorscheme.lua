@@ -1,13 +1,20 @@
+-- lazy.nvim loads colorscheme plugins on demand when :colorscheme is run
+local theme_file = vim.fn.expand("~/.config/theme/nvim.lua")
+
 return {
+  -- Current theme, see ~/.dotfiles/themes/. Applied from init, which runs
+  -- before any plugin loads, so that e.g. lualine picks up its colors.
   {
-    "dracula/vim",
-    dev = true,
-    name = "dracula.vim",
-    priority = 1000,
+    name = "theme",
+    dir = vim.fn.fnamemodify(theme_file, ":h"),
+    lazy = true,
+    cond = vim.fn.filereadable(theme_file) == 1,
     init = function()
-      vim.cmd('colorscheme dracula')
-    end
+      dofile(theme_file)
+    end,
   },
+
+  { "dracula/vim", name = "dracula.vim", dev = true, lazy = true },
 
   {
     "folke/tokyonight.nvim",

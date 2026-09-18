@@ -61,7 +61,6 @@ if has("eval")
   let g:tex_flavor = "latex"
   let g:pyindent_open_paren = "&sw"
 
-  let g:dracula_italic = 0
   let g:gruvbox_contrast_dark = "hard"
   let g:gruvbox_italic = 0
   let g:sonokai_enable_italic = 0
@@ -92,8 +91,12 @@ if has("autocmd")
 endif
 
 if $COLORFGBG == "" || $COLORFGBG == "15;default;0" || $COLORFGBG == "15;0" || has("gui_running")
-  set background=dark
-  colorscheme dracula
+  " Current theme, see ~/.dotfiles/themes/
+  if filereadable(expand("~/.config/theme/vim.vim"))
+    source ~/.config/theme/vim.vim
+  else
+    set background=dark
+  endif
 else
   set background=light
   colorscheme fruidle

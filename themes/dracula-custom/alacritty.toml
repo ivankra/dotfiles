@@ -1,0 +1,19 @@
+# Dracula with local tweaks, imported by alacritty.toml
+# Background #22212c
+[general]
+import = ["~/.dotfiles/themes/dracula/alacritty.toml"]
+
+[colors.primary]
+background = "#22212c"
+
+[colors.cursor]
+text = "#22212c"
+
+[colors.footer_bar]
+background = "#22212c"
+
+[colors.hints.start]
+foreground = "#22212c"
+
+[colors.hints.end]
+background = "#22212c"

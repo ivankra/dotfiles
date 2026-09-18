@@ -5,7 +5,6 @@ local config = wezterm.config_builder()
 config.adjust_window_size_when_changing_font_size = false
 config.audible_bell = 'Disabled'
 config.check_for_updates = false
-config.color_scheme = 'Dracula (Official)'
 config.default_cursor_style = 'SteadyBlock'
 config.font = wezterm.font('Iosevka', { weight = 'Medium' })
 config.font_size = 12.0
@@ -35,50 +34,26 @@ if not is_mac then
   config.integrated_title_button_style = 'Gnome'
 end
 
--- Tweak theming to match Ptyxis in Dracula colors
-local dracula = {
-  bg = '#282a36',
-  fg = '#f8f8f2',
-  comment = '#6272a4',
-}
-local chrome = {
-  bg = '#2d303f',
-  tab = '#373a48',
-  hover = '#333645',
-  edge = '#3c3f4d',
-}
-config.window_frame = {
-  font = tab_font,
-  font_size = tab_font_size,
-  active_titlebar_bg = chrome.bg,
-  inactive_titlebar_bg = chrome.bg,
-  active_titlebar_fg = dracula.fg,
-  inactive_titlebar_fg = dracula.comment,
-  button_bg = chrome.bg,
-  button_fg = dracula.fg,
-  button_hover_bg = chrome.edge,
-  button_hover_fg = dracula.fg,
-  border_left_width = '2px',
-  border_right_width = '2px',
-  border_bottom_height = '2px',
-  border_left_color = dracula.bg,
-  border_right_color = dracula.bg,
-  border_bottom_color = dracula.bg,
-}
+-- Colors from the current theme, see ~/.dotfiles/themes/
+local theme_file = wezterm.home_dir .. '/.config/theme/wezterm.lua'
+wezterm.add_to_config_reload_watch_list(theme_file)
+local ok, theme = pcall(dofile, theme_file)
+if not ok then
+  wezterm.log_error('Failed to load ' .. theme_file .. ': ' .. tostring(theme))
+  theme = {}
+end
+local window_frame = theme.window_frame or {}
+theme.window_frame = nil
+for k, v in pairs(theme) do
+  config[k] = v
+end
+window_frame.font = tab_font
+window_frame.font_size = tab_font_size
+window_frame.border_left_width = '2px'
+window_frame.border_right_width = '2px'
+window_frame.border_bottom_height = '2px'
+config.window_frame = window_frame
 config.tab_max_width = 32
-config.colors = {
-  -- Inverse-style selection
-  selection_fg = dracula.bg,
-  selection_bg = dracula.fg,
-  tab_bar = {
-    inactive_tab_edge = chrome.edge,
-    active_tab = { bg_color = chrome.tab, fg_color = dracula.fg },
-    inactive_tab = { bg_color = chrome.bg, fg_color = dracula.comment },
-    inactive_tab_hover = { bg_color = chrome.tab, fg_color = dracula.comment },
-    new_tab = { bg_color = chrome.bg, fg_color = dracula.comment },
-    new_tab_hover = { bg_color = chrome.hover, fg_color = dracula.fg },
-  },
-}
 
 -- Roomier tab labels
 wezterm.on('format-tab-title', function(tab, _, _, _, _, max_width)

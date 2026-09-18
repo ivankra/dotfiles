@@ -1,0 +1,10 @@
+# Dracula with local tweaks, gnome-terminal profile loaded by setup.sh
+# Dracula with background #22212c, foreground #ffffff and dimmer normal colors;
+# profile id is a fixed random one
+
+[:b92184a8-dc80-4dd2-a7cd-c78090df3db3]
+visible-name='Dracula Custom'
+background-color='#22212c'
+foreground-color='#ffffff'
+use-theme-colors=false
+palette=['rgb(38,38,38)', 'rgb(230,71,71)', 'rgb(66,230,108)', 'rgb(228,243,74)', 'rgb(155,107,223)', 'rgb(227,86,167)', 'rgb(117,215,236)', 'rgb(204,204,204)', 'rgb(122,122,122)', 'rgb(255,85,85)', 'rgb(80,250,123)', 'rgb(241,250,140)', 'rgb(189,147,249)', 'rgb(255,121,198)', 'rgb(139,233,253)', 'rgb(255,255,255)']

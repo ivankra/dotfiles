@@ -1,0 +1,16 @@
+# Dracula gnome-terminal profile, loaded by setup.sh
+# Colors from https://github.com/dracula/gnome-terminal/tree/ccc75a2d7fd915e80d95059a80899249e7161e06/colors/Dracula
+# (bg_color, fg_color, bd_color, palette), keys set as by its install.sh;
+# profile id is a fixed random one.
+# Tweak: palette in ANSI order (upstream has pink/red swapped in slots 1/5
+# and 9/13, orange in white slots 7/15, replaced by #F8F8F2/#FFFFFF as in the
+# official alacritty/kitty themes)
+
+[:d569177a-d706-4353-91a1-cb21d00c583b]
+visible-name='Dracula'
+background-color='#282A36'
+foreground-color='#F8F8F2'
+bold-color='#6E46A4'
+bold-color-same-as-fg=false
+use-theme-colors=false
+palette=['#262626', '#E64747', '#42E66C', '#E4F34A', '#9B6BDF', '#E356A7', '#75D7EC', '#F8F8F2', '#7A7A7A', '#FF5555', '#50FA7B', '#F1FA8C', '#BD93F9', '#FF79C6', '#8BE9FD', '#FFFFFF']
