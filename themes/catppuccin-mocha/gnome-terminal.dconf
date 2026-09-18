@@ -1,0 +1,18 @@
+# Catppuccin Mocha gnome-terminal profile, loaded by setup.sh
+# Generated as by https://github.com/catppuccin/gnome-terminal/blob/75e57457f58a34baf2ec7d9e13556ca53d598395/install.py
+# from https://github.com/catppuccin/palette/blob/v1.7.1/palette.json,
+# with its hardcoded mocha profile id
+
+[:95894cfd-82f7-430d-af6e-84d168bc34f5]
+visible-name='Catppuccin Mocha'
+background-color='#1e1e2e'
+foreground-color='#cdd6f4'
+highlight-colors-set=true
+highlight-background-color='#f5e0dc'
+highlight-foreground-color='#585b70'
+cursor-colors-set=true
+cursor-background-color='#f5e0dc'
+cursor-foreground-color='#1e1e2e'
+use-theme-colors=false
+bold-is-bright=true
+palette=['#45475a', '#f38ba8', '#a6e3a1', '#f9e2af', '#89b4fa', '#f5c2e7', '#94e2d5', '#a6adc8', '#585b70', '#f37799', '#89d88b', '#ebd391', '#74a8fc', '#f2aede', '#6bd7ca', '#bac2de']
