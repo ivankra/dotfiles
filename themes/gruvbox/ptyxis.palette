@@ -1,0 +1,49 @@
+# Gruvbox with the Dark Hard palette
+# From https://gitlab.gnome.org/chergert/ptyxis/-/blob/50.1/src/palettes/Gruvbox.palette
+# Tweaks: Name; [Dark] replaced with kitty.conf colors (hard contrast)
+
+[Palette]
+Name=Gruvbox Dark Hard
+Primary=true
+
+[Light]
+Background=#FBF1C7
+Foreground=#3C3836
+Cursor=#3C3836
+Color0=#FBF1C7
+Color1=#CC241D
+Color2=#98971A
+Color3=#D79921
+Color4=#458588
+Color5=#B16286
+Color6=#689D6A
+Color7=#7C6F64
+Color8=#928374
+Color9=#9D0006
+Color10=#79740E
+Color11=#B57614
+Color12=#076678
+Color13=#8F3F71
+Color14=#427B58
+Color15=#3C3836
+
+[Dark]
+Background=#1d2021
+Foreground=#ebdbb2
+Cursor=#bdae93
+Color0=#3c3836
+Color1=#cc241d
+Color2=#98971a
+Color3=#d79921
+Color4=#458588
+Color5=#b16286
+Color6=#689d6a
+Color7=#a89984
+Color8=#928374
+Color9=#fb4934
+Color10=#b8bb26
+Color11=#fabd2f
+Color12=#83a598
+Color13=#d3869b
+Color14=#8ec07c
+Color15=#fbf1c7
