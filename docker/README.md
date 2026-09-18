@@ -40,7 +40,9 @@ Most launchers make use of `dr` script (see below).
 `podman` is recommended over `docker` for better rootless mode and DX.
 
 To persist state / downloaded plugins, the images map the container's
-`/root` directory to `~/.docker/<image>` on the host.
+`/root` directory to `~/.docker/<launcher>` on the host. An image can have
+several launchers (`LAUNCHERS` in its Makefile, e.g. `claude claude2`), each
+a symlink named after its variant with its own `/root`.
 
 GUI editors are messier to sandbox via docker (Flatpak does it
 better). For `cursor` and `vscode`, `run.sh` runs podman as root in

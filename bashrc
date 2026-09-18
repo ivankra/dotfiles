@@ -219,10 +219,6 @@ function dr-lab() {
   dr -u root -p "$port:$port" "quay.io/jupyter/scipy-notebook" jupyter lab --ip=0.0.0.0 --port=$port --allow-root
 }
 
-# The docker/ agent CLIs install ~/.local/bin launchers via `make build`.
-# claudem has no image dir of its own, so it stays an alias.
-alias claudem='dr -v $HOME/.docker/claudem:/root claudem claudem'
-
 # }}}
 
 # Bash history {{{
