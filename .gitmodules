@@ -82,3 +82,6 @@
 [submodule "modules/catppuccin.vim"]
 	path = modules/catppuccin.vim
 	url = https://github.com/catppuccin/vim.git
+[submodule "modules/gruvbox.vim"]
+	path = modules/gruvbox.vim
+	url = https://github.com/morhetz/gruvbox.git
