@@ -1,6 +1,6 @@
 " Dracula Theme: {{{
 "
-" https://github.com/zenorocha/dracula-theme
+" https://github.com/dracula/dracula-theme
 "
 " Copyright 2016, All rights reserved
 "
@@ -23,7 +23,7 @@ if v:version > 580
   endif
 endif
 
-let g:colors_name = 'dracula-custom'
+let g:colors_name = 'dracula'
 
 if !(has('termguicolors') && &termguicolors) && !has('gui_running') && &t_Co != 256
   finish
@@ -31,42 +31,38 @@ endif
 
 " Palette: {{{2
 
-let s:fg        = g:dracula_custom#palette.fg
+let s:fg        = g:dracula#palette.fg
 
-let s:bglighter = g:dracula_custom#palette.bglighter
-let s:bglight   = g:dracula_custom#palette.bglight
-let s:bg        = g:dracula_custom#palette.bg
-let s:bgdark    = g:dracula_custom#palette.bgdark
-let s:bgdarker  = g:dracula_custom#palette.bgdarker
+let s:bglighter = g:dracula#palette.bglighter
+let s:bglight   = g:dracula#palette.bglight
+let s:bg        = g:dracula#palette.bg
+let s:bgdark    = g:dracula#palette.bgdark
+let s:bgdarker  = g:dracula#palette.bgdarker
 
-let s:comment   = g:dracula_custom#palette.comment
-let s:commentlight = g:dracula_custom#palette.commentlight
-let s:commentdark = g:dracula_custom#palette.commentdark
-let s:selection = g:dracula_custom#palette.selection
-let s:subtle    = g:dracula_custom#palette.subtle
-let s:subtlelighter    = g:dracula_custom#palette.subtlelighter
+let s:comment   = g:dracula#palette.comment
+let s:selection = g:dracula#palette.selection
+let s:subtle    = g:dracula#palette.subtle
 
-let s:cyan      = g:dracula_custom#palette.cyan
-let s:green     = g:dracula_custom#palette.green
-let s:greendark = g:dracula_custom#palette.greendark
-let s:orange    = g:dracula_custom#palette.orange
-let s:pink      = g:dracula_custom#palette.pink
-let s:purple    = g:dracula_custom#palette.purple
-let s:red       = g:dracula_custom#palette.red
-let s:yellow    = g:dracula_custom#palette.yellow
+let s:cyan      = g:dracula#palette.cyan
+let s:green     = g:dracula#palette.green
+let s:orange    = g:dracula#palette.orange
+let s:pink      = g:dracula#palette.pink
+let s:purple    = g:dracula#palette.purple
+let s:red       = g:dracula#palette.red
+let s:yellow    = g:dracula#palette.yellow
 
 let s:none      = ['NONE', 'NONE']
 
 if has('nvim')
   for s:i in range(16)
-    let g:terminal_color_{s:i} = g:dracula_custom#palette['color_' . s:i]
+    let g:terminal_color_{s:i} = g:dracula#palette['color_' . s:i]
   endfor
 endif
 
 if has('terminal')
   let g:terminal_ansi_colors = []
   for s:i in range(16)
-    call add(g:terminal_ansi_colors, g:dracula_custom#palette['color_' . s:i])
+    call add(g:terminal_ansi_colors, g:dracula#palette['color_' . s:i])
   endfor
 endif
 
@@ -78,7 +74,7 @@ if !exists('g:dracula_bold')
 endif
 
 if !exists('g:dracula_italic')
-  let g:dracula_italic = 0
+  let g:dracula_italic = 1
 endif
 
 if !exists('g:dracula_strikethrough')
@@ -165,42 +161,44 @@ call s:h('DraculaFgUnderline', s:fg, s:none, [s:attrs.underline])
 call s:h('DraculaFgBold', s:fg, s:none, [s:attrs.bold])
 call s:h('DraculaFgStrikethrough', s:fg, s:none, [s:attrs.strikethrough])
 
-call s:h('DraculaComment', s:commentlight)
-call s:h('DraculaCommentBold', s:commentlight, s:none, [s:attrs.bold])
-call s:h('DraculaCommentMedium', s:comment)
+call s:h('DraculaComment', s:comment)
+call s:h('DraculaCommentBold', s:comment, s:none, [s:attrs.bold])
 
 call s:h('DraculaSelection', s:none, s:selection)
 
 call s:h('DraculaSubtle', s:subtle)
-call s:h('DraculaSubtleLighter', s:subtlelighter)
 
 call s:h('DraculaCyan', s:cyan)
 call s:h('DraculaCyanItalic', s:cyan, s:none, [s:attrs.italic])
+call s:h('DraculaCyanInverse', s:cyan, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaGreen', s:green)
 call s:h('DraculaGreenBold', s:green, s:none, [s:attrs.bold])
 call s:h('DraculaGreenItalic', s:green, s:none, [s:attrs.italic])
 call s:h('DraculaGreenItalicUnderline', s:green, s:none, [s:attrs.italic, s:attrs.underline])
-call s:h('DraculaGreenDark', s:greendark)
+call s:h('DraculaGreenInverse', s:green, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaOrange', s:orange)
 call s:h('DraculaOrangeBold', s:orange, s:none, [s:attrs.bold])
 call s:h('DraculaOrangeItalic', s:orange, s:none, [s:attrs.italic])
 call s:h('DraculaOrangeBoldItalic', s:orange, s:none, [s:attrs.bold, s:attrs.italic])
-call s:h('DraculaOrangeInverse', s:bg, s:orange)
+call s:h('DraculaOrangeInverse', s:orange, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaPink', s:pink)
 call s:h('DraculaPinkItalic', s:pink, s:none, [s:attrs.italic])
+call s:h('DraculaPinkInverse', s:pink, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaPurple', s:purple)
 call s:h('DraculaPurpleBold', s:purple, s:none, [s:attrs.bold])
 call s:h('DraculaPurpleItalic', s:purple, s:none, [s:attrs.italic])
+call s:h('DraculaPurpleInverse', s:purple, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaRed', s:red)
-call s:h('DraculaRedInverse', s:fg, s:red)
+call s:h('DraculaRedInverse', s:red, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaYellow', s:yellow)
 call s:h('DraculaYellowItalic', s:yellow, s:none, [s:attrs.italic])
+call s:h('DraculaYellowInverse', s:yellow, s:bg, [s:attrs.inverse])
 
 call s:h('DraculaError', s:red, s:none, [], s:red)
 
@@ -209,7 +207,6 @@ call s:h('DraculaWarnLine', s:none, s:none, [s:attrs.undercurl], s:orange)
 call s:h('DraculaInfoLine', s:none, s:none, [s:attrs.undercurl], s:cyan)
 
 call s:h('DraculaTodo', s:cyan, s:none, [s:attrs.bold, s:attrs.inverse])
-call s:h('DraculaSearch', s:green, s:none, [s:attrs.inverse])
 call s:h('DraculaBoundary', s:comment, s:bgdark)
 call s:h('DraculaWinSeparator', s:comment, s:bgdark)
 call s:h('DraculaLink', s:cyan, s:none, [s:attrs.underline])
@@ -241,9 +238,12 @@ call s:h('StatusLineTermNC', s:none, s:bglight)
 call s:h('WildMenu', s:bg, s:purple, [s:attrs.bold])
 call s:h('CursorLine', s:none, s:subtle)
 
+" Maintain the DraculaSearch group for backwards compatibility.
+hi! link DraculaSearch DraculaGreenInverse
+
 hi! link ColorColumn  DraculaBgDark
 hi! link CursorColumn CursorLine
-hi! link CursorLineNr DraculaFg
+hi! link CursorLineNr DraculaYellow
 hi! link DiffAdd      DraculaGreen
 hi! link DiffAdded    DiffAdd
 hi! link DiffChange   DraculaDiffChange
@@ -255,9 +255,9 @@ hi! link ErrorMsg     DraculaRedInverse
 hi! link FoldColumn   DraculaSubtle
 hi! link Folded       DraculaBoundary
 hi! link IncSearch    DraculaOrangeInverse
-call s:h('LineNr', s:commentdark)
+call s:h('LineNr', s:comment)
 hi! link MoreMsg      DraculaFgBold
-hi! link NonText      DraculaSubtleLighter
+hi! link NonText      DraculaSubtle
 hi! link Pmenu        DraculaBgDark
 hi! link PmenuSbar    DraculaBgDark
 hi! link PmenuSel     DraculaSelection
@@ -269,7 +269,7 @@ hi! link Search       DraculaSearch
 call s:h('SignColumn', s:comment)
 hi! link TabLine      DraculaBoundary
 hi! link TabLineFill  DraculaBgDark
-call s:h('TabLineSel', s:bg, s:comment)
+hi! link TabLineSel   Normal
 hi! link Title        DraculaGreenBold
 hi! link VertSplit    DraculaWinSeparator
 hi! link Visual       DraculaSelection
@@ -337,6 +337,10 @@ endif
 hi! link Comment DraculaComment
 hi! link Underlined DraculaFgUnderline
 hi! link Todo DraculaTodo
+
+hi! link Added DiffAdded
+hi! link Changed DiffChange
+hi! link Removed DiffRemoved
 
 hi! link Error DraculaError
 hi! link SpellBad DraculaErrorLine
@@ -1030,8 +1034,38 @@ if has('nvim')
   hi! link BlinkCmpKindTypeParameter DraculaCyan
   " }}}
 
+  " folke/snacks.nvim {{{
+  hi! link SnacksPicker DraculaBgDark
+  hi! link SnacksPickerBorder DraculaBoundary
+  hi! link SnacksPickerTitle DraculaPurpleBold
+  hi! link SnacksPickerInput DraculaBgDark
+  hi! link SnacksPickerInputBorder DraculaBoundary
+  hi! link SnacksPickerInputTitle DraculaPurpleBold
+  hi! link SnacksPickerListCursorLine DraculaSelection
+
+  hi! link SnacksPickerPrompt DraculaPurple
+  hi! link SnacksPickerMatch DraculaCyan
+  hi! link SnacksPickerSelected DraculaPink
+  hi! link SnacksPickerUnselected DraculaSubtle
+
+  hi! link SnacksPickerFile DraculaFg
+  hi! link SnacksPickerDirectory Directory
+  hi! link SnacksPickerDir DraculaComment
+  hi! link SnacksPickerPathHidden DraculaComment
+  hi! link SnacksPickerPathIgnored DraculaComment
+
+  hi! link SnacksPickerGitStatusAdded DiffAdd
+  hi! link SnacksPickerGitStatusModified DiagnosticWarn
+  hi! link SnacksPickerGitStatusDeleted DiffDelete
+  hi! link SnacksPickerGitStatusRenamed DraculaYellow
+  hi! link SnacksPickerGitStatusCopied DraculaYellow
+  hi! link SnacksPickerGitStatusUntracked DraculaGreen
+  hi! link SnacksPickerGitStatusIgnored DraculaComment
+  hi! link SnacksPickerGitStatusUnmerged DiagnosticError
+  hi! link SnacksPickerGitStatusStaged DiagnosticHint
+  " }}}
+
   " nvim-tree/nvim-tree.lua {{{
-  hi! NvimTreeSpecialFile gui=bold,underline
   hi! link NvimTreeEmptyFolderName DraculaPurple
   hi! link NvimTreeExecFile DraculaGreen
   hi! link NvimTreeFolderIcon DraculaPurple
@@ -1039,9 +1073,9 @@ if has('nvim')
   hi! link NvimTreeGitDeleted DraculaRed
   hi! link NvimTreeGitDirty DraculaOrange
   hi! link NvimTreeGitNew DraculaGreen
-  hi! link NvimTreeGitStaged DraculaGreenDark
+  hi! link NvimTreeGitStaged DraculaGreen
   hi! link NvimTreeImageFile DraculaPink
-  hi! link NvimTreeIndentMarker DraculaCommentMedium
+  hi! link NvimTreeIndentMarker DraculaComment
   hi! link NvimTreeOpenedFolderName DraculaPurpleBold
   hi! link NvimTreeRootFolder DraculaPurpleItalic
   hi! link NvimTreeSymlink DraculaCyan
@@ -1058,6 +1092,19 @@ if has('nvim')
   hi! link MiniIconsPurple DraculaPurple
   hi! link MiniIconsRed DraculaRed
   hi! link MiniIconsYellow DraculaYellow
+  " }}}
+
+  " nvim-mini/mini.statusline {{{
+  hi! link MiniStatuslineDevInfo StatusLine
+  hi! link MiniStatuslineFileInfo StatusLine
+  hi! link MiniStatuslineFilename StatusLineNC
+  hi! link MiniStatuslineInactive StatusLineNC
+  hi! link MiniStatuslineModeCommand DraculaCyanInverse
+  hi! link MiniStatuslineModeInsert DraculaGreenInverse
+  hi! link MiniStatuslineModeNormal DraculaPurpleInverse
+  hi! link MiniStatuslineModeOther DraculaGreenInverse
+  hi! link MiniStatuslineModeReplace DraculaOrangeInverse
+  hi! link MiniStatuslineModeVisual DraculaYellowInverse
   " }}}
 endif
 " }}}

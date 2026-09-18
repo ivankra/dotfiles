@@ -1,20 +1,20 @@
 # dracula
 
-- `dracula-46.xml` ([upstream](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/dracula-46.xml), [MIT](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/LICENSE)).
+- `dracula-46.xml` ([upstream](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/dracula-46.xml), [MIT](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/LICENSE))
   - Used for gedit 46 and later.
-- `dracula.xml` ([upstream](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/dracula.xml), [MIT](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/LICENSE)).
+- `dracula.xml` ([upstream](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/dracula.xml), [MIT](https://github.com/dracula/gedit/blob/43a6fc0966bd88770721c648b9813491e837543a/LICENSE))
   - Used before gedit 46.
-- `../../third_party/dracula.vim/autoload/dracula.vim` ([upstream](https://github.com/dracula/vim/blob/d4b0823100c702af127cba8dd5595a8f599041ec/autoload/dracula.vim), [MIT](https://github.com/dracula/vim/blob/d4b0823100c702af127cba8dd5595a8f599041ec/LICENSE)).
-- `../../third_party/dracula.vim/colors/dracula.vim` ([upstream](https://github.com/dracula/vim/blob/d4b0823100c702af127cba8dd5595a8f599041ec/colors/dracula.vim), [MIT](https://github.com/dracula/vim/blob/d4b0823100c702af127cba8dd5595a8f599041ec/LICENSE)).
-  - Tweaks: nvim-tree and mini.icons highlights.
-- `alacritty.toml` ([upstream](https://github.com/dracula/alacritty/blob/c8a3a13404b78d520d04354e133b5075d9b785e1/dracula.toml), [MIT](https://github.com/dracula/alacritty/blob/c8a3a13404b78d520d04354e133b5075d9b785e1/LICENSE)).
-- `gnome-terminal.dconf` ([upstream](https://github.com/dracula/gnome-terminal/tree/ccc75a2d7fd915e80d95059a80899249e7161e06/colors/Dracula), [MIT](https://github.com/dracula/gnome-terminal/blob/ccc75a2d7fd915e80d95059a80899249e7161e06/LICENSE)).
+- `../../third_party/dracula.vim/autoload/dracula.vim` ([upstream](https://github.com/dracula/vim/blob/e7817b4baccfb3529f709ac048c621f35cdbc5b3/autoload/dracula.vim), [MIT](https://github.com/dracula/vim/blob/e7817b4baccfb3529f709ac048c621f35cdbc5b3/LICENSE))
+- `../../third_party/dracula.vim/colors/dracula.vim` ([upstream](https://github.com/dracula/vim/blob/e7817b4baccfb3529f709ac048c621f35cdbc5b3/colors/dracula.vim), [MIT](https://github.com/dracula/vim/blob/e7817b4baccfb3529f709ac048c621f35cdbc5b3/LICENSE))
+- `../../third_party/dracula.vim/colors/dracula_base.vim` ([upstream](https://github.com/dracula/vim/blob/e7817b4baccfb3529f709ac048c621f35cdbc5b3/colors/dracula_base.vim), [MIT](https://github.com/dracula/vim/blob/e7817b4baccfb3529f709ac048c621f35cdbc5b3/LICENSE))
+- `alacritty.toml` ([upstream](https://github.com/dracula/alacritty/blob/c8a3a13404b78d520d04354e133b5075d9b785e1/dracula.toml), [MIT](https://github.com/dracula/alacritty/blob/c8a3a13404b78d520d04354e133b5075d9b785e1/LICENSE))
+- `gnome-terminal.dconf` ([upstream](https://github.com/dracula/gnome-terminal/tree/ccc75a2d7fd915e80d95059a80899249e7161e06/colors/Dracula), [MIT](https://github.com/dracula/gnome-terminal/blob/ccc75a2d7fd915e80d95059a80899249e7161e06/LICENSE))
   - Generated profile: uses upstream colors and the keys written by its installer, with a fixed local UUID and profile name.
   - Tweaks: swaps red/pink at ANSI indices 1/5 and 9/13; replaces orange at 7/15 with `#f8f8f2`/`#ffffff`.
   - Retains upstream’s separate purple bold color.
 - `guake.dconf`
   - Dracula-like theme: black background, `#f8f8f2` foreground, gray/white ANSI entries and repeated normal/bright accent colors.
-- `kitty.conf` ([upstream](https://github.com/dracula/kitty/blob/87717a3f00e3dff0fc10c93f5ff535ea4092de70/dracula.conf), [MIT](https://github.com/dracula/kitty/blob/87717a3f00e3dff0fc10c93f5ff535ea4092de70/LICENSE)).
+- `kitty.conf` ([upstream](https://github.com/dracula/kitty/blob/87717a3f00e3dff0fc10c93f5ff535ea4092de70/dracula.conf), [MIT](https://github.com/dracula/kitty/blob/87717a3f00e3dff0fc10c93f5ff535ea4092de70/LICENSE))
   - Tab-bar/border colors inspired by Ptyxis and normal tab font styles.
 - `tmux.conf`
   - Local layout and color assignments from the Dracula palette.

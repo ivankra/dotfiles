@@ -3,7 +3,7 @@
 # Tweaks: Name, [Dark] Background #22212c, Foreground and Cursor #ffffff
 
 [Palette]
-Name=Dracula Custom
+Name=Dracula Dark
 Primary=true
 
 [Light]

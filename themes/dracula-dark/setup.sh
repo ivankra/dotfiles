@@ -39,9 +39,9 @@ fi
 # Ptyxis: install a custom palette
 if hash ptyxis dconf >/dev/null 2>&1; then
   mkdir -p ~/.local/share/org.gnome.Ptyxis/palettes
-  cp -f ~/.config/theme/ptyxis.palette ~/.local/share/org.gnome.Ptyxis/palettes/dracula-custom.palette
+  cp -f ~/.config/theme/ptyxis.palette ~/.local/share/org.gnome.Ptyxis/palettes/dracula-dark.palette
   uuid=$(dconf read /org/gnome/Ptyxis/default-profile-uuid | tr -d "'")
   if [[ -n "$uuid" ]]; then
-    dconf write "/org/gnome/Ptyxis/Profiles/$uuid/palette" "'dracula-custom'"
+    dconf write "/org/gnome/Ptyxis/Profiles/$uuid/palette" "'dracula-dark'"
   fi
 fi

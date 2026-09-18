@@ -489,7 +489,7 @@ fi
 if [[ -n "$THEME" ]]; then
   setup_ln "themes/$THEME" ~/.config/theme
 elif ! [[ -e ~/.config/theme ]]; then
-  setup_ln themes/dracula-custom ~/.config/theme
+  setup_ln themes/dracula-dark ~/.config/theme
 fi
 
 # }}}
