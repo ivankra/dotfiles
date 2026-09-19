@@ -1,53 +1,43 @@
-x11: implement window hide (minimize)
-
-XWindowInner::hide() was a no-op, so the integrated title bar Hide
-button and the Hide action did nothing on X11.
-
-Send WM_CHANGE_STATE(IconicState) to the root window, as ICCCM 4.1.4
-specifies and XIconifyWindow does.
-
-Tested on muffin (Cinnamon).
-
 diff --git a/window/src/os/x11/connection.rs b/window/src/os/x11/connection.rs
-index dc78677..889f865 100644
+index dc78677c6..89df16516 100644
 --- a/window/src/os/x11/connection.rs
 +++ b/window/src/os/x11/connection.rs
-@@ -93,6 +93,7 @@ pub struct XConnection {
-     pub atom_net_wm_icon: Atom,
-     pub atom_net_move_resize_window: Atom,
-     pub atom_net_wm_moveresize: Atom,
+@@ -58,6 +58,7 @@ pub struct XConnection {
+     pub atom_protocols: Atom,
+     pub cursor_font_id: xcb::x::Font,
+     pub atom_delete: Atom,
 +    pub atom_wm_change_state: Atom,
-     pub atom_net_supported: Atom,
-     pub atom_net_supporting_wm_check: Atom,
-     pub atom_net_active_window: Atom,
-@@ -711,6 +712,7 @@ impl XConnection {
-         let atom_net_wm_icon = Self::intern_atom(&conn, "_NET_WM_ICON")?;
-         let atom_net_move_resize_window = Self::intern_atom(&conn, "_NET_MOVERESIZE_WINDOW")?;
-         let atom_net_wm_moveresize = Self::intern_atom(&conn, "_NET_WM_MOVERESIZE")?;
+     pub atom_utf8_string: Atom,
+     pub atom_xsel_data: Atom,
+     pub atom_targets: Atom,
+@@ -675,6 +676,7 @@ impl XConnection {
+ 
+         let atom_protocols = Self::intern_atom(&conn, "WM_PROTOCOLS")?;
+         let atom_delete = Self::intern_atom(&conn, "WM_DELETE_WINDOW")?;
 +        let atom_wm_change_state = Self::intern_atom(&conn, "WM_CHANGE_STATE")?;
-         let atom_net_supported = Self::intern_atom(&conn, "_NET_SUPPORTED")?;
-         let atom_net_supporting_wm_check = Self::intern_atom(&conn, "_NET_SUPPORTING_WM_CHECK")?;
-         let atom_net_active_window = Self::intern_atom(&conn, "_NET_ACTIVE_WINDOW")?;
-@@ -847,6 +849,7 @@ impl XConnection {
-             atom_net_wm_name,
-             atom_net_move_resize_window,
-             atom_net_wm_moveresize,
+         let atom_utf8_string = Self::intern_atom(&conn, "UTF8_STRING")?;
+         let atom_xsel_data = Self::intern_atom(&conn, "XSEL_DATA")?;
+         let atom_targets = Self::intern_atom(&conn, "TARGETS")?;
+@@ -837,6 +839,7 @@ impl XConnection {
+             atom_xsettings_settings,
+             atom_manager,
+             atom_delete,
 +            atom_wm_change_state,
-             atom_net_supported,
-             atom_net_supporting_wm_check,
-             atom_net_active_window,
+             atom_state_maximized_vert,
+             atom_state_maximized_horz,
+             atom_state_hidden,
 diff --git a/window/src/os/x11/window.rs b/window/src/os/x11/window.rs
-index b0b7bb3..53d6eef 100644
+index 179207949..8a983d5fb 100644
 --- a/window/src/os/x11/window.rs
 +++ b/window/src/os/x11/window.rs
-@@ -1657,7 +1657,23 @@ impl XWindowInner {
+@@ -1637,7 +1637,22 @@ impl XWindowInner {
          log::trace!("clear out self.window_id");
          self.window_id = xcb::x::Window::none();
      }
 -    fn hide(&mut self) {}
 +    fn hide(&mut self) {
++        use xcb_util::XCB_ICCCM_WM_STATE_ICONIC;
 +        // ICCCM 4.1.4: ask the WM to iconify us, as XIconifyWindow does
-+        const ICONIC_STATE: u32 = 3;
 +        let conn = self.conn();
 +        conn.send_request_no_reply_log(&xcb::x::SendEvent {
 +            propagate: false,
@@ -57,11 +47,23 @@ index b0b7bb3..53d6eef 100644
 +            event: &xcb::x::ClientMessageEvent::new(
 +                self.window_id,
 +                conn.atom_wm_change_state,
-+                xcb::x::ClientMessageData::Data32([ICONIC_STATE, 0, 0, 0, 0]),
++                xcb::x::ClientMessageData::Data32([XCB_ICCCM_WM_STATE_ICONIC, 0, 0, 0, 0]),
 +            ),
 +        });
-+        conn.flush().context("flush iconify").ok();
 +    }
      fn show(&mut self) {
          self.conn().send_request_no_reply_log(&xcb::x::MapWindow {
              window: self.window_id,
+diff --git a/window/src/os/x11/xcb_util.rs b/window/src/os/x11/xcb_util.rs
+index 6fa05aecb..5cf268e26 100644
+--- a/window/src/os/x11/xcb_util.rs
++++ b/window/src/os/x11/xcb_util.rs
+@@ -96,6 +96,8 @@ pub const XCB_ICCCM_SIZE_HINT_P_ASPECT: u32 = 1 << 7;
+ pub const XCB_ICCCM_SIZE_HINT_BASE_SIZE: u32 = 1 << 8;
+ pub const XCB_ICCCM_SIZE_HINT_P_WIN_GRAVITY: u32 = 1 << 9;
+ 
++pub const XCB_ICCCM_WM_STATE_ICONIC: u32 = 3;
++
+ #[repr(C)]
+ pub struct xcb_size_hints_t {
+     pub flags: u32,
