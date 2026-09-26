@@ -11,6 +11,7 @@ Agents:
   * [`codex`](codex/): [Codex](https://github.com/openai/codex)
   * [`kimi`](kimi/): [Kimi Code](https://www.kimi.com/code/en)
   * [`opencode`](opencode/): [opencode](https://github.com/sst/opencode)
+  * [`pi`](pi/): [Pi](https://pi.dev), minimal agent harness
   * [`qodercli`](qodercli/): [Qoder CLI](https://qoder.com)
 
 Editors:
@@ -28,6 +29,7 @@ Editors:
 GUI apps:
   * [`cursor`](cursor/): [Cursor](https://www.cursor.com), AI-powered VS Code fork.
   * [`logseq`](logseq/): [Logseq](https://github.com/logseq/logseq)
+  * [`open-knowledge`](open-knowledge/): [OpenKnowledge](https://github.com/inkeep/open-knowledge), WYSIWYG markdown knowledge base with AI-assisted editing. Run from the knowledge base directory; `run.sh` is x11docker-based.
   * [`vscode`](vscode/): [Visual Studio Code](https://code.visualstudio.com)
   * [`zed`](zed/): [Zed](https://github.com/zed-industries/zed), collaborative code editor built in Rust, GPU-accelerated GUI (Vulkan), integration with AI agents.
 

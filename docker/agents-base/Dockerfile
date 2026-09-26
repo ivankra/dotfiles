@@ -178,3 +178,32 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     uv tool install pyright && \
     uv tool install ruff && \
     uv tool install black
+
+# Headless browsers for agents. Debian's chromium pulls in the full set of
+# runtime libs (nss, gbm, atk, xcomposite, ...) that Playwright's own builds
+# need too; `playwright install --with-deps` doesn't work on sid. Fonts are
+# not pulled in (fontconfig only brings DejaVu), so add coverage for common
+# web fonts, emoji and CJK/Thai, otherwise screenshots show tofu.
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        chromium \
+        chromium-headless-shell \
+        fonts-liberation \
+        fonts-noto-color-emoji \
+        fonts-ipafont-gothic \
+        fonts-wqy-zenhei \
+        fonts-tlwg-loma-otf \
+        xvfb && \
+    rm -rf /var/lib/apt/lists/* && \
+    printf '%s\n' 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS --no-sandbox --disable-dev-shm-usage"' \
+        >/etc/chromium.d/agents
+
+# /root is bind-mounted per agent at runtime, so keep Playwright's browsers
+# outside it. A project pinned to a different Playwright version will want a
+# different revision; it can `npx playwright install chromium` or launch with
+# executablePath: '/usr/bin/chromium'.
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN npm install -g playwright && \
+    playwright install chromium
