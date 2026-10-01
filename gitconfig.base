@@ -5,16 +5,21 @@
 	ci = commit
 	co = checkout
 	cp = cherry-pick
-	lg = log --graph --oneline --abbrev-commit --decorate --all
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+	lg = log --graph --oneline --decorate --all
 	rb = rebase
 	rba = rebase --abort
 	rbc = rebase --continue
 	st = status
 	sw = switch
 
+	# Typos
+	ad = add
+
 	pp = !git pull && git push
 	# Aggressive git gc with pruning and dropping reflog
-	gca = !git -c gc.reflogExpire=0 -c gc.reflogExpireUnreachable=0 -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc --prune=now
+	gca = !git -c gc.reflogExpire=now -c gc.reflogExpireUnreachable=now -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc --prune=now
 
 	# Check out a commit (default HEAD) as detached HEAD (or: git checkout --detach)
 	detach = switch --detach
@@ -24,8 +29,13 @@
 	untrack = rm -r --cached --
 	# Print the top-level directory of git repo
 	root = rev-parse --show-toplevel
+	# Show last commit with changed files (or: git show --stat)
+	last = log -1 --stat
+	# git fixup <commit>: make a fixup commit to squash later into <commit> during rebase
+	fixup = commit --fixup
+	cf = "!f() { c=$(git log --oneline --color=always -n 100 | fzf --ansi --no-sort --preview 'git show --stat --color=always {1}' | cut -d' ' -f1) && [ -n \"$c\" ] && git commit --fixup \"$c\" \"$@\"; }; f"
 	# git set-origin <url> [<branch>]
-	set-origin = "!f() { git remote set-url origin \"$1\" && git fetch origin && { [ -z \"$2\" ] || git branch --set-upstream-to=\"origin/$2\" \"$2\"; }; }; f"
+	set-origin = "!f() { { if git remote get-url origin >/dev/null 2>&1; then git remote set-url origin \"$1\"; else git remote add origin \"$1\"; fi; } && git fetch origin && { [ -z \"$2\" ] || git branch --set-upstream-to=\"origin/$2\" \"$2\"; }; }; f"
 
 [color]
 	ui = auto
@@ -33,18 +43,50 @@
 [core]
 	pager = less -FSRXi
 
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+[diff]
+	algorithm = histogram    # better line matching than the default myers
+	colorMoved = blocks      # show moved blocks in a different color
+	colorMovedWS = allow-indentation-change  # treat re-indented as moved too
+	mnemonicPrefix = true    # mnemonic prefixes: c/ commit, i/ index, w/ worktree
+	renames = copies         # detect copies as well as renames
+
+[fetch]
+	prune = true             # delete remote-tracking branches that no longer exist on the remote
+	writeCommitGraph = true  # faster log --graph on big repos
+
+[init]
+	defaultBranch = main
+
+[merge]
+	conflictStyle = zdiff3   # show base version (||||||| section)
 
 [pull]
 	ff = only
 	rebase = false
 
 [push]
-	default = matching
+	autoSetupRemote = true   # first push sets branch's upstream
+	default = simple         # push the current branch with the same name on the remote (git 2.0+ default)
+	#followTags = true        # automatically push annotated tags (git tag -a ...) that point at pushed commits
+
+[rerere]
+	enabled = true           # remember conflict resolutions
+
+[rebase]
+	autoSquash = true        # handle fixup!/squash! commits
+	autoStash = true         # stash uncommitted changes before rebase, restore after
+
+[status]
+	showStash = true         # show "Your stash currently has N entries"
+	submoduleSummary = true  # list new submodule commits in git status
+
+[tag]
+	sort = version:refname   # version order: v1.10 after v1.9
+
+[transfer]
+	# Check received objects for corruption and malformed data
+	# To skip for a broken old repo: git -c transfer.fsckObjects=false clone ...
+	fsckObjects = true
 
 [url "git@github.com:"]
 	pushInsteadOf = "git://github.com/"
@@ -52,3 +94,5 @@
 
 [url "git@gist.github.com:"]
 	pushInsteadOf = "git://gist.github.com/"
+
+# vim: ft=gitconfig

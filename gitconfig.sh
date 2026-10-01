@@ -16,3 +16,14 @@ cat <<EOF
 	name = Ivan Krasilnikov
 	email = $(echo -e "\\x69\\x76\\x61\\x6e\\x6b\\x40\\x69\\x76\\x61\\x6e\\x6b\\x2e\\x6d\\x65")
 EOF
+
+if command -v git-lfs >/dev/null; then
+  cat <<'EOF'
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+EOF
+fi
