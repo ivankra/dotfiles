@@ -27,3 +27,23 @@ if command -v git-lfs >/dev/null; then
 	required = true
 EOF
 fi
+
+# sudo apt install git-delta
+if command -v delta >/dev/null; then
+  cat <<'EOF'
+
+[core]
+	pager = delta
+
+[include]
+	path = ~/.dotfiles/gitconfig.delta
+
+[interactive]
+	diffFilter = delta --color-only
+
+[diff]
+	# Git's whitespace-error colouring leaves the indent of moved (colorMoved) lines
+	# uncoloured, so delta's map-styles can't restyle it; delta flags whitespace itself
+	wsErrorHighlight = none
+EOF
+fi

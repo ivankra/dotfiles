@@ -1,0 +1,67 @@
+[delta]
+    features = claude
+    file-modified-label = "🔺"
+    navigate = true  # n/N to jump in diffs
+    relative-paths = true
+    syntax-theme = Dracula  #Monokai Extended
+
+[delta "claude"]
+    dark = true
+    keep-plus-minus-markers = true
+    zero-style = syntax
+
+    file-decoration-style = none
+    #file-decoration-style = "#666666" overline
+    file-style = bold
+
+    hunk-header-style = file line-number dim
+    hunk-header-file-style = cyan
+    hunk-header-line-number-style = cyan
+    hunk-header-decoration-style = none
+    hunk-label = "@@"
+
+    line-numbers = true
+    line-numbers-left-format = ""
+    line-numbers-right-format = "{np:>4} "  # "{np:>4}│"
+    line-numbers-left-style = "#666666"
+    line-numbers-right-style = "#666666"
+    line-numbers-minus-style = "#c96060"
+    line-numbers-plus-style = "#78a060"
+    line-numbers-zero-style = "#666666"
+
+    minus-style = normal "#7a2936"
+    plus-style = normal "#225c2b"
+    minus-emph-style = normal "#b3596b"
+    plus-emph-style = normal "#38a660"
+    minus-non-emph-style = normal "#7a2936"
+    plus-non-emph-style = normal "#225c2b"
+    minus-empty-line-marker-style = normal "#7a2936"
+    plus-empty-line-marker-style = normal "#225c2b"
+
+    map-styles = "bold magenta => normal \"#6b3a55\", bold blue => normal \"#6b3a55\", bold cyan => normal \"#2b5e56\", bold yellow => normal \"#2b5e56\""
+
+# Closer to vanilla git layout. Run: git -c delta.features=git
+[delta "git"]
+    dark = true
+    hyperlinks = true
+    keep-plus-minus-markers = true
+    line-numbers = false
+
+    file-decoration-style = none
+    file-style = bold
+
+    hunk-header-style = file line-number dim
+    hunk-header-decoration-style = none
+    hunk-header-file-style = cyan
+    hunk-header-line-number-style = cyan
+    hunk-label = "@@"
+
+    minus-style = red
+    plus-style = green
+    minus-emph-style = syntax "#870000"
+    plus-emph-style = syntax "#008700"
+
+# More themes: https://github.com/dandavison/delta/blob/main/themes.gitconfig
+# Run: delta --show-themes --dark
+
+# vim: ft=gitconfig et sw=4
