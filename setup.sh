@@ -476,6 +476,29 @@ if hash tmux >/dev/null 2>&1; then
 fi
 
 # }}}
+# ~/.config/lesskey for less 582+, else ~/.lesskey (+ compiled ~/.less) {{{
+
+# less 582+ reads lesskey source directly from ~/.config/lesskey.
+# Older versions only read the binary ~/.less compiled by lesskey.
+less_version=$(less --version 2>/dev/null | sed -ne '1s/^less \([0-9][0-9]*\).*/\1/p' || true)
+if [[ -n "$less_version" ]] && ((less_version >= 582)); then
+  # ~/.less compiled by us below before less got upgraded
+  if [[ -f ~/.less && -L ~/.lesskey ]] && (readlink -f -- ~/.lesskey | fgrep -q /.dotfiles/); then
+    rm -f ~/.less
+    echo "Removed obsolete ~/.less"
+  fi
+  remove_ln ~/.lesskey
+  setup_ln lesskey ~/.config/lesskey
+else
+  remove_ln ~/.config/lesskey
+  setup_ln lesskey ~/.lesskey
+  if [[ -n "$less_version" ]] && hash lesskey >/dev/null 2>&1 &&
+     ! [[ ~/.less -nt ~/.dotfiles/lesskey ]]; then
+    (set -x; lesskey -o ~/.less ~/.lesskey)
+  fi
+fi
+
+# }}}
 # ~/.config/mimeapps.list {{{
 
 if [[ "$OSTYPE" != darwin* ]]; then

@@ -1,0 +1,14 @@
+# lesskey source file, see lesskey(1).
+# No #env section: its vars override the environment, e.g. $LESS set by man.
+# Installed as ~/.config/lesskey for less >= 582, else as ~/.lesskey.
+
+#command
+# Alt-Z (as in VS Code) / Alt-S: toggle line wrapping (-S, --chop-long-lines)
+# ^P suppresses the "(press RETURN)" message
+\ez toggle-option ^PS
+\es toggle-option ^PS
+# Alt-N: toggle line numbers (-N, --LINE-NUMBERS).
+# Overrides default Alt-N: repeat previous search spanning files
+\en toggle-option ^PN
+# q on Russian keyboard layout
+й quit
