@@ -3,7 +3,7 @@
     file-modified-label = "🔺"
     navigate = true  # n/N to jump in diffs
     relative-paths = true
-    syntax-theme = Dracula  #Monokai Extended
+    syntax-theme = ansi #Dracula  #Monokai Extended
 
 [delta "claude"]
     dark = true
@@ -22,21 +22,21 @@
 
     line-numbers = true
     line-numbers-left-format = ""
-    line-numbers-right-format = "{np:>4} "  # "{np:>4}│"
+    line-numbers-right-format = "{np:>3} "  # "{np:>3}│"
     line-numbers-left-style = "#666666"
     line-numbers-right-style = "#666666"
     line-numbers-minus-style = "#c96060"
     line-numbers-plus-style = "#78a060"
     line-numbers-zero-style = "#666666"
 
-    minus-style = normal "#7a2936"
-    plus-style = normal "#225c2b"
-    minus-emph-style = normal "#b3596b"
-    plus-emph-style = normal "#38a660"
-    minus-non-emph-style = normal "#7a2936"
-    plus-non-emph-style = normal "#225c2b"
-    minus-empty-line-marker-style = normal "#7a2936"
-    plus-empty-line-marker-style = normal "#225c2b"
+    minus-style = syntax "#7a2936"
+    plus-style = syntax "#225c2b"
+    minus-emph-style = syntax "#b3596b"
+    plus-emph-style = syntax "#38a660"
+    minus-non-emph-style = syntax "#7a2936"
+    plus-non-emph-style = syntax "#225c2b"
+    minus-empty-line-marker-style = syntax "#7a2936"
+    plus-empty-line-marker-style = syntax "#225c2b"
 
     map-styles = "bold magenta => normal \"#6b3a55\", bold blue => normal \"#6b3a55\", bold cyan => normal \"#2b5e56\", bold yellow => normal \"#2b5e56\""
 

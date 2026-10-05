@@ -1,0 +1,81 @@
+#!/bin/bash
+# git fixup [<commit>] [<git commit options>...]
+#
+# Makes a "fixup! <full hash>" commit (target's subject in the body) to squash
+# later into <commit> with rebase --autosquash. Unlike git commit --fixup,
+# which writes the target's subject, this refers to it by hash, so the fixup
+# lands on the right commit even when several commits share the same message.
+#
+# Without <commit>, picks one interactively: fzf if installed, else a menu.
+# The list shows commits not on origin's default branch, else unpushed
+# commits, else recent history.
+# <commit> must come before any options.
+set -e -u -o pipefail
+
+git rev-parse --git-dir >/dev/null  # fail early outside a repo
+
+if [[ $# -gt 0 && $1 != -* ]]; then
+  target=$1
+  shift
+fi
+
+# Fail before the picker if there's nothing to commit. Skipped when the
+# options can add changes themselves, or when there are non-option args
+# (pathspecs, option values): git commit will report any error then.
+check_staged=1
+for arg in "$@"; do
+  case $arg in
+    -a|--all|-p|--patch|--interactive|-i|--include|-o|--only|--allow-empty|-[!-]*[ap]*) check_staged= ;;
+    -*) ;;
+    *) check_staged= ;;
+  esac
+done
+if [[ -n $check_staged ]] && git diff --cached --quiet; then
+  echo "git fixup: nothing staged (git add first, or pass -a / -p)" >&2
+  exit 1
+fi
+
+if [[ -z ${target:-} ]]; then
+  # Commits not yet on the default branch (the branch's own commits, pushed
+  # or not), else unpushed ones, else recent history
+  range=HEAD
+  for base in refs/remotes/origin/HEAD '@{upstream}'; do
+    if git rev-parse --quiet --verify "$base" >/dev/null &&
+        [[ -n $(git rev-list -n 1 "$base..HEAD") ]]; then
+      range=$base..HEAD
+      break
+    fi
+  done
+  # Skip merges and earlier fixups, they're never the target
+  log=(git log --no-merges --invert-grep -E --grep='^(fixup|squash|amend)! ' --oneline)
+  if [[ -z $("${log[@]}" -n 1 "$range" 2>/dev/null) ]]; then
+    echo "git fixup: no commits to pick" >&2
+    exit 1
+  fi
+  if command -v fzf >/dev/null; then
+    target=$("${log[@]}" --color=always -n 100 "$range" |
+      fzf --ansi --no-sort --preview 'git show --stat --color=always {1}' |
+      cut -d' ' -f1)
+  else
+    mapfile -t lines < <("${log[@]}" -n 20 "$range")
+    PS3='Fixup commit #: '
+    select line in "${lines[@]}"; do
+      [[ -n $line ]] && break
+    done
+    target=${line:-}
+    target=${target%% *}
+  fi
+fi
+
+[[ -n $target ]] || exit 1
+if ! hash=$(git rev-parse --verify --quiet "$target^{commit}"); then
+  echo "git fixup: not a commit: $target" >&2
+  exit 1
+fi
+if ! git merge-base --is-ancestor "$hash" HEAD; then
+  echo "git fixup: $target is not in the current branch" >&2
+  exit 1
+fi
+# Autosquash only matches by hash if the first line has nothing after it,
+# so the target's subject goes in the body for readability.
+exec git commit -m "fixup! $hash" -m "$(git log -1 --format=%s "$hash")" "$@"
