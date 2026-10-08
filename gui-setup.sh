@@ -303,6 +303,21 @@ if [[ "$virt" == "none" ]]; then
 fi
 
 # }}}
+# vimline:// URL handler {{{
+
+# Handler for delta's hyperlinks (see gitconfig.delta); must be installed
+# before mimeapps.py below, which only keeps defaults for installed apps
+vimline_desktop="$HOME/.local/share/applications/vimline.desktop"
+if hash nvim-qt >/dev/null 2>&1 || [[ -x /usr/bin/gvim ]]; then
+  mkdir -p "$(dirname "$vimline_desktop")"
+  if ! cmp -s bin/vimline.desktop "$vimline_desktop"; then
+    cp -f bin/vimline.desktop "$vimline_desktop"
+  fi
+else
+  rm -f "$vimline_desktop"
+fi
+
+# }}}
 # Default apps {{{
 
 python3 ./mimeapps.py

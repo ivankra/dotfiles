@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Vimline
+Comment=Open vimline://PATH:LINE links in nvim-qt or gvim
+Exec=sh -c 'exec ~/.dotfiles/bin/vimline.sh "$0"' %u
+Terminal=false
+Type=Application
+NoDisplay=true
+MimeType=x-scheme-handler/vimline;
