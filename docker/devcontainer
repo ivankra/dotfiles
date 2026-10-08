@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""devcontainer: join or create the devcontainer of the current directory, without VS Code.
+
+A thin wrapper around the reference @devcontainers/cli (fetched from the npm
+registry into ~/.cache/devcontainer on first use, so only `node` is needed, not npm).
+Containers carry the same labels as VS Code's, so both see each other's.
+
+    devcontainer [-c CONFIG]                 shell in the devcontainer (created/started if needed)
+    devcontainer [-c CONFIG] CMD...          run CMD in it
+    devcontainer [-c CONFIG] up|exec|read-configuration|run-user-commands ...
+                                     the CLI command, with this dir's workspace/config/runtime added
+    devcontainer status                      configs of this dir and their containers
+    devcontainer [-c CONFIG] down            remove the container (the CLI has no `down`)
+    devcontainer build|features|--help ...   passed straight to the CLI
+"""
+import base64
+import hashlib
+import io
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
+import urllib.request
+from pathlib import Path
+
+CLI_VERSION = "0.89.0"
+CLI_URL = f"https://registry.npmjs.org/@devcontainers/cli/-/cli-{CLI_VERSION}.tgz"
+CLI_INTEGRITY = "sha512-LzaoOGKQ/Zql6PsiZ4hVIYVZagzWkD65aG/1ou5/Kly5Y1PtjLg1yn7qu+LZCzVoAl6DZZ/pbz8qOO4RLNlqMg=="
+CACHE = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "devcontainer"
+
+# `devcontainer` itself: [-c CONFIG] [status | down | CMD...]; no CMD opens a shell.
+# These CLI commands get --workspace-folder/--config/--docker-path added; the RAW ones are passed as is.
+PASSTHROUGH = ("up", "exec", "read-configuration", "run-user-commands")
+RAW = ("build", "set-up", "outdated", "upgrade", "features", "templates")
+SHELL_CMD = ["sh", "-c", "command -v bash >/dev/null 2>&1 && exec bash || exec sh"]
+
+
+def die(msg):
+    sys.exit(f"devcontainer: {msg}")
+
+
+def get_docker_command():
+    for name in ("podman", "docker"):
+        if shutil.which(name):
+            return name
+    die("neither podman nor docker found")
+
+
+def ensure_cli():
+    """Return the path of devcontainer.js, downloading and verifying it if missing."""
+    if not shutil.which("node"):
+        die("node (>= 20) is required")
+    dest = CACHE / f"cli-{CLI_VERSION}"
+    if not dest.is_dir():
+        print(f"devcontainer: fetching @devcontainers/cli {CLI_VERSION} into {dest}", file=sys.stderr)
+        with urllib.request.urlopen(CLI_URL, timeout=60) as resp:
+            data = resp.read()
+        got = "sha512-" + base64.b64encode(hashlib.sha512(data).digest()).decode()
+        if got != CLI_INTEGRITY:
+            die(f"integrity mismatch for {CLI_URL}\n  expected {CLI_INTEGRITY}\n  got      {got}")
+        tmp = CACHE / f"tmp-{os.getpid()}"
+        tmp.mkdir(parents=True)
+        try:
+            with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+                tar.extractall(tmp, filter="data")  # rejects path traversal and special files
+            (tmp / "package").rename(dest)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return dest / "devcontainer.js"
+
+
+def find_configs(cwd):
+    found = [p for p in (cwd / ".devcontainer" / "devcontainer.json", cwd / ".devcontainer.json") if p.is_file()]
+    return found + sorted((cwd / ".devcontainer").glob("*/devcontainer.json"))
+
+
+def pick_config(cwd, wanted):
+    """The config to use: -c (path or .devcontainer/<name>), the only one, or exit listing the choices."""
+    configs = find_configs(cwd)
+    if wanted:
+        for p in (Path(wanted), cwd / ".devcontainer" / wanted / "devcontainer.json"):
+            if p.is_file():
+                return p.resolve()
+        die(f"config not found: {wanted}")
+    if len(configs) == 1:
+        return configs[0].resolve()
+    if not configs:
+        die("no devcontainer.json in this directory")
+    print("devcontainer: several configs, pick one with -c:", file=sys.stderr)
+    for p in configs:
+        print(f"  {p.relative_to(cwd)}", file=sys.stderr)
+    sys.exit(1)
+
+
+def containers(docker, cwd, config):
+    """Containers (id, name, status) VS Code / the CLI created for this folder and config."""
+    out = subprocess.run(
+        [docker, "ps", "-a",
+         "--filter", f"label=devcontainer.local_folder={cwd}",
+         "--filter", f"label=devcontainer.config_file={config}",
+         "--format", "{{.ID}}\t{{.Names}}\t{{.Status}}"],
+        stdout=subprocess.PIPE, text=True, check=True).stdout
+    return [line.split("\t") for line in out.splitlines() if line.count("\t") == 2]
+
+
+def run(cmd):
+    return subprocess.run(cmd).returncode
+
+
+def main():
+    argv = sys.argv[1:]
+    wanted = None
+    if argv[:1] in (["-c"], ["--config"]) and len(argv) > 1:
+        wanted, argv = argv[1], argv[2:]
+    elif argv and argv[0].startswith("--config="):
+        wanted, argv = argv[0].split("=", 1)[1], argv[1:]
+    sub = argv[0] if argv else None
+    cwd, docker = Path.cwd(), get_docker_command()
+
+    if sub == "status":
+        print(f"{cwd}:")
+        for p in find_configs(cwd):
+            print(f"  {p.relative_to(cwd)}")
+            for cid, name, status in containers(docker, cwd, p.resolve()):
+                print(f"    {cid[:12]}  {name}  {status}")
+        if not find_configs(cwd):
+            print("  no devcontainer.json")
+        return
+
+    cli = ["node", str(ensure_cli())]
+    if sub in RAW or (sub or "").startswith("-") or "--help" in argv:
+        sys.exit(run([*cli, *argv]))  # CLI-only commands and flags (--help, --version): no defaults added
+
+    config = pick_config(cwd, wanted)
+    common = ["--workspace-folder", str(cwd), "--config", str(config), "--docker-path", docker]
+    found = containers(docker, cwd, config)
+
+    if sub == "down":
+        for cid, name, _ in found:
+            print(f"devcontainer: removing {name} ({cid[:12]})", file=sys.stderr)
+            subprocess.run([docker, "rm", "-f", cid], check=True)
+        if not found:
+            print("devcontainer: no container", file=sys.stderr)
+        return
+    if sub in PASSTHROUGH:
+        extra = argv[1:] or (SHELL_CMD if sub == "exec" else [])  # bare `exec` would fail with "undefined"
+        sys.exit(run([*cli, sub, *common, *extra]))
+
+    # Anything else is a command to run in the devcontainer (default: a shell); create it first if needed.
+    running = [c for c in found if c[2].startswith("Up")]
+    if len(running) > 1:
+        die("several running containers for this config: " + ", ".join(c[1] for c in running))
+    if not running and run([*cli, "up", *common]):
+        sys.exit(1)
+    sys.exit(run([*cli, "exec", *common, *(argv or SHELL_CMD)]))
+
+
+if __name__ == "__main__":
+    main()
