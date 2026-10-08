@@ -15,16 +15,23 @@ def parse_args(argv):
         prog="dr",
         description="Wrapper for `docker run --rm -it -v $PWD:$PWD`"
     )
-    parser.usage = "dr [options] [docker run args] IMAGE|DOCKERFILE [image args]"
+    parser.usage = "dr [options] [docker run args] IMAGE|DOCKERFILE [image args]\n       dr    (no args: list containers dr started)"
     parser.add_argument(
         "--build-arg", action="append", default=[], metavar="KEY=VAL",
         help="Build args to pass when building a dockerfile")
-    own_flags = {opt for action in parser._actions for opt in action.option_strings if opt.startswith("--")}
+    parser.add_argument(
+        "-j", "--join", action="store_true",
+        help="Exec into a running container instead of starting one: "
+             "a container name/id, or nothing (one started from this dir; asks if several)")
+    own_flags = {opt for action in parser._actions for opt in action.option_strings
+                 if opt.startswith("--") or opt == "-j"}
     own_argv, run_args, image, image_args = split_args(argv, own_flags)
     args = parser.parse_args(own_argv)
-    if image is None:
+    if image is None and "-h" in run_args:
         parser.print_help()
         sys.exit(0)
+    if image is None and (run_args or image_args) and not args.join:
+        sys.exit("dr: missing image")
     args.run_args = run_args
     args.image = image
     args.image_args = image_args
@@ -33,7 +40,7 @@ def parse_args(argv):
 
 def split_args(argv, own_flags=()):
     """Split argv into wrapper args, container-run args, image, and image args."""
-    standalone_own = {"--help"}
+    standalone_own = {"--help", "--join", "-j"}
     standalone_long = {
         "--detach", "--disable-content-trust", "--env-host", "--help", "--init",
         "--interactive", "--no-healthcheck", "--no-hostname", "--no-hosts",
@@ -51,7 +58,7 @@ def split_args(argv, own_flags=()):
         arg = argv[i]
 
         if not run_args and image is None:
-            own_flag = arg.split("=", 1)[0]
+            own_flag = arg.split("=", 1)[0] if arg.startswith("--") else arg
             if own_flag in own_flags:
                 own_argv.append(arg)
                 i += 1
@@ -121,6 +128,81 @@ def get_docker_command():
         if shutil.which(name):
             return name
     sys.exit("dr: neither podman, docker, nor container found")
+
+
+def list_containers(docker):
+    """Running containers dr started (label dr.dir): dicts of id, name, image, status, dir."""
+    fmt = '{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Label "dr.dir"}}'
+    result = subprocess.run(
+        [docker, "ps", "--format", fmt],
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, check=False)
+    rows = [dict(zip(("id", "name", "image", "status", "dir"), line.split("\t")))
+            for line in result.stdout.splitlines() if line.count("\t") == 4]
+    return [r for r in rows if r["dir"]]
+
+
+def pick_join_target(docker, target):
+    """The running container `dr -j [name|id]` should join; exit with a listing if none/ambiguous."""
+    here = os.path.realpath(Path.cwd())
+    cands = [r for r in list_containers(docker)
+             if (os.path.realpath(r["dir"]) == here if target is None
+                 else r["name"] == target or r["id"].startswith(target))]
+    if not cands:
+        sys.exit("dr: no running container " + ("here" if target is None else f"named {target}"))
+    if len(cands) > 1:
+        print("dr: several running containers:", file=sys.stderr)
+        for i, r in enumerate(cands, 1):
+            print(f"  {i}) {r['name']}  {r['id'][:12]}  {r['status']:<20} {r['image']}", file=sys.stderr)
+        if not sys.stdin.isatty():
+            sys.exit("dr: pick one with `dr -j <name>`")
+        while True:
+            try:
+                choice = input(f"Join which? [1-{len(cands)}] ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print(file=sys.stderr)
+                sys.exit(1)
+            if choice.isdigit() and 1 <= int(choice) <= len(cands):
+                return cands[int(choice) - 1]
+            print("dr: invalid choice", file=sys.stderr)
+    return cands[0]
+
+
+def join(docker, args):
+    """Exec into a running dr container: image args if given, else a shell (bash, falling back to sh)."""
+    if args.run_args or args.build_arg:
+        print("dr: -j ignores docker run options and --build-arg", file=sys.stderr)
+    row = pick_join_target(docker, args.image)
+    cmd = args.image_args or ["sh", "-c", "command -v bash >/dev/null && exec bash || exec sh"]
+    print(f"dr: joining {row['name']} ({row['id'][:12]})", file=sys.stderr)
+    run = [docker, "exec", "-it", "-w", row["dir"], row["id"], *cmd]
+    print_command(run)
+    sys.exit(subprocess.run(run).returncode)
+
+
+def print_status():
+    """`dr` with no args: show containers dr started, current dir first."""
+    try:
+        docker = get_docker_command()
+    except SystemExit as e:
+        print(e)
+        return
+    usage = "usage: `dr IMAGE|DOCKERFILE`; `dr -j [name]` joins a running one; `dr -h` for help"
+    groups = {}
+    for r in list_containers(docker):
+        groups.setdefault(os.path.realpath(r["dir"]), []).append(r)
+    if not groups:
+        print(usage)
+        return
+    here = os.path.realpath(Path.cwd())
+    groups.setdefault(here, [])
+    width = max((len(r["name"]) for rows in groups.values() for r in rows), default=0)
+    for d in sorted(groups, key=lambda d: (d != here, d)):
+        print(f"{d}{' (here)' if d == here else ''}:")
+        for r in groups[d]:
+            print(f"  {r['name']:<{width}}  {r['id'][:12]}  {r['status']:<24} {r['image']}")
+        if not groups[d]:
+            print("  no dr containers")
+    print("\n" + usage)
 
 
 def print_command(args):
@@ -197,6 +279,11 @@ def main():
         return
 
     args = parse_args(sys.argv[1:])
+    if args.join:
+        join(get_docker_command(), args)
+    if args.image is None:
+        print_status()
+        return
     pwd = Path.cwd()
     docker = get_docker_command()
 
@@ -221,7 +308,8 @@ def main():
 
     name += "-" + os.urandom(4).hex()
 
-    cmd = [docker, "run", "--rm", "-it", "--name", name, "-v", f"{pwd}:{pwd}"]
+    cmd = [docker, "run", "--rm", "-it", "--name", name,
+           "--label", f"dr.dir={pwd}", "-v", f"{pwd}:{pwd}"]
     git_dir = pwd / ".git"
     if git_dir.is_dir():
         cmd += ["-v", f"{git_dir}:{git_dir}:ro"]
