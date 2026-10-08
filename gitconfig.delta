@@ -3,7 +3,10 @@
     file-modified-label = "🔺"
     navigate = true  # n/N to jump in diffs
     relative-paths = true
-    syntax-theme = ansi #Dracula  #Monokai Extended
+    syntax-theme = ansi  #Dracula  #Monokai Extended
+    hyperlinks = true
+    #hyperlinks-file-link-format = "vscode://file/{path}:{line}"
+    hyperlinks-file-link-format = "vimline://{path}:{line}"  # via bin/vimline.sh
 
 [delta "claude"]
     dark = true
@@ -56,10 +59,11 @@
     hunk-header-line-number-style = cyan
     hunk-label = "@@"
 
+    zero-style = normal
     minus-style = red
     plus-style = green
-    minus-emph-style = syntax "#870000"
-    plus-emph-style = syntax "#008700"
+    minus-emph-style = normal "#870000"
+    plus-emph-style = normal "#008700"
 
 # More themes: https://github.com/dandavison/delta/blob/main/themes.gitconfig
 # Run: delta --show-themes --dark

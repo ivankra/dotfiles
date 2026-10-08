@@ -1,17 +1,24 @@
 [alias]
     # Common aliases
+    a = add
     br = "!git branch \"${@:--avv}\" #"
     ca = commit --amend
+    can = commit --amend --no-edit
     ci = commit
     cm = commit -m
     co = checkout
     cp = cherry-pick
     cpa = cherry-pick --abort
     cpc = cherry-pick --continue
+    d = diff
+    dc = diff --cached
+    di = diff
     lg = log --graph --oneline --decorate --all
+    pf = push --force-with-lease   # force push, but abort if remote moved
     rb = rebase
     rba = rebase --abort
     rbc = rebase --continue
+    rbi = rebase -i
     st = status
     sw = switch
 
@@ -34,6 +41,7 @@
 
     # Typos
     ad = add
+    dif = diff
 
 [color]
     ui = auto
