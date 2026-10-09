@@ -115,6 +115,7 @@ alias fgrep='fgrep --color=auto'
 alias free='free -h'
 alias g=grep
 alias gdb='gdb --quiet'
+alias gi=git
 alias got=git
 alias grep='grep --color=auto'
 alias gt=git
@@ -163,6 +164,7 @@ __maybe_alias ifconfig=/sbin/ifconfig
 __maybe_alias ipython=ipython3
 __maybe_alias iwconfig=/sbin/iwconfig
 __maybe_alias nb=jupyter-notebook
+__maybe_alias o=xdg-open  # e.g. `o ./some.pdf` to open in browser/reader
 __maybe_alias py=python3; __maybe_alias py=ipython3
 __maybe_alias python=python3
 __maybe_alias route=/sbin/route
