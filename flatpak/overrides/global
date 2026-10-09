@@ -1,0 +1,56 @@
+# Applies to all apps. Per-app files (<app-id>) override these.
+# Installed via ~/.local/share/flatpak/overrides/ symlink.
+# NB: only user-level; system-level overrides (/var/lib/flatpak/overrides) are not managed.
+# NB: each "!x" only removes a grant spelled exactly "x" (e.g. !home does not
+# touch xdg-config), so common spellings of the dangerous paths are listed.
+# Not touched on purpose: portals (file chooser, documents), x11, IME (fcitx/ibus).
+[Context]
+# - home/host/tmp: tmux, ssh ControlMaster etc. sockets live in host /tmp
+# - autostart, .desktop files, ~/.local/bin, flatpak overrides: written once, run later outside the sandbox
+filesystems=!home;!host;!/tmp;!/var/tmp;!xdg-run/gnupg;!xdg-run/keyring;!xdg-config/autostart;!~/.config/autostart;!xdg-data/applications;!~/.local/share/applications;!~/.local/bin;!xdg-data/flatpak;!xdg-data/flatpak/overrides;!xdg-config/systemd;!~/.config/systemd;!xdg-cache/tracker3;!~/.cache/tracker3;
+# Full bus access bypasses the D-Bus filter, i.e. every =none below
+sockets=!ssh-auth;!gpg-agent;!pcsc;!session-bus;!system-bus;
+devices=!input;!usb;
+features=!bluetooth;
+
+[Session Bus Policy]
+org.freedesktop.Flatpak=none
+org.freedesktop.PowerManagement=none
+org.freedesktop.secrets=none
+org.gnome.SessionManager=none
+org.kde.kwalletd5=none
+org.kde.kwalletd6=none
+com.canonical.AppMenu.Registrar=none
+# Can run commands outside the sandbox
+org.freedesktop.systemd1=none
+org.gnome.Shell=none
+org.kde.KLauncher=none
+org.kde.klauncher5=none
+org.gnome.Terminal=none
+org.gnome.Console=none
+org.gnome.Ptyxis=none
+com.mitchellh.ghostty=none
+# Writes desktop settings (e.g. a custom shortcut that runs a command)
+ca.desrt.dconf=none
+# Portal backends: talking to them directly skips the portal's consent prompts
+org.freedesktop.impl.portal.*=none
+# Remote input / screen capture without asking
+org.gnome.Mutter.RemoteDesktop=none
+org.gnome.Mutter.ScreenCast=none
+org.gnome.Mutter.InputCapture=none
+# File indexers: full-text search over all of ~
+org.freedesktop.Tracker1=none
+org.freedesktop.Tracker1.*=none
+org.freedesktop.Tracker3=none
+org.freedesktop.Tracker3.*=none
+org.freedesktop.portal.Tracker=none
+org.kde.baloo=none
+org.kde.baloo.*=none
+
+[System Bus Policy]
+org.freedesktop.UPower=none
+org.freedesktop.login1=none
+org.freedesktop.systemd1=none
+# Mount/unmount drives and install packages, often without a password
+org.freedesktop.UDisks2=none
+org.freedesktop.PackageKit=none

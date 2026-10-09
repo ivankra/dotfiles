@@ -1,0 +1,10 @@
+[Context]
+devices=!all;dri;
+
+[Session Bus Policy]
+org.freedesktop.FileManager1=none
+org.freedesktop.ScreenSaver=none
+
+[System Bus Policy]
+org.bluez=none
+org.freedesktop.Avahi=none

@@ -1,0 +1,21 @@
+# Flathub apps installed by flatpak.sh (tab-separated; blank lines and #comments ignored).
+# alias: name for flatpak.sh/make and the ~/.local/bin command
+# Locally built apps are not listed: any ./<alias>/<app-id>.yaml is one (see flatpak.sh).
+# name: menu name (optional; default: app's own name + " (Flatpak)")
+#alias	app-id	name
+anki	net.ankiweb.Anki
+chromium	org.chromium.Chromium
+code	com.visualstudio.code
+codium	com.vscodium.codium
+flatseal	com.github.tchx84.Flatseal
+libreoffice	org.libreoffice.LibreOffice
+logseq	com.logseq.Logseq
+mpv	io.mpv.Mpv
+nvim-flatpak	io.neovim.nvim
+obsidian	md.obsidian.Obsidian
+okular	org.kde.okular
+papers	org.gnome.Papers	Papers (Flatpak)
+qbittorrent	org.qbittorrent.qBittorrent
+siyuan	org.b3log.siyuan
+zettlr	com.zettlr.Zettlr
+zed	dev.zed.Zed

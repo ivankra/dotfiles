@@ -1,0 +1,2 @@
+[Context]
+filesystems=!xdg-run/app/com.discordapp.Discord;!~/.local/share/fonts;!/run/media;!/mnt;!/media

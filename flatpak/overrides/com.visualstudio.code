@@ -1,0 +1,5 @@
+[Context]
+devices=!all;dri;
+
+[Environment]
+FLATPAK_ENABLE_SDK_EXT=*

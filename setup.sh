@@ -609,6 +609,21 @@ setup_xfs_symlinks() {
 
 setup_xfs_symlinks
 
+# Flatpak user overrides: ~/.local/share/flatpak/overrides -> flatpak/overrides {{{
+
+if [[ "$OSTYPE" != darwin* ]]; then
+  fpo=~/.local/share/flatpak/overrides
+  if [[ -d "$fpo" && ! -L "$fpo" ]]; then
+    # Existing overrides (from `flatpak override` / Flatseal) are superseded by the repo ones
+    rm -rf "$fpo.bak"
+    mv "$fpo" "$fpo.bak"
+    echo "Backed up $fpo to $fpo.bak"
+  fi
+  setup_ln flatpak/overrides "$fpo"
+  unset fpo
+fi
+
+# }}}
 # }}}
 # Add github remote for dotfiles repo {{{
 

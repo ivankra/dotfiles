@@ -1,6 +1,4 @@
-upstream/
-build-dir/
-repo/
-download-dir/
-.flatpak-builder
+# Symlink to ~/.local/share/dotfiles-flatpak/<alias>/download (see flatpak.sh)
+download-dir
+# `flatpak.sh bundle` output
 *.flatpak

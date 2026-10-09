@@ -1,0 +1,4 @@
+[Context]
+filesystems=!/tmp;!xdg-pictures;!xdg-videos;
+shared=!network;
+devices=!all;dri;

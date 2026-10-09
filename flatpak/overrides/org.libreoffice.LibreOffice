@@ -1,0 +1,3 @@
+[Context]
+filesystems=host-os:ro;xdg-documents;xdg-download;
+shared=!network;

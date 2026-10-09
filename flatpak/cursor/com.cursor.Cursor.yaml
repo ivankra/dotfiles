@@ -19,7 +19,7 @@ finish-args:
   - --share=network
   - --socket=pulseaudio
   - --socket=wayland
-  - --socket=x11
+  - --socket=fallback-x11
   - --system-talk-name=org.freedesktop.login1
   - --talk-name=org.freedesktop.Notifications
   - --talk-name=org.freedesktop.portal.Desktop
@@ -86,4 +86,4 @@ modules:
     sources:
       - type: git
         url: https://github.com/flathub-infra/ide-flatpak-wrapper.git
-        commit: f8f6485adfe7df52db5f241e3a99f5c7540aff9f
+        commit: 14e85b05d804c9e556ddbea9173bdb4bc2c3bd71

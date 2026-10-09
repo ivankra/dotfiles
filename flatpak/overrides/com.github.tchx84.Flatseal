@@ -1,0 +1,3 @@
+[Context]
+# Flatseal edits overrides/ (blocked in global)
+filesystems=xdg-data/flatpak/overrides:create;
