@@ -1,0 +1,6 @@
+# bash completion for dr (docker/dr)
+_dr_completion() {
+  local suggestions=$(~/.dotfiles/bin/dr --complete "${COMP_WORDS[@]:1}" 2>/dev/null)
+  COMPREPLY=($(compgen -W "$suggestions" -- "${COMP_WORDS[COMP_CWORD]}"))
+}
+complete -F _dr_completion -o default dr

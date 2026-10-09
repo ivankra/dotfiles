@@ -207,12 +207,6 @@ else
   alias ping=~/.dotfiles/bin/ping.sh
 fi
 
-_dr_completion() {
-  local suggestions=$(~/.dotfiles/bin/dr --complete "${COMP_WORDS[@]:1}" 2>/dev/null)
-  COMPREPLY=($(compgen -W "$suggestions" -- "${COMP_WORDS[COMP_CWORD]}"))
-}
-complete -F _dr_completion -o default dr
-
 # https://github.com/jupyter/docker-stacks
 function dr-lab() {
   local port=$(find-free-port.py 8888 2>/dev/null || echo 8888)

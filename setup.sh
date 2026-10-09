@@ -609,6 +609,7 @@ setup_xfs_symlinks() {
 
 setup_xfs_symlinks
 
+# }}}
 # Flatpak user overrides: ~/.local/share/flatpak/overrides -> flatpak/overrides {{{
 
 if [[ "$OSTYPE" != darwin* ]]; then
@@ -624,6 +625,20 @@ if [[ "$OSTYPE" != darwin* ]]; then
 fi
 
 # }}}
+# bash-completion: ~/.local/share/bash-completion/completions -> completions/ {{{
+
+if [[ "$OSTYPE" != darwin* ]]; then
+  bcd=~/.local/share/bash-completion/completions
+  if [[ -d "$bcd" && ! -L "$bcd" ]]; then
+    # Keep files other tools put there
+    rm -rf "$bcd.bak"
+    mv "$bcd" "$bcd.bak"
+    echo "Backed up $bcd to $bcd.bak"
+  fi
+  setup_ln completions "$bcd"
+  unset bcd
+fi
+
 # }}}
 # Add github remote for dotfiles repo {{{
 
