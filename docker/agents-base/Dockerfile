@@ -83,7 +83,7 @@ RUN apt-get update -y && \
         openjdk-25-jdk-headless \
         openssl \
         p7zip-full \
-        # pandoc \ # broken in sid 2026-03-27: unsatisfiable pandoc-data dep
+        pandoc \
         parallel \
         patch \
         pdftk-java \
@@ -95,7 +95,9 @@ RUN apt-get update -y && \
         pv \
         python-is-python3 \
         python3 \
+        python3-bs4 \
         python3-csvkit \
+        python3-html2text \
         python3-matplotlib \
         python3-mypy \
         python3-pandas \
