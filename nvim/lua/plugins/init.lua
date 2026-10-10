@@ -214,6 +214,29 @@ return {
   { "google/vim-jsonnet", dev = true, ft = { "jsonnet", "libsonnet" } },
   { "nathangrigg/vim-beancount", dev = true, ft = "beancount" },
 
+  -- Align CSV/TSV columns as a table (virtual text, file is unchanged)
+  -- Enable with automatic delimiter detection:
+  --   :CsvViewToggle
+  -- Enable with specific settings:
+  --   :CsvViewToggle delimiter=, display_mode=border header_lnum=1
+  {
+    "hat0uma/csvview.nvim",
+    dev = true,
+    --cmd = { "CsvViewEnable", "CsvViewDisable", "CsvViewToggle" },
+    cmd = { "CsvViewToggle" },
+    keys = {
+      { "<leader>uc", "<cmd>CsvViewToggle<cr>", desc = "Toggle CSV View" },
+    },
+    opts = {
+      parser = { comments = { "#" } },
+      view = { display_mode = "border" },
+      keymaps = {
+        textobject_field_inner = { "if", mode = { "o", "x" } },
+        textobject_field_outer = { "af", mode = { "o", "x" } },
+      },
+    },
+  },
+
   -- Dependencies
   { "nvim-lua/plenary.nvim", dev = true, lazy = true },
   { "MunifTanjim/nui.nvim", dev = true, lazy = true },

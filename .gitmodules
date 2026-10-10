@@ -85,3 +85,6 @@
 [submodule "modules/gruvbox.vim"]
 	path = modules/gruvbox.vim
 	url = https://github.com/morhetz/gruvbox.git
+[submodule "modules/csvview.nvim"]
+	path = modules/csvview.nvim
+	url = https://github.com/hat0uma/csvview.nvim
