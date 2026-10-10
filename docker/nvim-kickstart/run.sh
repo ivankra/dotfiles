@@ -1,5 +1,4 @@
 #!/bin/bash -e
-mkdir -p ~/.docker/nvim-kickstart
 
 CMD=(
   podman run -it --rm
@@ -9,7 +8,7 @@ CMD=(
   -e XDG_CACHE_HOME=/root/.cache
   -e XDG_STATE_HOME=/root/.local/state
   -v "$PWD:$PWD"
-  -v "$HOME/.docker/nvim-kickstart:/root"
+  -v "dr-nvim-kickstart:/root"
   -w "$PWD"
 )
 

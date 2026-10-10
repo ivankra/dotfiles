@@ -10,7 +10,7 @@
 # so the containerised CLI sits on $PATH instead of needing a shell alias.
 # The script is written under the first name in LAUNCHERS and the rest are
 # symlinks to it. Like dvim's run.sh, it dispatches on basename $0: each name
-# runs the same image with its own /root, ~/.docker/<name>.
+# runs the same image with its own /root, the podman volume dr-<name>.
 #
 # Paths are resolved relative to this file, so this directory can be copied
 # anywhere and still build: nothing outside it is referenced.
@@ -79,7 +79,7 @@ launcher:
 		'  $(subst $(space),|,$(strip $(LAUNCHERS)))) ;;' \
 		'  *) echo "$$0: expected to be invoked as one of: $(strip $(LAUNCHERS))" >&2; exit 1 ;;' \
 		'esac' \
-		'$(strip exec $(DR) -v "$$HOME/.docker/$$name:/root" $(IMAGE) $(CMD) $(ARGS)) "$$@"' \
+		'$(strip exec $(DR) -v "dr-$$name:/root" $(IMAGE) $(CMD) $(ARGS)) "$$@"' \
 		> $(LAUNCHER)
 	@chmod +x $(LAUNCHER)
 	@echo "installed $(LAUNCHER)"

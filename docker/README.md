@@ -42,7 +42,7 @@ Most launchers make use of `dr` script (see below).
 `podman` is recommended over `docker` for better rootless mode and DX.
 
 To persist state / downloaded plugins, the images map the container's
-`/root` directory to `~/.docker/<launcher>` on the host. An image can have
+`/root` directory to a podman named volume, `dr-<launcher>`. An image can have
 several launchers (`LAUNCHERS` in its Makefile, e.g. `claude claude2`), each
 a symlink named after its variant with its own `/root`.
 

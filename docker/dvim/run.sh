@@ -8,19 +8,21 @@ if [[ "$NAME" != dvim* ]]; then
   exit 1
 fi
 
-mkdir -p "$HOME/.docker/$NAME"
+VOL="dr-$NAME"
 
 CMD=(
   podman run -it --rm
   --hostname "$NAME"
   -e HOME
-  -v "$HOME/.docker/$NAME:$HOME"
+  -v "$VOL:$HOME"
 )
 
-if ! [[ -d "$HOME/.docker/$NAME/.config/nvim" ]]; then
-  echo "Setting up $HOME/.docker/$NAME"
-  cp -a ~/.dotfiles "$HOME/.docker/$NAME/.dotfiles"
-  "${CMD[@]}" "localhost/$IMAGE" /bin/bash -c "$HOME/.dotfiles/setup.sh"
+if ! podman volume exists "$VOL"; then
+  echo "Setting up volume $VOL"
+  podman volume create "$VOL" >/dev/null
+  "${CMD[@]}" -v "$HOME/.dotfiles:/dotfiles-src:ro" "localhost/$IMAGE" /bin/bash -c \
+    "cp -a /dotfiles-src $HOME/.dotfiles && $HOME/.dotfiles/setup.sh" ||
+    { podman volume rm "$VOL" >/dev/null; exit 1; }
 fi
 
 if [[ "$NAME" == dvim-obsidian ]]; then

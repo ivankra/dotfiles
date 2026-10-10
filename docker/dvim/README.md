@@ -17,7 +17,7 @@ nvim config from [`../../nvim`](../../nvim), with extra plugins layered on
 top:
 
   * On first run of each launcher, `run.sh` copies `~/.dotfiles` into
-    `~/.docker/<name>`, which is mounted as the container's `$HOME`, and runs
+    the volume `dr-<name>`, which is mounted as the container's `$HOME`, and runs
     `setup.sh` there. That links `nvim/` to `~/.config/nvim`, the same
     as on the host.
   * `nvim/init.lua` sets `vim.g.in_container`. Outside a container,
@@ -30,6 +30,6 @@ top:
     to the launcher name, and returns that variant's plugins.
 
 State, including the dotfiles copy and the plugins lazy.nvim installed, stays
-in `~/.docker/<name>`, so later runs start straight away. Changes to the
-dotfiles on the host don't reach that copy. To pick them up, delete
-`~/.docker/<name>`, and the next run sets it up again from scratch.
+in the volume `dr-<name>`, so later runs start straight away. Changes to the
+dotfiles on the host don't reach that copy. To pick them up, run
+`podman volume rm dr-<name>`, and the next run sets it up again from scratch.

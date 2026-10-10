@@ -258,18 +258,22 @@ def print_completion(words):
 
 
 def ensure_volume_dirs(run_args):
+    """Create missing host dirs for bind mounts; named volumes (no "/") are left to the engine."""
     i = 0
     while i < len(run_args):
+        spec = None
         if run_args[i] == "-v" and i + 1 < len(run_args):
-            host_path = run_args[i + 1].split(":")[0]
-            Path(host_path).mkdir(parents=True, exist_ok=True)
+            spec = run_args[i + 1]
             i += 2
-        elif run_args[i].startswith("-v=") or run_args[i].startswith("--volume="):
-            host_path = run_args[i].split("=", 1)[1].split(":")[0]
-            Path(host_path).mkdir(parents=True, exist_ok=True)
+        elif run_args[i].startswith(("-v=", "--volume=")):
+            spec = run_args[i].split("=", 1)[1]
             i += 1
         else:
             i += 1
+        if spec:
+            host_path = spec.split(":")[0]
+            if "/" in host_path or host_path.startswith((".", "~")):
+                Path(host_path).expanduser().mkdir(parents=True, exist_ok=True)
 
 
 def main():
