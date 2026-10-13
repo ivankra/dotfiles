@@ -122,6 +122,7 @@ RUN apt-get update -y && \
         tcpdump \
         tesseract-ocr \
         time \
+        tini \
         byobu \
         tmux \
         tokei \
@@ -209,3 +210,9 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright \
 
 RUN npm install -g playwright && \
     playwright install chromium
+
+# The agent would otherwise run as PID 1, and Node doesn't reap orphans that
+# get reparented to it (headless chromium helpers, backgrounded shells), so
+# they pile up as zombies. PID 1 also ignores SIGTERM without a handler, so
+# `podman stop` hangs until the timeout. tini reaps and forwards signals.
+ENTRYPOINT ["tini", "--"]
