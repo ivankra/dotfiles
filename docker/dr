@@ -23,6 +23,10 @@ def parse_args(argv):
         "-j", "--join", action="store_true",
         help="Exec into a running container instead of starting one: "
              "a container name/id, or nothing (one started from this dir; asks if several)")
+    parser.add_argument(
+        "--git", choices=("ro", "rw"), default="ro",
+        help="How to mount ./.git: ro (default; plus a throwaway .git/worktrees "
+             "so detached `git worktree add` works) or rw")
     own_flags = {opt for action in parser._actions for opt in action.option_strings
                  if opt.startswith("--") or opt == "-j"}
     own_argv, run_args, image, image_args = split_args(argv, own_flags)
@@ -315,8 +319,14 @@ def main():
     cmd = [docker, "run", "--rm", "-it", "--name", name,
            "--label", f"dr.dir={pwd}", "-v", f"{pwd}:{pwd}"]
     git_dir = pwd / ".git"
-    if git_dir.is_dir():
-        cmd += ["-v", f"{git_dir}:{git_dir}:ro"]
+    if git_dir.is_dir() and args.git == "ro":
+        # Nothing in the host .git is writable. Worktree admin dirs (HEAD, index) go to a
+        # container-private tmpfs that also hides the host's own worktree metadata (their
+        # commondir/gitdir files could otherwise be repointed at an agent-controlled config).
+        # The mountpoint has to exist on the host: the ro parent mount can't create it.
+        worktrees = git_dir / "worktrees"
+        worktrees.mkdir(exist_ok=True)
+        cmd += ["-v", f"{git_dir}:{git_dir}:ro", "--tmpfs", str(worktrees)]
     cmd += ["-w", str(pwd)]
     ensure_volume_dirs(args.run_args)
     cmd += args.run_args
