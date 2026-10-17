@@ -648,6 +648,35 @@ elif grep -qs '/\.dotfiles/bin/qvim' "$nvim_qt_desktop"; then
 fi
 
 # }}}
+# IntelliJ launcher {{{
+
+# IntelliJ only draws its integrated title bar on X11 when it thinks it's
+# running under GNOME, which X-Cinnamon isn't. Toolbox names its launchers
+# jetbrains-idea-<uuid>.desktop and rewrites them on every update, so find them
+# by the binary they run
+idea_env=
+if [[ "${XDG_CURRENT_DESKTOP:-}" == X-* || -x /usr/bin/cinnamon-session ]]; then
+  idea_env='env XDG_CURRENT_DESKTOP=GNOME '
+fi
+for idea_desktop in ~/.local/share/applications/*.desktop ~/Desktop/*.desktop; do
+  if grep -qs '^Exec.*=.*intellij-idea/bin/idea' "$idea_desktop"; then
+    tmp=$(mktemp)  # avoid spurious sedXXXXXX files on desktop from sed -i
+    # Exec[en_US]= and the like too. The first "=" on the line ends the key.
+    # Drop whatever an earlier run prepended (incl. the old xdg-gnome-desktop
+    # wrapper), then prepend idea_env, if any
+    sed -e '/^Exec\(\[[^]]*\]\)\?=.*intellij-idea\/bin\/idea/ {
+      s|="[^"]*/xdg-gnome-desktop" |=|
+      s|=env XDG_CURRENT_DESKTOP=GNOME |=|
+      s|=|='"$idea_env"'|
+    }' <"$idea_desktop" >"$tmp"
+    if ! cmp -s "$tmp" "$idea_desktop"; then
+      cat "$tmp" >"$idea_desktop"
+    fi
+    rm -f "$tmp"
+  fi
+done
+
+# }}}
 # Theme setup {{{
 
 if [[ -x ~/.config/theme/setup.sh ]]; then
