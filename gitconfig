@@ -28,6 +28,8 @@
     compact = !git -c gc.reflogExpire=now -c gc.reflogExpireUnreachable=now -c gc.rerereresolved=0 -c gc.rerereunresolved=0 -c gc.pruneExpire=now gc --prune=now
     # Check out a commit (default HEAD) as detached HEAD (or: git checkout --detach)
     detach = switch --detach
+    # Full log
+    logf = log --pretty=fuller
     # Reset files in index to HEAD, keep working tree changes (or: git reset HEAD --)
     unstage = restore --staged --
     # Stop tracking files but keep them on disk (like hg forget)
