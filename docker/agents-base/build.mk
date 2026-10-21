@@ -79,7 +79,7 @@ launcher:
 		'  $(subst $(space),|,$(strip $(LAUNCHERS)))) ;;' \
 		'  *) echo "$$0: expected to be invoked as one of: $(strip $(LAUNCHERS))" >&2; exit 1 ;;' \
 		'esac' \
-		'$(strip exec $(DR) -v "dr-$$name:/root" $(IMAGE) $(CMD) $(ARGS)) "$$@"' \
+		'$(strip $(DR) -v "dr-$$name:/root" $(IMAGE) $(CMD) $(ARGS)) "$$@"' \
 		> $(LAUNCHER)
 	@chmod +x $(LAUNCHER)
 	@echo "installed $(LAUNCHER)"
