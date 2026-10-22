@@ -7,8 +7,7 @@
 # lands on the right commit even when several commits share the same message.
 #
 # Without <commit>, picks one interactively: fzf if installed, else a menu.
-# The list shows commits not on origin's default branch, else unpushed
-# commits, else recent history.
+# The list is recent history, with commits already on a remote marked "pushed".
 # <commit> must come before any options.
 set -e -u -o pipefail
 
@@ -36,28 +35,37 @@ if [[ -n $check_staged ]] && git diff --cached --quiet; then
 fi
 
 if [[ -z ${target:-} ]]; then
-  # Commits not yet on the default branch (the branch's own commits, pushed
-  # or not), else unpushed ones, else recent history
-  range=HEAD
-  for base in refs/remotes/origin/HEAD '@{upstream}'; do
-    if git rev-parse --quiet --verify "$base" >/dev/null &&
-        [[ -n $(git rev-list -n 1 "$base..HEAD") ]]; then
-      range=$base..HEAD
-      break
-    fi
-  done
   # Skip merges and earlier fixups, they're never the target
-  log=(git log --no-merges --invert-grep -E --grep='^(fixup|squash|amend)! ' --oneline)
-  if [[ -z $("${log[@]}" -n 1 "$range" 2>/dev/null) ]]; then
+  log=(git log --no-merges --invert-grep -E --grep='^(fixup|squash|amend)! ')
+  if [[ -z $("${log[@]}" -n 1 --oneline HEAD 2>/dev/null) ]]; then
     echo "git fixup: no commits to pick" >&2
     exit 1
   fi
+  # Commits on no remote branch yet; the rest get marked as pushed, since
+  # squashing into them means a force push
+  declare -A unpushed=()
+  for h in $(git rev-list -n 1000 HEAD --not --remotes); do
+    unpushed[$h]=1
+  done
+  # Prints "<hash> <mark> <subject>" lines, the hash first for cut and {1}
+  list() {
+    local color=$1 h short subject mark
+    "${log[@]}" -n "$2" --format='%H %h %s' HEAD | while read -r h short subject; do
+      mark='      '
+      [[ -n ${unpushed[$h]:-} ]] || mark=pushed
+      if [[ -n $color ]]; then
+        printf '\e[33m%s\e[m \e[2m%s\e[m %s\n' "$short" "$mark" "$subject"
+      else
+        printf '%s %s %s\n' "$short" "$mark" "$subject"
+      fi
+    done
+  }
   if command -v fzf >/dev/null; then
-    target=$("${log[@]}" --color=always -n 100 "$range" |
+    target=$(list color 100 |
       fzf --ansi --no-sort --preview 'git show --stat --color=always {1}' |
       cut -d' ' -f1)
   else
-    mapfile -t lines < <("${log[@]}" -n 20 "$range")
+    mapfile -t lines < <(list '' 20)
     PS3='Fixup commit #: '
     select line in "${lines[@]}"; do
       [[ -n $line ]] && break
