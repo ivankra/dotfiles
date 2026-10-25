@@ -150,6 +150,11 @@ ENV LC_ALL=en_US.UTF-8 \
     UV_TOOL_BIN_DIR=/usr/local/bin \
     PATH=/root/.local/bin:/usr/local/node/bin:/usr/local/go/bin:$PATH
 
+# Debian's /etc/profile resets PATH for login shells, dropping the dirs above.
+# Codex runs its tool commands via `bash -lc`, so node/go would vanish there.
+RUN printf '%s\n' 'export PATH="/root/.local/bin:/usr/local/node/bin:/usr/local/go/bin:$PATH"' \
+        >/etc/profile.d/agents-path.sh
+
 RUN rustup toolchain install stable && rustup default stable && \
     rustup component add rust-analyzer
 
