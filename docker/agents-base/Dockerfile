@@ -128,6 +128,7 @@ RUN apt-get update -y && \
         tokei \
         traceroute \
         tree \
+        tzdata \
         unzip \
         vim \
         wget \
@@ -216,8 +217,17 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright \
 RUN npm install -g playwright && \
     playwright install chromium
 
+# Bake in the host's timezone (the Makefile passes it in). Declared last so a
+# different TZ only rebuilds this layer, not everything above.
+ARG TZ=Etc/UTC
+RUN test -f "/usr/share/zoneinfo/$TZ" && \
+    ln -sfn "/usr/share/zoneinfo/$TZ" /etc/localtime && \
+    echo "$TZ" >/etc/timezone
+
 # The agent would otherwise run as PID 1, and Node doesn't reap orphans that
 # get reparented to it (headless chromium helpers, backgrounded shells), so
 # they pile up as zombies. PID 1 also ignores SIGTERM without a handler, so
 # `podman stop` hangs until the timeout. tini reaps and forwards signals.
-ENTRYPOINT ["tini", "--"]
+# entry.sh runs the agent from an interactive bash, so ctrl+z can't hang it.
+COPY entry.sh /usr/local/bin/entry.sh
+ENTRYPOINT ["tini", "--", "entry.sh"]
