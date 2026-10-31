@@ -5,7 +5,13 @@ return {
     dev = true,
     event = { "BufReadPre", "BufNewFile" },
     opts = {
-      on_space_options = { tabstop = 8 }
+      -- Must restate the defaults: setup() merges shallowly, so this table replaces them.
+      on_space_options = {
+        expandtab = true,
+        tabstop = 8,
+        softtabstop = "detected",
+        shiftwidth = "detected",
+      },
     }
   },
 
