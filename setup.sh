@@ -392,6 +392,7 @@ setup_ln inputrc
 setup_ln profile
 
 setup_ln alacritty.toml ~/.config/alacritty/alacritty.toml
+setup_ln containers.conf ~/.config/containers/containers.conf
 setup_ln gdbinit ~/.config/gdb/gdbinit
 setup_ln htoprc ~/.config/htop/htoprc
 setup_ln ipython_config.py ~/.config/ipython/profile_default/ipython_config.py
