@@ -163,6 +163,7 @@ __maybe_alias fd=fdfind
 __maybe_alias ifconfig=/sbin/ifconfig
 __maybe_alias ipython=ipython3
 __maybe_alias iwconfig=/sbin/iwconfig
+__maybe_alias keyd=keyd.rvaiya
 __maybe_alias nb=jupyter-notebook
 __maybe_alias o=xdg-open  # e.g. `o ./some.pdf` to open in browser/reader
 __maybe_alias py=python3; __maybe_alias py=ipython3

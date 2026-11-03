@@ -1,23 +1,44 @@
 [Groups/0]
 # Group Name
+Name=RU
+# Layout
+Default Layout=ru
+# Default Input Method
+DefaultIM=keyboard-ru
+
+[Groups/0/Items/0]
+# Name
+Name=keyboard-ru
+# Layout
+# Layout=
+
+[Groups/1]
+# Group Name
 Name=Default
 # Layout
 Default Layout=us
 # Default Input Method
-DefaultIM=pinyin
+DefaultIM=keyboard-ru
 
-[Groups/0/Items/0]
+[Groups/1/Items/0]
 # Name
 Name=keyboard-us
 # Layout
-Layout=
+Layout=us
 
-[Groups/0/Items/1]
+[Groups/1/Items/1]
+# Name
+Name=keyboard-ru
+# Layout
+# Layout=
+
+[Groups/1/Items/2]
 # Name
 Name=pinyin
 # Layout
-Layout=
+Layout=us
 
 [GroupOrder]
 0=Default
+1=RU
 

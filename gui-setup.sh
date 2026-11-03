@@ -303,6 +303,61 @@ if [[ "$virt" == "none" ]]; then
 fi
 
 # }}}
+# XKB dconf configuration {{{
+
+xkb_alt_shift=1    # handle Alt+Shift via XKB?
+xkb_super_space=1  # handle Super+Space via XKB?
+xkb_ru=1           # provide Russian layout via XKB?
+
+# XKB should not grab Alt+Shift if keyd maps Alt+Shift to Super+Space
+if grep -qsE '^leftshift = overload\(shift, M-space\)' /etc/keyd/*.conf; then
+  xkb_alt_shift=0
+fi
+
+# If fcitx5 is installed, it takes priority in handling
+# Super+Space and Russian layout over XKB
+if command -v fcitx5 >/dev/null; then
+  fcitx_dir=~/.config/fcitx5
+  if grep -qs '^Name=keyboard-ru$' "$fcitx_dir/profile"; then
+    xkb_ru=0
+  fi
+  if grep -qsiE '^[^#]*=Super\+space$' "$fcitx_dir/config"; then
+    xkb_super_space=0
+  fi
+fi
+
+if ((xkb_ru)); then
+  xkb_sources="[('xkb', 'us'), ('xkb', 'ru')]"
+  xkb_layouts="['us', 'ru']"
+else
+  xkb_sources="[('xkb', 'us')]"
+  xkb_layouts="['us']"
+fi
+dconf write /org/cinnamon/desktop/input-sources/sources "$xkb_sources"
+dconf write /org/gnome/desktop/input-sources/sources "$xkb_sources"
+dconf write /org/gnome/libgnomekbd/keyboard/layouts "$xkb_layouts"
+dconf write /org/mate/desktop/peripherals/keyboard/kbd/layouts "$xkb_layouts"
+
+# gnome and cinnamon take plain option names, libgnomekbd and mate take
+# "group<TAB>option" pairs
+xkb_opts=(compose:caps)
+xkb_tab_opts=('Compose key\tcompose:caps')
+if ((xkb_super_space)); then
+  xkb_opts+=(grp:win_space_toggle)
+  xkb_tab_opts+=('grp\tgrp:win_space_toggle')
+fi
+if ((xkb_alt_shift)); then
+  xkb_opts+=(grp:alt_shift_toggle)
+  xkb_tab_opts+=('grp\tgrp:alt_shift_toggle')
+fi
+xkb_opts=$(printf '%s\n' "${xkb_opts[@]}" | dconf_array)
+xkb_tab_opts=$(printf '%s\n' "${xkb_tab_opts[@]}" | dconf_array)
+dconf write /org/cinnamon/desktop/input-sources/xkb-options "$xkb_opts"
+dconf write /org/gnome/desktop/input-sources/xkb-options "$xkb_opts"
+dconf write /org/gnome/libgnomekbd/keyboard/options "$xkb_tab_opts"
+dconf write /org/mate/desktop/peripherals/keyboard/kbd/options "$xkb_tab_opts"
+
+# }}}
 # vimline:// URL handler {{{
 
 # Handler for delta's hyperlinks (see gitconfig.delta); must be installed
