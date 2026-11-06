@@ -5,6 +5,13 @@
 # Initialization and flags {{{
 set -e -o pipefail
 
+# Everything below configures a Linux desktop (and needs bash 4+, while macOS
+# ships 3.2), so there is nothing to do on macOS.
+if [[ "$OSTYPE" == darwin* ]]; then
+  echo "gui-setup.sh: Linux only, skipping on macOS"
+  exit 0
+fi
+
 SCRIPT_PATH=$(readlink -f "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
