@@ -1,0 +1,25 @@
+#!/bin/bash
+# Complements xclip: show every available MIME type (target) of the X11
+# clipboard, with its contents. Binary types show only their size.
+#   xclip-all [xclip options]   e.g. xclip-all -selection primary
+set -eu
+
+command -v xclip >/dev/null || { echo "${0##*/}: xclip is required" >&2; exit 1; }
+
+# Default to the clipboard selection unless the caller picked one.
+sel=(-selection clipboard)
+for a in "$@"; do
+    case $a in -selection|-sel|-s) sel=() ;; esac
+done
+
+while IFS= read -r type; do
+    echo "=== $type ==="
+    case $type in
+        text/*|UTF8_STRING|STRING|TEXT|COMPOUND_TEXT)
+            xclip "${sel[@]}" "$@" -t "$type" -o 2>&1 || true
+            echo ;;
+        *)
+            size=$(xclip "${sel[@]}" "$@" -t "$type" -o 2>/dev/null | wc -c) || size=?
+            echo "[binary, $size bytes]" ;;
+    esac
+done < <(xclip "${sel[@]}" "$@" -t TARGETS -o)
