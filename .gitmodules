@@ -88,3 +88,6 @@
 [submodule "modules/csvview.nvim"]
 	path = modules/csvview.nvim
 	url = https://github.com/hat0uma/csvview.nvim
+[submodule "modules/render-markdown.nvim"]
+	path = modules/render-markdown.nvim
+	url = https://github.com/meanderingprogrammer/render-markdown.nvim
