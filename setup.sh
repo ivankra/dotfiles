@@ -15,10 +15,10 @@ Except for GUI tasks - run gui-setup.sh under GUI afterwards.
 Idempotent, can be rerun multiple times.
 
 Options:
-  --theme=<name>, --theme <name>
-              Switch ~/.config/theme to themes/<name>/.
-              Available: ${themes[*]##*/}
-  -h, --help  Show this help and exit.
+  --theme=<name>  Switch ~/.config/theme to themes/<name>/
+  -h, --help      Show this help and exit
+
+Available themes: ${themes[*]##*/}
 EOF
 }
 

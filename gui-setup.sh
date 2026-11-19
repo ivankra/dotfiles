@@ -1,9 +1,28 @@
 #!/bin/bash
-# Usage: gui-setup.sh [--dark|--light] [--hi-dpi|--low-dpi]
+# Usage: gui-setup.sh [--dark|--light] [--hi-dpi|--low-dpi] [--theme=<name>]
 # Defaults to a light theme on a hi-dpi display
 
 # Initialization and flags {{{
 set -e -o pipefail
+
+usage() {
+  local themes=("$(dirname "$0")"/themes/*/)
+  themes=("${themes[@]%/}")
+  cat <<EOF
+Usage: ${0##*/} [--dark|--light] [--hi-dpi|--low-dpi] [--theme=<name>]
+
+Sets up the GUI desktop for the current user. Run under GUI after setup.sh.
+Idempotent, can be rerun multiple times.
+
+Options:
+  --dark, --light      Desktop color scheme (default: light)
+  --hi-dpi, --low-dpi  Display scaling (default: hi-dpi)
+  --theme=<name>       Switch to and apply themes/<name>/
+  -h, --help           Show this help and exit
+
+Available themes: ${themes[*]##*/}
+EOF
+}
 
 # Everything below configures a Linux desktop (and needs bash 4+, while macOS
 # ships 3.2), so there is nothing to do on macOS.
@@ -17,15 +36,22 @@ SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 
 HIDPI=${HIDPI:-}
 DARK_THEME=${DARK_THEME:-}
+THEME=
 
 while [[ $# -gt 0 ]]; do
-  key="$1"
   case "$1" in
+    -h|--help) usage; exit 0;;
     --hi-dpi)  HIDPI=1;;
     --low-dpi) HIDPI=0;;
     --dark)    DARK_THEME=1;;
     --light)   DARK_THEME=0;;
-    *)         echo "Unknown parameter: $1"; exit 1;;
+    --theme=*) THEME="${1#--theme=}";;
+    --theme)
+      if [[ $# -lt 2 || "$2" == -* ]]; then
+        echo "Error: --theme requires a theme name"; exit 1
+      fi
+      THEME="$2"; shift;;
+    *)         echo "Unknown parameter: $1"; echo "Try '${0##*/} --help'."; exit 1;;
   esac
   shift
 done
@@ -35,7 +61,8 @@ if [[ $UID == 0 ]]; then
   # Check if we can infer target user from script's path and if so, run under it.
   SCRIPT_USER=$(stat -c %U "$SCRIPT_PATH")
   if [[ "$SCRIPT_PATH" == "/home/$SCRIPT_USER/"* ]]; then
-    (set -x; sudo -u "$SCRIPT_USER" --preserve-env=HIDPI,DARK_THEME "$SCRIPT_PATH" "$@")
+    # Flags were consumed above: HIDPI/DARK_THEME pass via env, theme explicitly
+    (set -x; sudo -u "$SCRIPT_USER" --preserve-env=HIDPI,DARK_THEME "$SCRIPT_PATH" ${THEME:+--theme="$THEME"})
     exit $?
   fi
   echo "Refusing to run under root" 2>&1
@@ -44,6 +71,21 @@ fi
 
 cd "$SCRIPT_DIR"
 mkdir -p ~/.config
+
+# Same checks as setup.sh --theme
+if [[ -n "$THEME" ]]; then
+  if ! [[ "$THEME" =~ ^[a-z0-9][a-z0-9_.-]*$ && -d "themes/$THEME" ]]; then
+    themes=(themes/*/)
+    themes=("${themes[@]#themes/}")
+    echo "Error: unknown theme '$THEME', available: ${themes[*]%/}"
+    exit 1
+  fi
+  # The theme's setup.sh silently skips relinking a non-symlink
+  if [[ -e ~/.config/theme && ! -L ~/.config/theme ]]; then
+    echo "Error: ~/.config/theme is not a symlink, move it away to use --theme"
+    exit 1
+  fi
+fi
 # }}}
 # Helpers {{{
 
@@ -741,7 +783,10 @@ done
 # }}}
 # Theme setup {{{
 
-if [[ -x ~/.config/theme/setup.sh ]]; then
+# A theme's setup.sh points ~/.config/theme at itself, then applies the theme
+if [[ -n "$THEME" ]]; then
+  "themes/$THEME/setup.sh"
+elif [[ -x ~/.config/theme/setup.sh ]]; then
   ~/.config/theme/setup.sh
 fi
 

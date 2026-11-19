@@ -39,4 +39,10 @@ licenses: $(addsuffix /LICENSE,$(THEMES))
 	mv "$$tmp" "$@"; \
 	echo "Generated $@"
 
-.PHONY: lint licenses
+# Switch to a theme: make setup-<theme>
+SETUP_TARGETS = $(addprefix setup-,$(THEMES))
+
+$(SETUP_TARGETS): setup-%:
+	./$*/setup.sh
+
+.PHONY: lint licenses $(SETUP_TARGETS)
