@@ -237,6 +237,42 @@ return {
     },
   },
 
+  -- Render markdown in-buffer (headings, lists, code blocks, tables, etc.)
+  -- Uses the markdown/markdown_inline treesitter parsers bundled with nvim 0.10+.
+  -- Rendering is enabled by default and hidden on the cursor line.
+  --   :RenderMarkdown toggle
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    dev = true,
+    ft = { "markdown", "norg", "rmd", "org", "codecompanion" },
+    dependencies = { vim.g.icons_provider },
+    keys = {
+      { "<leader>um", "<cmd>RenderMarkdown toggle<cr>", desc = "Toggle Markdown Render" },
+    },
+    opts = {
+      file_types = { "markdown", "norg", "rmd", "org", "codecompanion" },
+      -- No heading icons, no sign column icons
+      heading = {
+        sign = false,
+        icons = {},
+      },
+      -- Checkboxes left as plain text
+      checkbox = { enabled = false },
+      -- Block-width code blocks with language tab
+      code = {
+        sign = false,
+        width = 'block',
+        right_pad = 1,
+        min_width = 80,
+        disable_background = false,
+        language_border = ' ',
+        language_left = '',
+        language_right = '',
+      },
+      pipe_table = { style = 'normal' },
+    },
+  },
+
   -- Dependencies
   { "nvim-lua/plenary.nvim", dev = true, lazy = true },
   { "MunifTanjim/nui.nvim", dev = true, lazy = true },
