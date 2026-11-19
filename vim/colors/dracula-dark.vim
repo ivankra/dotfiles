@@ -1,4 +1,4 @@
-" Dracula variant: background #22212c, foreground #ffffff, lighter comments.
+" Dracula variant: background #21222c, foreground #ffffff, lighter comments.
 " Overlay on top of dracula/vim (third_party/dracula.vim), in the style of its
 " colors/alucard.vim: override the palette, build the theme with
 " dracula_base.vim, then override a few highlight groups.
@@ -6,8 +6,8 @@
 runtime autoload/dracula.vim
 
 let g:dracula#palette.fg       = ['#FFFFFF', 253]  " Original: #F8F8F2
-let g:dracula#palette.bg       = ['#22212C', 236]  " Original: #282A36, Dracula Pro: #22212C
-let g:dracula#palette.bgdark   = ['#22212C', 235]  " Original: #21222C
+let g:dracula#palette.bg       = ['#21222C', 236]  " Original: #282A36; this is upstream's bgdark
+let g:dracula#palette.bgdark   = ['#21222C', 235]  " Same as upstream
 let g:dracula#palette.bgdarker = ['#000000', 234]  " Original: #191A21
 
 if !exists('g:dracula_italic')
@@ -43,6 +43,9 @@ call s:h('LineNr', ['#414D71', 61])
 call s:h('NonText', ['#4C4F5D', 238])  " listchars
 hi! link CursorLineNr DraculaFg
 call s:h('TabLineSel', g:dracula#palette.bg, s:comment)
+" ColorColumn links to DraculaBgDark, which equals bg here, so it's invisible.
+" Also used for render-markdown.nvim code block backgrounds.
+call s:h('ColorColumn', ['NONE', 'NONE'], ['#15151D', 234])
 
 if has('nvim')
   highlight! NvimTreeSpecialFile gui=bold,underline

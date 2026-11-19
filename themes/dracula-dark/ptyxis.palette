@@ -1,6 +1,6 @@
 # Dracula with local tweaks
 # From https://gitlab.gnome.org/chergert/ptyxis/-/blob/50.1/src/palettes/dracula.palette
-# Tweaks: Name, [Dark] Background #22212c, Foreground and Cursor #ffffff
+# Tweaks: Name, [Dark] Background #21222c, Foreground and Cursor #ffffff
 
 [Palette]
 Name=Dracula Dark
@@ -29,7 +29,7 @@ Color15=#595959
 
 [Dark]
 Foreground=#ffffff
-Background=#22212c
+Background=#21222c
 Cursor=#ffffff
 Color0=#21222c
 Color1=#ff5555
