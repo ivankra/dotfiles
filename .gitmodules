@@ -122,3 +122,6 @@
 	path = modules/render-markdown.nvim
 	url = https://github.com/meanderingprogrammer/render-markdown.nvim
 	ignore = untracked
+[submodule "modules/x11docker"]
+	path = modules/x11docker
+	url = https://github.com/mviereck/x11docker.git
