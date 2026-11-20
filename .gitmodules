@@ -22,14 +22,6 @@
 	path = modules/guess-indent.nvim
 	url = https://github.com/NMAC427/guess-indent.nvim.git
 	ignore = untracked
-[submodule "modules/indent-o-matic"]
-	path = modules/indent-o-matic
-	url = https://github.com/Darazaki/indent-o-matic.git
-	ignore = untracked
-[submodule "modules/Comment.nvim"]
-	path = modules/Comment.nvim
-	url = https://github.com/numToStr/Comment.nvim.git
-	ignore = untracked
 [submodule "modules/oil.nvim"]
 	path = modules/oil.nvim
 	url = https://github.com/stevearc/oil.nvim.git
@@ -81,14 +73,6 @@
 [submodule "modules/todo-comments.nvim"]
 	path = modules/todo-comments.nvim
 	url = https://github.com/folke/todo-comments.nvim.git
-	ignore = untracked
-[submodule "modules/nui.nvim"]
-	path = modules/nui.nvim
-	url = https://github.com/MunifTanjim/nui.nvim.git
-	ignore = untracked
-[submodule "modules/neo-tree.nvim"]
-	path = modules/neo-tree.nvim
-	url = https://github.com/nvim-neo-tree/neo-tree.nvim.git
 	ignore = untracked
 [submodule "modules/nvim-colorizer.lua"]
 	path = modules/nvim-colorizer.lua
