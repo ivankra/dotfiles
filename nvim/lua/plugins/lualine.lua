@@ -30,41 +30,46 @@ local function format_hl(component, text, hl_group)
   return component:format_hl(lualine_hl_group) .. text .. component:get_default_hl()
 end
 
+-- Bold text in the section's own colors. Not via format_hl(..., "Bold"):
+-- only some colorschemes define a `Bold` group (not gruvbox/sonokai/dracula).
+local function format_bold(component, text)
+  text = text:gsub("%%", "%%%%")
+  -- No fg/bg given, so lualine fills them in from the theme for each mode
+  component.bold_hl = component.bold_hl or component:create_hl({ gui = "bold" }, "LV_Bold")
+  return component:format_hl(component.bold_hl) .. text .. component:get_default_hl()
+end
+
 local function ll_pretty_path()
   return function(self)
-    local path = vim.fn.expand("%:p")
+    -- Relative to cwd if under it, else relative to ~ if under it, else absolute
+    local path = vim.fn.expand("%:p:~:.")
     if path == "" then
       return ""
-    end
-
-    -- Make path relative to cwd
-    local cwd = vim.fn.getcwd()
-    if path:find(cwd, 1, true) == 1 then
-      path = path:sub(#cwd + 2)
     end
 
     local sep = package.config:sub(1, 1)
     local parts = vim.split(path, "[\\/]")
 
-    -- Shorten path with ellipsis if needed (show first + last 3)
+    -- Shorten path with ellipsis if needed (show first + … + last 2)
     local max_parts = 3
     if #parts > max_parts then
       parts = { parts[1], "…", unpack(parts, #parts - max_parts + 2, #parts) }
     end
 
-    -- Format filename with bold highlighting
+    -- Format filename with bold highlighting.
+    -- Modified buffers are shown by color only (MatchParen), no extra marker.
     if vim.bo.modified then
-      parts[#parts] = parts[#parts] .. ""
       parts[#parts] = format_hl(self, parts[#parts], "MatchParen")
     else
-      parts[#parts] = format_hl(self, parts[#parts], "Bold")
+      parts[#parts] = format_bold(self, parts[#parts])
     end
 
     -- Format directory
     local dir = ""
     if #parts > 1 then
       dir = table.concat({ unpack(parts, 1, #parts - 1) }, sep)
-      dir = dir .. sep
+      -- Escape % for the statusline (the filename is escaped by format_*)
+      dir = dir:gsub("%%", "%%%%") .. sep
     end
 
     -- Add readonly indicator
@@ -131,7 +136,7 @@ local function ll_hex_char()
 end
 
 local function ll_encoding()
-  local enc = vim.bo.fenc or vim.o.encoding
+  local enc = vim.bo.fenc ~= "" and vim.bo.fenc or vim.o.encoding
   local ff = vim.bo.fileformat
   local ff_icon = { unix = "", dos = "  ", mac = "  " }
   return string.format("%s%s", enc, ff_icon[ff] or ff)

@@ -1,3 +1,33 @@
+local markdown_fts = { "markdown", "norg", "rmd", "org", "codecompanion" }
+
+-- Close the buffers left of / right of / other than the current one in
+-- bufferline order, via a single :Bd so that Cancel on one Save prompt stops
+-- the rest too. Bufferline's own BufferLineClose* run close_command once per
+-- buffer, so Cancel would only skip that one buffer.
+---@param which "left"|"right"|"others"
+local function close_buffers(which)
+  local elements = require("bufferline").get_elements().elements
+  local current = vim.api.nvim_get_current_buf()
+  local index
+  for i, element in ipairs(elements) do
+    if element.id == current then
+      index = i
+    end
+  end
+  if not index then
+    return
+  end
+  local ids = {}
+  for i, element in ipairs(elements) do
+    if (which == "left" and i < index) or (which == "right" and i > index) or (which == "others" and i ~= index) then
+      table.insert(ids, element.id)
+    end
+  end
+  if #ids > 0 then
+    vim.cmd("Bd " .. table.concat(ids, " "))
+  end
+end
+
 return {
   -- Icons. Requires Nerd patched font.
   {
@@ -21,6 +51,11 @@ return {
     opts = {
       options = {
         always_show_bufferline = false,  -- hide if only one buffer
+        -- Default is "bdelete! %d", which silently discards unsaved changes.
+        -- :Bd (mini.bufremove spec below) asks Save/No/Cancel like :q and keeps
+        -- the window layout.
+        close_command = "Bd %d",
+        right_mouse_command = "Bd %d",
         separator_style = "slant",
         offsets = {
           {
@@ -42,9 +77,9 @@ return {
       { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
       { "<S-PageUp>", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev buffer" },
       { "<S-PageDown>", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
-      { "<leader>bl", "<cmd>BufferLineCloseLeft<cr>", desc = "Delete buffers to the Left" },
-      { "<leader>bo", "<cmd>BufferLineCloseOthers<cr>", desc = "Delete Other buffers" },
-      { "<leader>br", "<cmd>BufferLineCloseRight<cr>", desc = "Delete buffers to the Right" },
+      { "<leader>bl", function() close_buffers("left") end, desc = "Delete buffers to the Left" },
+      { "<leader>bo", function() close_buffers("others") end, desc = "Delete Other buffers" },
+      { "<leader>br", function() close_buffers("right") end, desc = "Delete buffers to the Right" },
       -- Alt+N to switch to buffer N (vscode-like keymaps)
       { "<A-1>", "<cmd>BufferLineGoToBuffer 1<cr>", desc = "Go to buffer 1" },
       { "<A-2>", "<cmd>BufferLineGoToBuffer 2<cr>", desc = "Go to buffer 2" },
@@ -70,14 +105,27 @@ return {
     },
     opts = {},
     config = function(_, opts)
-      require("mini.bufremove").setup(opts)
+      local bufremove = require("mini.bufremove")
+      bufremove.setup(opts)
+
+      -- Like :bd: no args = current buffer, else buffer numbers and/or names
+      -- (escape spaces in names with a backslash, as for :bd)
       vim.api.nvim_create_user_command("Bd", function(cmd_opts)
-        require("mini.bufremove").delete(0, cmd_opts.bang)
-      end, { bang = true, desc = "Delete buffer via mini.bufremove" })
+        local bufs = {}
+        for _, arg in ipairs(#cmd_opts.fargs > 0 and cmd_opts.fargs or { "%" }) do
+          local buf = arg:match("^%d+$") and tonumber(arg) or vim.fn.bufnr(arg)
+          if buf > 0 and vim.api.nvim_buf_is_valid(buf) then
+            table.insert(bufs, buf)
+          else
+            vim.notify("E94: No matching buffer for " .. arg, vim.log.levels.ERROR)
+          end
+        end
+        bufremove.delete(bufs, cmd_opts.bang)
+      end, { bang = true, nargs = "*", complete = "buffer", desc = "Delete buffer via mini.bufremove" })
     end,
     init = function()
+      -- Also covers `bd!`: typing `!` already expands `bd` to `Bd`
       vim.cmd([[cabbr <expr> bd (getcmdtype() == ':' && getcmdline() ==# 'bd') ? 'Bd' : 'bd']])
-      vim.cmd([[cabbr <expr> bd! (getcmdtype() == ':' && getcmdline() ==# 'bd!') ? 'Bd!' : 'bd!']])
     end,
   },
 
@@ -85,6 +133,11 @@ return {
   {
     "stevearc/oil.nvim",
     dev = true,
+    -- Not lazy: oil replaces netrw for `nvim <dir>`, so it must load at startup
+    lazy = false,
+    keys = {
+      { "-", "<cmd>Oil<cr>", desc = "Open parent directory (oil)" },
+    },
     opts = {
       columns = { "icon", "permissions", "size", "mtime" },
     }
@@ -126,7 +179,7 @@ return {
       }
     },
     keys = {
-      { "<leader>?", ":WhichKey<CR>" },
+      { "<leader>?", "<cmd>WhichKey<cr>", desc = "Show all keymaps" },
     }
   },
 
@@ -187,10 +240,9 @@ return {
         end, "Prev Hunk")
         map("n", "]H", function() gs.nav_hunk("last") end, "Last Hunk")
         map("n", "[H", function() gs.nav_hunk("first") end, "First Hunk")
-        map({ "n", "x" }, "<leader>ghs", ":Gitsigns stage_hunk<CR>", "Stage Hunk")
+        map({ "n", "x" }, "<leader>ghs", ":Gitsigns stage_hunk<CR>", "Stage/Unstage Hunk")
         map({ "n", "x" }, "<leader>ghr", ":Gitsigns reset_hunk<CR>", "Reset Hunk")
         map("n", "<leader>ghS", gs.stage_buffer, "Stage Buffer")
-        map("n", "<leader>ghu", gs.undo_stage_hunk, "Undo Stage Hunk")
         map("n", "<leader>ghR", gs.reset_buffer, "Reset Buffer")
         map("n", "<leader>ghp", gs.preview_hunk_inline, "Preview Hunk Inline")
         map("n", "<leader>ghb", function() gs.blame_line({ full = true }) end, "Blame Line")
@@ -244,13 +296,13 @@ return {
   {
     "MeanderingProgrammer/render-markdown.nvim",
     dev = true,
-    ft = { "markdown", "norg", "rmd", "org", "codecompanion" },
+    ft = markdown_fts,
     dependencies = { vim.g.icons_provider },
     keys = {
       { "<leader>um", "<cmd>RenderMarkdown toggle<cr>", desc = "Toggle Markdown Render" },
     },
     opts = {
-      file_types = { "markdown", "norg", "rmd", "org", "codecompanion" },
+      file_types = markdown_fts,
       -- No heading icons, no sign column icons
       heading = {
         sign = false,
@@ -275,5 +327,4 @@ return {
 
   -- Dependencies
   { "nvim-lua/plenary.nvim", dev = true, lazy = true },
-  { "MunifTanjim/nui.nvim", dev = true, lazy = true },
 }

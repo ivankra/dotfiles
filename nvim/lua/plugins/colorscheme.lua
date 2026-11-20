@@ -1,4 +1,7 @@
--- lazy.nvim loads colorscheme plugins on demand when :colorscheme is run
+-- lazy.nvim loads a not-yet-loaded colorscheme plugin when :colorscheme is run,
+-- so the current theme (below) works at startup. The others still load at
+-- VeryLazy, right after startup: until then they're missing from
+-- :colorscheme <Tab> completion.
 local theme_file = vim.fn.expand("~/.config/theme/nvim.lua")
 
 return {
@@ -19,7 +22,7 @@ return {
   {
     "folke/tokyonight.nvim",
     dev = true,
-    -- priority = 1000,
+    event = "VeryLazy",
     config = function()
       require("tokyonight").setup {
         style = "moon",

@@ -23,7 +23,7 @@ function! s:gotoline()
       " If the stripped path is directly readable (no :line), open it now
       if filereadable(file) && !filereadable(bufname("%"))
         let l:bufn = bufnr("%")
-        exec ":e " . file
+        exec "edit " . fnameescape(file)
         exec ":bdelete " . l:bufn
         return
       endif
@@ -58,7 +58,7 @@ function! s:gotoline()
 
   if len(newfile) > 0
     let l:bufn = bufnr("%")
-    exec ":e " . newfile
+    exec "edit " . fnameescape(newfile)
     if len(col) > 0
       call cursor(row, col)
     else

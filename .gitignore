@@ -7,3 +7,5 @@ jupyter/jupyter_notebook_config.json
 jupyter/migrated
 jupyter/token
 setup.vars
+# :helptags output (lazy.nvim runs it on plugin install/update)
+**/doc/tags

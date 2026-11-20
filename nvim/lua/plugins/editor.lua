@@ -1,3 +1,14 @@
+-- nvim-colorizer.lua options for CSS-like filetypes. They're merged over the
+-- global `options` (which disable names and #RGB/#RGBA), and per-filetype
+-- presets don't expand hex sub-options, so list every hex form wanted here.
+-- (colorizer deep-copies each entry, so sharing one table is fine.)
+local css_colors = {
+  parsers = {
+    css = true,
+    hex = { rgb = true, rgba = true, rrggbb = true, rrggbbaa = true },
+  },
+}
+
 return {
   -- Autodetect indent
   {
@@ -13,41 +24,6 @@ return {
         shiftwidth = "detected",
       },
     }
-  },
-
-  -- Comment.nvim: toggle line/block comments
-  -- Normal: `gcc` / `gbc` to toggle line/block comment, can prefix with number of lines
-  -- Visual: `gc` / `gb` to toggle line/block comment
-  -- Ctrl+/: toggle line comments (VS Code style binding)
-  -- Note: Shift+Alt+A for block comments can't be reliable captured.
-  {
-    "numToStr/Comment.nvim",
-    dev = true,
-    event = "VeryLazy",
-    config = function()
-      require("Comment").setup()
-
-      local function toggle_current_line()
-        require("Comment.api").toggle.linewise.current()
-      end
-
-      local function toggle_linewise_visual()
-        local esc = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
-        vim.api.nvim_feedkeys(esc, "nx", false)
-        require("Comment.api").toggle.linewise(vim.fn.visualmode())
-      end
-
-      vim.keymap.set("n", "<C-/>", toggle_current_line)
-      vim.keymap.set("i", "<C-/>", toggle_current_line)
-      vim.keymap.set("v", "<C-/>", toggle_linewise_visual)
-
-      -- CLI terminals usually send <C-_> on Ctrl+/
-      if not vim.g.GuiLoaded then
-        vim.keymap.set("n", "<C-_>", toggle_current_line)
-        vim.keymap.set("i", "<C-_>", toggle_current_line)
-        vim.keymap.set("v", "<C-_>", toggle_linewise_visual)
-      end
-    end
   },
 
   -- Highlight TODO/FIXME/etc keywords in comments
@@ -68,9 +44,26 @@ return {
   {
     "catgoose/nvim-colorizer.lua",
     dev = true,
-    event = "BufReadPre",
-    config = function()
-      require("colorizer").setup()
-    end
+    event = { "BufReadPre", "BufNewFile" },
+    opts = {
+      filetypes = {
+        "*",
+        -- Full CSS color syntax (names, all hex forms, rgb()/hsl()/oklch(),
+        -- var()) only where it's really CSS.
+        css = css_colors,
+        scss = css_colors,
+        sass = css_colors,
+        less = css_colors,
+        html = css_colors,
+      },
+      -- Everywhere else: only #RRGGBB. Defaults also color plain words
+      -- ("red", "white", "tan") and #RGB/#RGBA (#123 issue refs, #fed, #bad).
+      options = {
+        parsers = {
+          names = { enable = false },
+          hex = { rgb = false, rgba = false },
+        },
+      },
+    },
   },
 }

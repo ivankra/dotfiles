@@ -24,7 +24,6 @@ set wildoptions=pum                     " Show a popup menu for autocompletions
 
 " Default indent options. Will get adjusted by vim-sleuth.
 set autoindent                          " Basic autoindent
-set smartindent                         " C-like indent (between autoindent and cindent)
 set expandtab                           " Expand tabs
 set softtabstop=-1                      " Use shiftwidth value
 set shiftwidth=2                        " 2 space indent

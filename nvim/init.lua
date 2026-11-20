@@ -1,5 +1,13 @@
-vim.opt.clipboard = "unnamedplus"       -- Yank/paste using X11 clipboard
-vim.opt.confirm = true                  -- Confirm to save when closing a modified buffer instead of error
+-- vim.uv is 0.10+, older nvim only has vim.loop (same libuv module). Lua code
+-- loaded later can use vim.uv everywhere. lazy.nvim sets this too, but only
+-- once required, and code below runs before that.
+vim.uv = vim.uv or vim.loop
+
+-- Yank/paste using X11 clipboard. Not over SSH: there nvim falls back to OSC 52,
+-- and every paste would ask the terminal for its clipboard (usually refused
+-- or slow). "+y still copies to the local clipboard via OSC 52.
+vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
+vim.opt.confirm = true                 -- Confirm to save when closing a modified buffer instead of error
 vim.opt.cursorline = true               -- Highlight current line
 vim.opt.fillchars = { eob = " " }       -- Don't show ~ for non-existing lines in a buffer
 vim.opt.foldmethod = "marker"           -- Default folding method: {{{ and }}} markers
@@ -14,14 +22,14 @@ vim.opt.smartcase = true                -- Case-sensitive search if pattern cont
 vim.opt.splitbelow = true               -- Put new split window below
 vim.opt.splitright = true               -- Put new vertically split window to the right
 vim.opt.termguicolors = true            -- Enable 24-bit color in terminal
+vim.opt.timeoutlen = 300                -- Wait for mapped sequences (default 1000), shorter in terminal mode below
 vim.opt.undofile = true                 -- Persistent undo history
-vim.opt.virtualedit = "block"           -- Allow cursor to move nd end-of-line in block selection mode
+vim.opt.virtualedit = "block"           -- Allow cursor to move past end-of-line in block selection mode
 vim.opt.wildmode = "longest:full,full"  -- Completion mode like readline's show-all-if-ambiguous
 
 -- Default indent options. Will get adjusted by guess-indent.nvim.
 vim.opt.expandtab = true                -- Expand tabs
 vim.opt.shiftwidth = 2                  -- 2 space indent
-vim.opt.smartindent = true              -- C-like indent (between autoindent and cindent)
 vim.opt.softtabstop = -1                -- Use shiftwidth value
 
 -- Status column
@@ -29,7 +37,10 @@ vim.opt.number = true                   -- Show line numbers
 vim.opt.numberwidth = 3
 vim.opt.signcolumn = "yes"              -- Always show sign column
 vim.g.gitsigns_signcolumn = true        -- gitsigns's signcolumn via lua/plugins/init.lua
-vim.opt.statuscolumn = "%3l%s"
+-- 'statuscolumn' is 0.9+, and %l only follows 'number'/'relativenumber' since 0.10
+if vim.fn.has("nvim-0.10") == 1 then
+  vim.opt.statuscolumn = "%3l%s"
+end
 
 -- Wrapping
 vim.opt.wrap = false                    --  No line wrapping by default
@@ -49,7 +60,7 @@ vim.opt.breakindent = true              --  Continue original indentation on wra
 -- Initial GUI font. Set here rather than in ginit.vim to reduce flicker at startup.
 -- Must be a single existing font: nvim-qt pre-0.2.20 doesn't support fallback
 -- fonts and would report unknown fonts as an error with 1s freeze.
-if vim.loop.fs_stat("/usr/share/fonts/truetype/iosevka/IosevkaNerdFont-Medium.ttf") then
+if vim.uv.fs_stat("/usr/share/fonts/truetype/iosevka/IosevkaNerdFont-Medium.ttf") then
   vim.o.guifont = "Iosevka NFM:h12"
 else
   vim.o.guifont = "Monospace:h12"
@@ -78,10 +89,69 @@ vim.keymap.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to other buff
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 vim.keymap.set("n", "<leader>cd", ":cd %:p:h<CR>", { desc = "Change to current file's directory" })
-vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], { desc = "Exit terminal mode" })
+
+-- Comments: built-in `gcc` (line, takes a count) and `gc{motion}` / visual `gc` (0.10+).
+-- Ctrl+/ toggles line comments (VS Code style binding).
+-- Cursor column shift for text after the indentation when gcc turned line
+-- `before` into `after`: the width of the opening marker that was added (+)
+-- or removed (-). Not the whole length change: a closing marker (HTML's
+-- ` -->`) goes after the cursor.
+local function comment_cursor_shift(before, after, indent, commentstring)
+  local long, short, sign = after, before, 1
+  if #after < #before then
+    long, short, sign = before, after, -1
+  elseif #after == #before then
+    return 0
+  end
+  local text = short:sub(indent + 1)
+  -- gcc inserts commentstring's parts as they are: indent .. left .. text .. right
+  local left, right = commentstring:match("^(.-)%%s(.-)$")
+  if left then
+    if text == "" then
+      return sign * #left:match("^%s*(.-)%s*$")  -- blank line: unpadded marker
+    elseif long == short:sub(1, indent) .. left .. text .. right then
+      return sign * #left
+    end
+  end
+  -- Otherwise (treesitter-injected language with its own commentstring, like
+  -- JS inside HTML; a marker removed without its padding): where the text
+  -- starts, after a non-empty marker
+  local s = long:find(text, indent + 2, true)
+  return s and sign * (s - 1 - indent) or 0
+end
+-- In insert mode, keep typing where you were: gcc moves the cursor to column 0
+local function toggle_comment_insert()
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  local before = vim.api.nvim_get_current_line()
+  local indent = (before:find("%S") or 1) - 1  -- where the comment marker goes
+  vim.cmd.normal("gcc")
+  if col >= indent then
+    local after = vim.api.nvim_get_current_line()
+    -- Not back into the indentation (cursor was inside a removed marker)
+    col = math.max(indent, col + comment_cursor_shift(before, after, indent, vim.bo.commentstring))
+  end
+  vim.api.nvim_win_set_cursor(0, { row, col })
+end
+local function map_comment_key(key)
+  vim.keymap.set("n", key, "gcc", { remap = true, desc = "Toggle comment" })
+  vim.keymap.set("x", key, "gc", { remap = true, desc = "Toggle comment" })
+  vim.keymap.set("i", key, toggle_comment_insert, { desc = "Toggle comment" })
+end
+map_comment_key("<C-/>")
+-- CLI terminals usually send <C-_> on Ctrl+/. In GUIs it's Ctrl+- (font size,
+-- see vscode.vim). GUIs aren't known yet while init.lua runs (g:GuiLoaded is
+-- set after attaching), so decide on UIEnter, like vscode.vim's SetupGui().
+vim.api.nvim_create_autocmd("UIEnter", {
+  once = true,
+  callback = function()
+    if vim.fn.has("gui_running") == 0 and not vim.g.GuiLoaded then
+      map_comment_key("<C-_>")
+    end
+  end,
+})
 
 -- Typing %%/ in command mode expands to current file's directory
-vim.cmd([[cabbr <expr> %% expand('%:p:h')]])
+vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? expand('%:p:h') : '%%']])
 
 -- Start terminals in insert mode and define buffer-local keybindings
 vim.api.nvim_create_autocmd("TermOpen", {
@@ -93,23 +163,44 @@ vim.api.nvim_create_autocmd("TermOpen", {
     vim.keymap.set("n", "<CR>", "i", { buffer = ev.buf, silent = true, noremap = true })
   end,
 })
+-- Because of <Esc><Esc>, a single Esc reaches the terminal app only after
+-- 'timeoutlen'. Shorten it in terminal mode so Esc-heavy apps (vi-mode shell,
+-- fzf, lazygit) don't lag; double-tapping within 150ms still works.
+local term_timeoutlen = 150
+local saved_timeoutlen
+vim.api.nvim_create_autocmd("ModeChanged", {
+  group = vim.api.nvim_create_augroup("TermTimeoutlen", { clear = true }),
+  pattern = { "*:t", "t:*" },
+  callback = function()
+    if vim.v.event.new_mode == "t" then
+      saved_timeoutlen = saved_timeoutlen or vim.o.timeoutlen
+      vim.o.timeoutlen = term_timeoutlen
+    elseif saved_timeoutlen then
+      vim.o.timeoutlen = saved_timeoutlen
+      saved_timeoutlen = nil
+    end
+  end,
+})
 
 -- More aggressive autoread
 -- Maybe also set `set -g focus-events on` in tmux
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave" }, {
   group = vim.api.nvim_create_augroup("AutoReadCheck", { clear = true }),
-  callback = function()
+  callback = function(ev)
     if vim.o.buftype ~= "nofile" then
       vim.cmd("checktime")
     end
 
-    -- Refresh nvim-tree if it's open
+    -- Refresh nvim-tree if it's open. Only on focus: while in nvim, its
+    -- filesystem watchers already keep it up to date.
     local tree_api = package.loaded["nvim-tree.api"]
-    if tree_api and tree_api.tree and tree_api.tree.is_visible and tree_api.tree.reload then
-      local ok_visible, is_visible = pcall(tree_api.tree.is_visible)
-      if ok_visible and is_visible then
-        pcall(tree_api.tree.reload)
-      end
+    if ev.event == "FocusGained" and tree_api then
+      -- pcall around the lookups too, in case the API isn't fully there
+      pcall(function()
+        if tree_api.tree.is_visible() then
+          tree_api.tree.reload()
+        end
+      end)
     end
   end,
 })
@@ -118,27 +209,23 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("HighlightYank", { clear = true }),
   callback = function()
-    (vim.hl or vim.highlight).on_yank()
+    -- 0.13 replaces on_yank() with hl_op(); vim.hl is 0.11+, vim.highlight older
+    if vim.fn.has("nvim-0.13") == 1 then
+      vim.hl.hl_op()
+    else
+      (vim.hl or vim.highlight).on_yank()
+    end
   end,
 })
 
-local function in_container()
-  if (vim.env.container ~= nil or
-      vim.loop.fs_stat("/run/.containerenv") or
-      vim.loop.fs_stat("/.dockerenv")) then
-    return true
-  else
-    return false
-  end
-end
-
-vim.g.in_container = in_container()
+vim.g.in_container = vim.env.container ~= nil
+  or vim.uv.fs_stat("/run/.containerenv") ~= nil
+  or vim.uv.fs_stat("/.dockerenv") ~= nil
 vim.g.icons_provider = "nvim-mini/mini.icons"
 -- vim.g.icons_provider = "nvim-tree/nvim-web-devicons"
 
--- lazy.nvim requires 0.8+
-local version = vim.version()
-if version.major == 0 and version.minor < 8 then
+-- lazy.nvim requires 0.8+ (skip quietly instead of its error notification)
+if vim.fn.has("nvim-0.8") == 0 then
   return
 end
 
@@ -154,7 +241,6 @@ require("lazy").setup({
   change_detection = { enabled = false },
   pkg = { enabled = false },
   rocks = { enabled = false },
-  doc = { generate = false },
   -- lockfile = vim.fn.stdpath("data") .. "/path/to/your/custom-lazy-lock.json",
 
   performance = {
@@ -176,5 +262,5 @@ require("lazy").setup({
 -- chmod.vim: chmod a+x new files with a shebang
 -- fileline.vim: interpret 'filename[:line[:col]]' filenames
 -- projectionist.vim: vim-projectionist config
--- vscode.vim: vscode-like key bindinds
+-- vscode.vim: vscode-like key bindings
 -- ui.vim: UI toggles (<leader>u*)

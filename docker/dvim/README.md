@@ -9,7 +9,6 @@ pointing at `run.sh`. Each one loads a different plugin set:
   * `dvim`: IDE-like setup (treesitter, mason, lspconfig, conform, blink.cmp, gitsigns)
   * `dvim-neorg`: [neorg](https://github.com/nvim-neorg/neorg)
   * `dvim-org`: [orgmode](https://github.com/nvim-orgmode/orgmode) + [org-roam](https://github.com/chipsenkbeil/org-roam.nvim)
-  * `dvim-oxide`: [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) LSP
   * `dvim-obsidian`: [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim), with `$PWD` as the vault
 
 Unlike the other images here, dvim is not standalone. It runs the regular

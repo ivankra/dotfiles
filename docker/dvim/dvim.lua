@@ -1,11 +1,11 @@
 -- Dockerized nvim configurations (for lazy.nvim) with extra plugins to experiment with.
--- Automatically sourced via ~/.dotfiles/nvim/lua/plugins/dvia.lua symlink.
+-- Automatically sourced via ~/.dotfiles/nvim/lua/plugins/dvim.lua symlink.
 
 if vim.g.in_container == nil or not vim.g.in_container then
   return {}
 end
 
-local host = vim.loop.os_gethostname()  -- from podman --hostname
+local host = vim.uv.os_gethostname()  -- from podman --hostname
 
 -- Org-inspired outliner PKM, however uses own markup flavor (.norg)
 -- https://github.com/nvim-neorg/neorg (7.2k★)
@@ -36,7 +36,6 @@ elseif host == "dvim-org" then
     {
       'nvim-orgmode/orgmode',
       lazy = false,
-      ft = { 'org' },
       config = function()
         -- Setup orgmode
         require('orgmode').setup({
@@ -62,93 +61,6 @@ elseif host == "dvim-org" then
     }
   }
 
--- Cross-editor PKM implemented as a markdown language server
--- https://github.com/Feel-ix-343/markdown-oxide (1.8k★)
-elseif host == "dvim-oxide" then
-  return {
-    {
-      "neovim/nvim-lspconfig",
-      lazy = false,
-      dependencies = {
-        "hrsh7th/nvim-cmp",
-        "hrsh7th/cmp-nvim-lsp",
-      },
-      config = function()
-        local capabilities = require("cmp_nvim_lsp").default_capabilities(vim.lsp.protocol.make_client_capabilities())
-
-        -- Ensure that dynamicRegistration is enabled! This allows the LS to take into account actions like the
-        -- Create Unresolved File code action, resolving completions for unindexed code blocks, ...
-        capabilities.workspace = {
-          didChangeWatchedFiles = {
-            dynamicRegistration = true,
-          },
-        }
-
-        -- LSP keymaps on attach
-        vim.api.nvim_create_autocmd("LspAttach", {
-          callback = function(ev)
-            local opts = { buffer = ev.buf, silent = true }
-            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-            vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-            vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-            vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-            vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-            vim.keymap.set("n", "[[", vim.lsp.buf.document_symbol, opts)
-
-            -- Refresh codelens on buffer events
-            local client = vim.lsp.get_client_by_id(ev.data.client_id)
-            if client and client.server_capabilities.codeLensProvider then
-              vim.lsp.codelens.refresh()
-              vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave" }, {
-                buffer = ev.buf,
-                callback = vim.lsp.codelens.refresh,
-              })
-            end
-          end,
-        })
-
-        vim.lsp.config("markdown_oxide", {
-          capabilities = capabilities,
-        })
-
-        vim.lsp.enable("markdown_oxide")
-      end,
-    },
-    {
-      "hrsh7th/nvim-cmp",
-      event = "InsertEnter",
-      dependencies = {
-        "hrsh7th/cmp-nvim-lsp",
-        "hrsh7th/cmp-buffer",
-        "hrsh7th/cmp-path",
-      },
-      config = function()
-        local cmp = require("cmp")
-        cmp.setup({
-          sources = cmp.config.sources({
-            {
-              name = "nvim_lsp",
-              option = {
-                markdown_oxide = {
-                  keyword_pattern = [[\(\k\| \|\/\|#\)\+]]
-                }
-              }
-            },
-            { name = "buffer" },
-            { name = "path" },
-          }),
-          mapping = cmp.mapping.preset.insert({
-            ["<C-Space>"] = cmp.mapping.complete(),
-            ["<C-e>"] = cmp.mapping.abort(),
-            ["<CR>"] = cmp.mapping.confirm({ select = true }),
-            ["<C-n>"] = cmp.mapping.select_next_item(),
-            ["<C-p>"] = cmp.mapping.select_prev_item(),
-          }),
-        })
-      end,
-    },
-  }
-
 -- https://github.com/obsidian-nvim/obsidian.nvim (1.4k★)
 elseif host == "dvim-obsidian" then
   vim.opt.conceallevel = 2
@@ -158,7 +70,6 @@ elseif host == "dvim-obsidian" then
       "obsidian-nvim/obsidian.nvim",
       version = "*", -- use latest release, remove to use latest commit
       lazy = false,
-      ft = "markdown",
       ---@module 'obsidian'
       ---@type obsidian.config
       opts = {
@@ -195,15 +106,56 @@ elseif host == "dvim" then
 
   return {
     -- Treesitter: syntax highlighting, indentation, folding
+    -- The main branch is a rewrite: needs nvim 0.11+ and the tree-sitter CLI,
+    -- doesn't support lazy-loading and doesn't enable any feature by itself.
     {
       "nvim-treesitter/nvim-treesitter",
       branch = "main",
+      lazy = false,
       build = ":TSUpdate",
-      event = { "BufReadPost", "BufNewFile" },
       config = function()
-        require("nvim-treesitter").setup({
-          ensure_installed = { "lua", "vim", "vimdoc", "bash", "python", "javascript", "typescript", "json", "yaml", "markdown" },
+        local function setup(buf)
+          -- Errors if there's no parser for this filetype
+          if not pcall(vim.treesitter.start, buf) then
+            return
+          end
+          -- Only with an indents query: without one, nvim-treesitter's
+          -- indentexpr has no rules and flattens indentation. E.g. nvim
+          -- bundles the C parser, but the queries come with install() below.
+          local lang = vim.treesitter.language.get_lang(vim.bo[buf].filetype)
+          local ok, query = pcall(vim.treesitter.query.get, lang, "indents")
+          if ok and query then
+            vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+          local win = vim.fn.bufwinid(buf)
+          if win ~= -1 then
+            vim.wo[win][0].foldmethod = "expr"
+            vim.wo[win][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+            vim.wo[win][0].foldlevel = 99  -- start with all folds open
+          end
+        end
+
+        vim.api.nvim_create_autocmd("FileType", {
+          group = vim.api.nvim_create_augroup("DvimTreesitter", { clear = true }),
+          callback = function(ev) setup(ev.buf) end,
         })
+
+        -- Async, and skips parsers that are already installed. On a fresh
+        -- volume, files opened meanwhile got FileType before their parser or
+        -- queries existed: no highlighting, or (with a parser bundled with
+        -- nvim, e.g. lua) no indents query yet. Set them all up again once
+        -- the install has finished; restarting highlighting is harmless.
+        require("nvim-treesitter").install({
+          "lua", "vim", "vimdoc", "bash", "python", "javascript", "typescript", "json", "yaml", "markdown",
+        }):await(function()
+          vim.schedule(function()
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+              if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= "" then
+                setup(buf)
+              end
+            end
+          end)
+        end)
       end,
     },
 
@@ -230,21 +182,38 @@ elseif host == "dvim" then
       event = { "BufReadPost", "BufNewFile" },
       dependencies = { "mason-org/mason-lspconfig.nvim" },
       config = function()
-        -- LSP keymaps on attach
+        -- LSP keymaps on attach. Built in (0.11+), so not mapped here:
+        --   K hover, grr references, gri implementation, grn rename,
+        --   gra code action, grt type definition (0.12), gO document symbols,
+        --   <C-s> signature help (insert mode).
+        -- A `gr` mapping would make grr/grn/... wait for 'timeoutlen',
+        -- and `gi` would replace "insert where insert mode was last exited".
         vim.api.nvim_create_autocmd("LspAttach", {
           callback = function(ev)
             local opts = { buffer = ev.buf, silent = true }
             vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
             vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-            vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
-            vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
-            vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
             vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
             vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-            vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-            vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
           end,
         })
+
+        -- [d / ]d are built in since 0.11. Show the diagnostic after jumping,
+        -- like the old vim.diagnostic.goto_prev/next did. 0.11 only knows
+        -- jump.float; 0.12 deprecates it in favor of jump.on_jump.
+        if vim.fn.has("nvim-0.12") == 1 then
+          vim.diagnostic.config({
+            jump = {
+              on_jump = function(diagnostic, bufnr)
+                if diagnostic then
+                  vim.diagnostic.open_float({ bufnr = bufnr, scope = "cursor", focus = false })
+                end
+              end,
+            },
+          })
+        else
+          vim.diagnostic.config({ jump = { float = true } })
+        end
 
         vim.lsp.config("lua_ls", {
           settings = {
@@ -302,17 +271,15 @@ elseif host == "dvim" then
         },
       },
     },
-
-    {
-      "lewis6991/gitsigns.nvim",
-      opts = { signcolumn = true },
-    },
   }
 
-  --Unattended install:
+  --Unattended install (:MasonInstall blocks when headless; nvim-treesitter's install() is async, so wait):
   --RUN nvim --headless "+Lazy! sync" "+qa"
-  --RUN nvim --headless "+MasonInstallAll" "+qa"
-  --RUN nvim --headless "+TSInstallSync all" "+qa"
+  --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua black prettier shfmt" "+qa"
+  --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
 elseif host:sub(1, 5) == "dvim-" then
   error("Unknown HOST=" .. host)
 end
+
+-- Some other container (toolbox, distrobox, ...): no extra plugins
+return {}

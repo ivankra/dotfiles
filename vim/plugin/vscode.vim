@@ -21,13 +21,14 @@ endif
 " [Ctrl+Z]: undo (note: overrides suspend/:stop command)
 nnoremap <C-Z> u
 inoremap <C-Z> <C-O>u
-vnoremap <C-Z> u
+" Leave visual mode first: `u` in visual mode lowercases the selection
+xnoremap <C-Z> <Esc>u
 
 " [Ctrl+Y]: redo (note: overrides scroll up motion)
 nnoremap <C-Y> <C-R>
 " Keep <C-Y> as "accept" in the completion popup
 inoremap <expr> <C-Y> pumvisible() ? "\<C-Y>" : "\<C-O>\<C-R>"
-vnoremap <C-Y> <C-R>
+xnoremap <C-Y> <Esc><C-R>
 
 " [Ctrl+X]: cut selection or current line (note: overrides subtract command)
 nnoremap <C-X> "+dd
@@ -141,11 +142,7 @@ xnoremap <silent> <S-Tab> <gv
 " [Ctrl+Backspace]: delete word backward (vscode/readline)
 cnoremap <C-BS> <C-W>
 inoremap <C-BS> <C-W>
-if !has('gui_running') && !exists('g:GuiLoaded')
-  " CLI terminals usually send ^H
-  cnoremap <C-H> <C-W>
-  inoremap <C-H> <C-W>
-endif
+" CLI terminals usually send ^H: mapped in SetupGui()
 
 " [Ctrl+Delete]: delete word forward (vscode/readline)
 nnoremap <C-Del> dw
@@ -215,8 +212,17 @@ function! s:AdjustGuiFont(delta)
   endif
 endfunction
 
+" Keys that depend on GUI vs terminal. In nvim, GUIs aren't known yet while
+" plugins load (g:GuiLoaded is set after attaching), so this runs on UIEnter.
 function! s:SetupGui()
   if !has('gui_running') && !exists('g:GuiLoaded')
+    " Terminals send Ctrl+Shift+F as ^F and Ctrl+Backspace as ^H, so map
+    " those instead. GUIs keep the defaults (^F page down, ^H backspace).
+    if has('nvim')
+      nnoremap <C-F> <Cmd>Telescope live_grep<CR>
+    endif
+    cnoremap <C-H> <C-W>
+    inoremap <C-H> <C-W>
     return
   endif
 
@@ -251,8 +257,8 @@ if has('nvim')
     autocmd!
     autocmd UIEnter * call <SID>SetupGui()
   augroup END
-elseif has('gui_running')
-  " For vim, set up immediately if GUI is running
+else
+  " For vim, set up immediately (has('gui_running') is already true in gvim)
   call s:SetupGui()
 endif
 
@@ -269,10 +275,7 @@ if has('nvim')
   nnoremap <C-P> <Cmd>Telescope find_files<CR>
   " [Ctrl+Shift+F]: grep
   nnoremap <C-S-F> <Cmd>Telescope live_grep<CR>
-  if !exists('g:GuiLoaded')
-    " CLI terminals usually send ^F
-    nnoremap <C-F> <Cmd>Telescope live_grep<CR>
-  endif
+  " CLI terminals usually send ^F: mapped in SetupGui()
 
   " ===== Comment.nvim =====
   " [Ctrl+/]: toggle line comment

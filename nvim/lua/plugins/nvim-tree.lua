@@ -3,7 +3,6 @@ return {
     "nvim-tree/nvim-tree.lua",
     dev = true,
     lazy = false,
-    event = "VimEnter",
     dependencies = { vim.g.icons_provider },
     keys = {
       { "<C-B>", ":NvimTreeFindFileToggle<CR>", desc = "Toggle Explorer", silent = true },
@@ -22,6 +21,8 @@ return {
       return {
         on_attach = on_attach,
         sync_root_with_cwd = true,
+        -- oil.nvim handles directory buffers (`nvim <dir>`, `:e dir/`)
+        hijack_directories = { enable = false },
         filters = {
           -- Do not filter out hidden/ignored files by default (toggle with H/I)
           dotfiles = false,
