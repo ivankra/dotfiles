@@ -112,3 +112,6 @@
 [submodule "modules/nvim-lspconfig"]
 	path = modules/nvim-lspconfig
 	url = https://github.com/neovim/nvim-lspconfig.git
+[submodule "modules/hbac.nvim"]
+	path = modules/hbac.nvim
+	url = https://github.com/axkirillov/hbac.nvim.git
