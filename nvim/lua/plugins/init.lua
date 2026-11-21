@@ -172,6 +172,7 @@ return {
       preset = "helix",  -- show floating window at the right
       spec = {
         { "<leader>b", group = "buffer" },
+        { "<leader>c", group = "code" },
         { "<leader>f", group = "file/find" },
         { "<leader>u", group = "ui" },
         { "<leader>g", group = "git" },

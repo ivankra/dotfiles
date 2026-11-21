@@ -103,6 +103,9 @@ elseif host == "dvim" then
   vim.opt.signcolumn = "yes"
   -- vim.opt.statuscolumn = "%4l %s"
   vim.opt.statuscolumn = "%s %4l "
+  -- Completion via blink.cmp below, not nvim's built-in LSP completion
+  -- (nvim/lua/plugins/lsp.lua)
+  vim.g.lsp_builtin_completion = false
 
   return {
     -- Treesitter: syntax highlighting, indentation, folding
@@ -176,57 +179,11 @@ elseif host == "dvim" then
       },
     },
 
-    -- LSP configuration
+    -- LSP: the host setup (nvim/lua/plugins/lsp.lua) enables servers found
+    -- on $PATH. Loading mason first puts the servers it installed there.
     {
       "neovim/nvim-lspconfig",
-      event = { "BufReadPost", "BufNewFile" },
       dependencies = { "mason-org/mason-lspconfig.nvim" },
-      config = function()
-        -- LSP keymaps on attach. Built in (0.11+), so not mapped here:
-        --   K hover, grr references, gri implementation, grn rename,
-        --   gra code action, grt type definition (0.12), gO document symbols,
-        --   <C-s> signature help (insert mode).
-        -- A `gr` mapping would make grr/grn/... wait for 'timeoutlen',
-        -- and `gi` would replace "insert where insert mode was last exited".
-        vim.api.nvim_create_autocmd("LspAttach", {
-          callback = function(ev)
-            local opts = { buffer = ev.buf, silent = true }
-            vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-            vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-            vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
-            vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-          end,
-        })
-
-        -- [d / ]d are built in since 0.11. Show the diagnostic after jumping,
-        -- like the old vim.diagnostic.goto_prev/next did. 0.11 only knows
-        -- jump.float; 0.12 deprecates it in favor of jump.on_jump.
-        if vim.fn.has("nvim-0.12") == 1 then
-          vim.diagnostic.config({
-            jump = {
-              on_jump = function(diagnostic, bufnr)
-                if diagnostic then
-                  vim.diagnostic.open_float({ bufnr = bufnr, scope = "cursor", focus = false })
-                end
-              end,
-            },
-          })
-        else
-          vim.diagnostic.config({ jump = { float = true } })
-        end
-
-        vim.lsp.config("lua_ls", {
-          settings = {
-            Lua = {
-              workspace = { checkThirdParty = false },
-              telemetry = { enable = false },
-            },
-          },
-        })
-
-        -- Enable servers
-        vim.lsp.enable({ "lua_ls", "pyright", "ts_ls" })
-      end,
     },
 
     -- Conform: lightweight formatter

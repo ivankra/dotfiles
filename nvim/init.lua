@@ -205,6 +205,18 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave
   end,
 })
 
+-- Treesitter highlighting for languages whose parsers ship with nvim.
+-- More languages need nvim-treesitter (see docker/dvim/dvim.lua).
+if vim.fn.has("nvim-0.10") == 1 then
+  vim.api.nvim_create_autocmd("FileType", {
+    group = vim.api.nvim_create_augroup("BundledTreesitter", { clear = true }),
+    pattern = { "c", "lua", "vim", "vimdoc", "markdown", "query" },
+    callback = function(ev)
+      pcall(vim.treesitter.start, ev.buf)  -- no-op if this build lacks the parser
+    end,
+  })
+end
+
 -- Highlight yanked text briefly
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("HighlightYank", { clear = true }),
