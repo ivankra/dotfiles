@@ -125,3 +125,6 @@
 [submodule "modules/x11docker"]
 	path = modules/x11docker
 	url = https://github.com/mviereck/x11docker.git
+[submodule "modules/nvim-lspconfig"]
+	path = modules/nvim-lspconfig
+	url = https://github.com/neovim/nvim-lspconfig.git
