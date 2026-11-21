@@ -507,6 +507,18 @@ if [[ "$OSTYPE" != darwin* ]]; then
 fi
 
 # }}}
+# Go telemetry off {{{
+
+# What `go telemetry off` writes. Default mode "local" collects usage counters
+# locally, and gopls (nvim LSP) prompts to switch to "on" (uploading). With
+# "off", nothing is collected and gopls never prompts.
+go_telemetry_mode=~/.config/go/telemetry/mode
+if [[ "$(cat "$go_telemetry_mode" 2>/dev/null)" != off ]]; then
+  mkdir -p "$(dirname "$go_telemetry_mode")"
+  printf off >"$go_telemetry_mode"
+fi
+
+# }}}
 # ~/.config/theme {{{
 
 # Install/update ~/.config/theme symlink
