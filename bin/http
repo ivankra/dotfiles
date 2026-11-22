@@ -1,0 +1,5 @@
+#!/bin/bash
+# Serve current dir on localhost: http [port]
+cmd=(python3 -m http.server "$@")
+printf '%q ' "${cmd[@]}"; echo
+exec "${cmd[@]}"
