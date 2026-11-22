@@ -8,6 +8,8 @@ if [[ -L ~/.config/theme || ! -e ~/.config/theme ]] && ! [[ ~/.config/theme -ef 
   ln -sfnr "$theme_dir" ~/.config/theme
   echo "Linked: ~/.config/theme -> $theme_dir"
 fi
+# Drop nvim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua)
+rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/nvim/colorscheme"
 
 cd ~/.dotfiles
 

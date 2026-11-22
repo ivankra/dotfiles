@@ -3,7 +3,7 @@
 Sonokai, `default` style. Terminal colors come from alacritty-theme's `sonokai.toml`, whose ANSI mapping matches sonokai's own terminal colors (blue as color 4, orange as color 6); the other terminals are converted from `alacritty.toml`.
 
 - `../../third_party/sonokai/colors/sonokai.vim` ([upstream](https://github.com/sainnhe/sonokai/blob/b023c5280b16fe2366f5e779d8d2756b3e5ee9c3/colors/sonokai.vim), [MIT](https://github.com/sainnhe/sonokai/blob/b023c5280b16fe2366f5e779d8d2756b3e5ee9c3/LICENSE))
-  - `vim.vim`/`nvim.lua`: `default` style, italic comments disabled.
+  - `vim.vim` and `nvim/lua/plugins/colorscheme.lua`: `default` style, italic comments disabled.
 - `alacritty.toml` ([upstream](https://github.com/alacritty/alacritty-theme/blob/ab88d5a80d676b5dc6157e91aba8067f2078dc94/themes/sonokai.toml), [Apache-2.0](https://github.com/alacritty/alacritty-theme/blob/ab88d5a80d676b5dc6157e91aba8067f2078dc94/LICENSE))
 - `gnome-terminal.dconf`: converted from `alacritty.toml`, with a fixed random profile UUID.
 - `guake.dconf`: converted from `gnome-terminal.dconf`.

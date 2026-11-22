@@ -1,5 +1,5 @@
 # Files that the dotfiles repo loads or runs from ~/.config/theme/
-FILES = alacritty.toml gnome-terminal.dconf guake.dconf kitty.conf nvim.lua setup.sh tmux.conf vim.vim wezterm.lua
+FILES = alacritty.toml gnome-terminal.dconf guake.dconf kitty.conf setup.sh tmux.conf vim.vim wezterm.lua
 
 THEMES = $(patsubst %/,%,$(wildcard */))
 
