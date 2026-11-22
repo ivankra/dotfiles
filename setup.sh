@@ -390,6 +390,20 @@ setup_ln bashrc
 setup_ln hushlogin
 setup_ln inputrc
 setup_ln profile
+setup_ln zprofile  # zsh login shells read it instead of ~/.profile
+setup_ln zshenv
+setup_ln zshrc
+
+# macOS Terminal.app: disable per-window shell sessions (history, state).
+# zsh: zshenv (linked above). bash:
+if [[ "$OSTYPE" == darwin* ]]; then
+  # /etc/bashrc_Apple_Terminal checks this file before ~/.bashrc.
+  touch ~/.bash_sessions_disable
+  if [[ -d ~/.bash_sessions ]]; then
+    rm -rf ~/.bash_sessions
+    echo "Removed ~/.bash_sessions"
+  fi
+fi
 
 setup_ln alacritty.toml ~/.config/alacritty/alacritty.toml
 setup_ln containers.conf ~/.config/containers/containers.conf
@@ -545,7 +559,7 @@ if [[ -f ~/.bash_history && ! -L ~/.bash_history ]]; then
   chmod og-rwx ~/.bash_history
 fi
 
-# $PYTHON_HISTORY from bashrc.history only works from python 3.13 on, older ones
+# $PYTHON_HISTORY from bashrc only works from python 3.13 on, older ones
 # always write ~/.python_history and so still need the symlink
 python_version=$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true)
 if [[ -n "$python_version" ]] &&
@@ -555,6 +569,11 @@ if [[ -n "$python_version" ]] &&
   elif ! [[ -L ~/.python_history ]]; then
     ln -s .history/python ~/.python_history
     echo "Linked: ~/.python_history -> .history/python"
+  fi
+  # Create the target: bashrc removes dangling links
+  if [[ -L ~/.python_history && ! -e ~/.python_history ]]; then
+    mkdir -m 0700 -p ~/.history
+    touch ~/.history/python
   fi
 elif [[ -L ~/.python_history ]]; then
   rm -f ~/.python_history
