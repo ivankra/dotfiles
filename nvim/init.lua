@@ -187,14 +187,20 @@ vim.api.nvim_create_autocmd("ModeChanged", {
   end,
 })
 
--- More aggressive autoread
--- Maybe also set `set -g focus-events on` in tmux
+-- Autoread: 'autoread' only acts when nvim checks files, so check on these
+-- events. Instant reloads: hotreload.nvim (lua/plugins/init.lua), which skips
+-- modified buffers; these checks prompt for those. FocusGained needs tmux
+-- focus-events.
+local function checktime()
+  -- checktime checks all buffers; it errors in the cmdline window
+  if vim.fn.getcmdwintype() == "" then
+    pcall(vim.cmd.checktime)
+  end
+end
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave" }, {
   group = vim.api.nvim_create_augroup("AutoReadCheck", { clear = true }),
   callback = function(ev)
-    if vim.o.buftype ~= "nofile" then
-      vim.cmd("checktime")
-    end
+    checktime()
 
     -- Refresh nvim-tree if it's open. Only on focus: while in nvim, its
     -- filesystem watchers already keep it up to date.

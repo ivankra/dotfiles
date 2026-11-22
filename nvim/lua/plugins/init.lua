@@ -146,6 +146,18 @@ return {
     },
   },
 
+  -- Reload unmodified buffers as soon as their files change on disk (fs
+  -- watchers on the files' dirs). Built into nvim 0.13 (neovim#37971).
+  -- TODO: once on nvim 0.13+, drop this and modules/hotreload.nvim; check the
+  -- built-in watcher works and the autoread events in init.lua still fit.
+  {
+    "diogo464/hotreload.nvim",
+    dev = true,
+    lazy = false,
+    cond = vim.fn.has("nvim-0.10") == 1 and vim.fn.has("nvim-0.13") == 0,
+    opts = {},
+  },
+
   -- Modern take on vidir, editable file explorer buffers
   {
     "stevearc/oil.nvim",
