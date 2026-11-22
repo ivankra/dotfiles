@@ -23,8 +23,7 @@ EnumerateGroupBackwardKeys=
 # ModifierOnlyKeyTimeout=250
 
 [Hotkey/TriggerKeys]
-0=Control+Shift+Shift_R
-1=Super+space
+0=Super+space
 
 # [Hotkey/PrevPage]
 # 0=Up
