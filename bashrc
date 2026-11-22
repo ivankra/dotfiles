@@ -1,480 +1,141 @@
 #!/bin/bash
-# Note: this file is also sourced from ~/.profile by non-bash shells
+# Targets Linux and macOS (latest 1-2 releases, Apple Silicon, /bin/bash 3.2).
+# Also sourced from ~/.xsessionrc and ~/.profile by dash, top part must stay POSIX.
 
-export EDITOR=vim
 export IPYTHONDIR="$HOME/.config/ipython"
 export JUPYTER_CONFIG_DIR="$HOME/.config/jupyter"
-export LESS='-FRSXi'
-export LESSHISTFILE=-
-export PAGER=less
-export PYTHON_HISTORY="$HOME/.history/python"
-export QT_AUTO_SCREEN_SCALE_FACTOR=1
-
-export LANG=en_US.UTF-8
+export LANG=en_US.UTF-8  # also /var/lib/AccountsService/users/*, ~/.config/plasma-localerc
 export LANGUAGE=en_US:en
 export LC_COLLATE=C
 export LC_MEASUREMENT=C  # metric
-#export LC_PAPER=C  # A4
-# Also see /var/lib/AccountsService/users/*, Language=en_US.UTF-8, ~/.config/plasma-localerc
+export LESS='-FRSXi'
+export LESSHISTFILE=-
+export PAGER=less
 
-# PATH {{{
-__setup_path_sh() {
-  local __dir
-  for __dir in /bin /usr/bin /usr/local/bin \
-               ~/.dotfiles/bin ~/.iac/bin ~/.local/bin ~/.bin ~/bin; do
-    case :$PATH: in *:$__dir:*) continue;; esac  # for dash
-    if [ -d "$__dir" ]; then PATH="$__dir:$PATH"; fi
+# Not bash/zsh: set up basic PATH with POSIX syntax and quit
+if [ -z "${BASH_VERSION:-}${ZSH_VERSION:-}" ]; then
+  for __dir in /bin /usr/bin /usr/local/bin /opt/homebrew/sbin /opt/homebrew/bin \
+               "$HOME/.dotfiles/bin" "$HOME/.iac/bin" "$HOME/.local/bin"; do
+    case :$PATH: in
+      *:"$__dir":*) ;;
+      *) if [ -d "$__dir" ]; then PATH="$__dir:$PATH"; fi ;;
+    esac
   done
-}
+  unset __dir
 
-__setup_path_bash() {
-  if [[ -z "$GOPATH" ]]; then
-    export GOPATH=~/.go
+  # For X session environment
+  if command -v nvim >/dev/null 2>&1; then
+    export EDITOR=nvim
+  else
+    export EDITOR=vim
   fi
+  export VISUAL=$EDITOR
 
-  if [[ -z "$GOROOT" ]]; then
-    if [[ -d ~/.local/go ]]; then
-      export GOROOT=~/.local/go
-    elif [[ -d /usr/local/go ]]; then
-      export GOROOT=/usr/local/go
-    fi
-  fi
-
-  if [[ -z "$CUDA_ROOT$CUDA_PATH" && -d /usr/local/cuda ]]; then
-    export CUDA_ROOT=/usr/local/cuda
-    export CUDA_PATH=/usr/local/cuda
-  fi
-
-  if [[ -z "$CONDA_ROOT" ]]; then
-    if [[ -x ~/.conda/bin/conda ]] && ! [[ ~/.conda/bin/conda -ef /opt/conda/bin/conda ]]; then
-      export CONDA_ROOT=~/.conda
-    elif [[ -x /opt/conda/bin/conda ]]; then
-      export CONDA_ROOT=/opt/conda
-    fi
-  fi
-
-  # higher priority last
-  local __dir
-  for __dir in /bin /usr/bin /usr/local/bin \
-               "$CUDA_ROOT/bin" "$CONDA_ROOT/bin" "$GOROOT/bin" "$GOPATH/bin" \
-               ~/.dotfiles/bin ~/.iac/bin ~/.local/bin ~/.bin ~/bin; do
-    if [[ :$PATH: != *:$__dir:* && -d "$__dir" ]]; then
-      PATH="$__dir:$PATH"
-    fi
-  done
-}
-# }}}
-
-if [ -z "${BASH_VERSION:-}" -a -z "${ZSH_VERSION:-}" ]; then
-  # not bash/zsh
-  __setup_path_sh
   return
 fi
 
-__setup_path_bash
+if [[ -z "$GOPATH" ]]; then
+  export GOPATH=~/.go
+fi
 
-if [[ -z "$PS1" || -z "$HOME" ]]; then
-  # non interactive
+if [[ -z "$GOROOT" ]]; then
+  if [[ -d ~/.local/go ]]; then
+    export GOROOT=~/.local/go
+  elif [[ -d /usr/local/go ]]; then
+    export GOROOT=/usr/local/go
+  fi
+fi
+
+if [[ -z "$CUDA_ROOT$CUDA_PATH" && -d /usr/local/cuda ]]; then
+  export CUDA_ROOT=/usr/local/cuda
+  export CUDA_PATH=/usr/local/cuda
+fi
+
+if [[ -z "$CONDA_ROOT" ]]; then
+  if [[ -x ~/.conda/bin/conda ]] && ! [[ ~/.conda/bin/conda -ef /opt/conda/bin/conda ]]; then
+    export CONDA_ROOT=~/.conda
+  elif [[ -x /opt/conda/bin/conda ]]; then
+    export CONDA_ROOT=/opt/conda
+  fi
+fi
+
+# Move dirs in $1 (a:b:c) to the front of PATH, in order (e.g. after macOS's
+# path_helper), unless already in order behind others (e.g. an active venv).
+__prepend_path() {
+  local dir have='' rest='' IFS=:
+  # One pass over PATH: bash splits $PATH on IFS (no globbing of entries),
+  # zsh has it split as $path.
+  [[ -n "$BASH_VERSION" ]] && set -f
+  for dir in ${BASH_VERSION:+$PATH} ${ZSH_VERSION:+"${path[@]}"}; do
+    if [[ :$1: != *:"$dir":* ]]; then
+      rest+=${rest:+:}$dir
+    elif [[ :$have: != *:"$dir":* ]]; then
+      have+=${have:+:}$dir
+    fi
+  done
+  [[ -n "$BASH_VERSION" ]] && set +f
+  [[ "$have" == "$1" ]] || PATH=$1${rest:+:$rest}
+}
+
+# Set up PATH
+__path=
+for __dir in /bin /usr/bin /usr/local/bin /opt/homebrew/sbin /opt/homebrew/bin \
+             ${CUDA_ROOT:+"$CUDA_ROOT/bin"} ${CONDA_ROOT:+"$CONDA_ROOT/bin"} \
+             ${GOROOT:+"$GOROOT/bin"} "$GOPATH/bin" \
+             ~/.dotfiles/bin ~/.iac/bin ~/.local/bin; do
+  if [[ -d "$__dir" && :$__path: != *:"$__dir":* ]]; then
+    __path="$__dir${__path:+:$__path}"
+  fi
+done
+# Skip in the common case, a nested shell: PATH already starts with these, in order.
+if [[ :$PATH: != :"$__path":* ]]; then
+  __prepend_path "$__path"
+fi
+unset __dir __path
+
+# Search for editor after PATH setup
+if command -v nvim >/dev/null 2>&1; then
+  export EDITOR=nvim
+else
+  export EDITOR=vim
+fi
+export VISUAL=$EDITOR
+
+__BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE; unset -f __prepend_path;"
+
+if [[ $- != *i* || -z "$HOME" ]]; then
+  # non interactive shell
+  eval "$__BASHRC_EPILOGUE"
   return
 fi
 
-if [[ -z "$SHELL" && -f /bin/bash ]]; then
+if [[ -z "$SHELL" && -n "$BASH_VERSION" && -f /bin/bash ]]; then
   export SHELL=/bin/bash
 fi
 
-if hash nvim >/dev/null 2>&1; then
-  export EDITOR=nvim
-  alias n=nvim
-fi
-
-if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
+if [[ -n "$BASH_VERSION" ]]; then
   shopt -s checkhash checkwinsize no_empty_cmd_completion
-fi
-if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
-  shopt -s autocd
-fi
-
-__BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE;"
-
-# Aliases/functions {{{
-
-alias ..='cd ..'
-alias R='R --no-save --no-restore --quiet'
-alias bc='bc -q'
-alias catf='tail --follow -c +0'
-alias cd..='cd ..'
-alias cd3='cd "$(scm-root)"'
-alias cp='cp -i'
-alias cx='chmod a+x'
-alias df='df -h'
-alias diff='diff -u'
-alias du='du -h'
-alias eg=egrep
-alias egrep='egrep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias free='free -h'
-alias g=grep
-alias gdb='gdb --quiet'
-alias gi=git
-alias got=git
-alias grep='grep --color=auto'
-alias gt=git
-alias gti=git
-alias http='python -m http.server'  # httpserver [port]
-alias ip='ip --color=auto'
-alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
-alias json_pp='python -m json.tool --no-ensure-ascii --indent=2'  # NB overrides perl based /usr/bin/json_pp
-alias l='ls -l'
-alias la='ls -la'
-alias le='less'
-alias ll='ls -l -h'
-alias mtr='mtr -bt'  # --show-ips --curses
-alias mv='mv -i'
-alias noping='noping -H 2'
-alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
-alias nvimdiff='nvim -d'
-alias octave='octave -q'
-alias parallel='parallel --will-cite'
-alias qvimdiff='qvim -- -d'
-alias rm='rm -i'
-alias rsync='rsync --info=progress2'
-alias rsyncp='rsync --info=progress2'
-alias sqlite3='sqlite3 -header -column'
-alias susl='sort | uniq -c | sort -nr | less'
-alias venv='python -m venv'
-alias virt-manager='GDK_SCALE=1 virt-manager'
-
-# Alias name=cmd when name doesn't exist and cmd exists
-__maybe_alias() {
-  local arg="$1"
-  local name="${arg%%=*}"
-  local cmd="${arg#*=}"
-  if ! hash "$name" >/dev/null 2>&1; then
-    if [[ "$cmd" == /* && -x "$cmd" ]]; then
-      alias "$name"="$cmd"
-    elif [[ "$cmd" != /* ]] && hash "$cmd" >/dev/null 2>&1; then
-      alias "$name"="$cmd"
-    fi
-  fi
-}
-__maybe_alias bat=batcat
-__maybe_alias blaze=bazel
-__maybe_alias fd=fdfind
-__maybe_alias ifconfig=/sbin/ifconfig
-__maybe_alias ipython=ipython3
-__maybe_alias iwconfig=/sbin/iwconfig
-__maybe_alias keyd=keyd.rvaiya
-__maybe_alias nb=jupyter-notebook
-__maybe_alias o=xdg-open  # e.g. `o ./some.pdf` to open in browser/reader
-__maybe_alias py=python3; __maybe_alias py=ipython3
-__maybe_alias python=python3
-__maybe_alias route=/sbin/route
-__maybe_alias speedify_cli=/usr/share/speedify/speedify_cli
-__maybe_alias sysctl=/sbin/sysctl
-__maybe_alias t=tmux
-__maybe_alias zfs=/sbin/zfs
-__maybe_alias zpool=/sbin/zpool
-
-# Attach to tmux session $1 with byobu, "b" by default, creating if needed
-b() {
-  if hash byobu-tmux 2>/dev/null; then
-    byobu-tmux new-session -A -s "${1:-b}"
-  elif [[ $# -gt 0 ]]; then
-    tmux new-session -A -s "$1"
-  else
-    tmux
-  fi
-}
-
-mk() { mkdir -p "$@" && cd "$@"; }
-mkd() { mkdir -p "$@" && cd "$@"; }
-date() { local arg=${1:--R}; shift; "$(which date)" "$arg" "$@"; }
-ts() { local arg=${1:-%.T}; shift; "$(which ts)" "$arg" "$@"; }
-alias tsd='ts "%Y-%m-%d %.T"'
-
-if [[ "$OSTYPE" == darwin* ]]; then
-  export BASH_SILENCE_DEPRECATION_WARNING=1
-  alias ls='ls --color=auto'
-  if hash container >/dev/null 2>&1; then
-    alias docker=container
-  fi
-else
-  if hash podman >/dev/null 2>&1; then
-    alias docker=podman
-  fi
-  if [[ "$TERM" == dumb ]]; then  # e.g. vim
-    alias ls='ls --group-directories-first'
-  else
-    alias ls='ls --color=auto --group-directories-first'
-  fi
-  alias ping=~/.dotfiles/bin/ping.sh
-fi
-
-# https://github.com/jupyter/docker-stacks
-function dr-lab() {
-  local port=$(find-free-port.py 8888 2>/dev/null || echo 8888)
-  dr -u root -p "$port:$port" "quay.io/jupyter/scipy-notebook" jupyter lab --ip=0.0.0.0 --port=$port --allow-root
-}
-
-# }}}
-
-# Bash history {{{
-# * keep deduped in ~/.history/bash.YYYYMM files
-# * load last few months on startup
-# * append to last history file but don't read back
-# * force to re-read history: h
-
-if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
-
-shopt -s cmdhist histverify histreedit
-
-HISTFILE=
-if ! [[ -d ~/.history ]] && ([[ -f ~/.history ]] || ! mkdir -m 0700 -p ~/.history); then
-  # history disabled
-  HISTCONTROL=ignoreboth
-  HISTSIZE=100000
-  h() { hash -r; __reset_colorfgbg; __fix_term_input; }
-else
-  shopt -s histappend
-  HISTCONTROL=ignoreboth
-  HISTFILESIZE=-1
-  HISTIGNORE='bg:fg:clear:ls:pwd:history:exit'
-  HISTSIZE=100000
-  HISTTIMEFORMAT='[%F %T] '
-
-  # Flush history, dedup and reread recent history files
-  __run_erasedup() {
-    if [[ -n "$HISTFILE" ]]; then
-      history -a
-      history -c
-    fi
-
-    local interp=""
-    if hash python2.7 >/dev/null 2>&1; then
-      interp=python2.7
-    elif hash python3 >/dev/null 2>&1; then
-      interp=python3
-    elif hash python >/dev/null 2>&1; then
-      interp=python
-    fi
-
-    if [[ -n "$interp" && -f ~/.dotfiles/bin/erasedups.py ]]; then
-      local histf
-      for histf in $($interp ~/.dotfiles/bin/erasedups.py --expand=12 "$HOME/.history/bash.%Y%m"); do
-        history -r "$histf"
-        HISTFILE="$histf"    # last month last
-      done
-    elif [[ -n "$HISTFILE" ]]; then
-      history -r
-    fi
-  }
-  __run_erasedup
-
-  # Re-read history to synchronize with other shell instances.
-  # Also fix various terminal issues.
-  h() { __run_erasedup; hash -r; __reset_colorfgbg; __fix_term_input; }
-
-  histoff() {
-    HISTFILE=
-  }
-
-  __link_to_history() {
-    local src="$1"
-    local dst="$HOME/.history/$2"
-    if [[ -L "$src" && ! -f "$src" ]]; then
-      # broken symlink
-      rm -f "$src"
-    fi
-    ln_sr='ln -s -r'
-    if [[ "$OSTYPE" == darwin* ]]; then
-      if hash gln >/dev/null 2>&1; then
-        ln_sr='gln -s -r'
-      else
-        ln_sr='ln -s'
-      fi
-    fi
-    if [[ -f "$src" && ! -L "$src" ]]; then
-      if [[ -f "$dst" ]]; then
-        cat "$dst" "$src" >>"$dst.$$" &&
-          mv -f "$dst.$$" "$dst" &&
-          rm -f "$src" &&
-          $ln_sr "$dst" "$src"
-      else
-        mv "$src" "$dst" && $ln_sr "$dst" "$src"
-      fi
-    fi
-  }
-  __link_to_history ~/.julia/logs/repl_history.jl julia
-  __link_to_history ~/.mysql_history mysql
-  __link_to_history ~/.psql_history psql
-  __link_to_history ~/.python_history python
-  __link_to_history ~/.sqlite_history sqlite
-  unset -f __link_to_history
-
-  if [[ -f ~/.history/sqlite ]]; then
-    export SQLITE_HISTORY=~/.history/sqlite
+  if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
+    # globstar: ** matches files and dirs recursively
+    # checkjobs: warn on exit with running/stopped jobs, exit if repeated
+    shopt -s autocd checkjobs globstar
   fi
 fi
 
-fi  # bash
-# }}}
-
-# Bash prompt {{{
-
-if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
-
-# Fix messed up terminal input handling.
-__fix_term_input() {
-  stty sane cooked
-  echo -en '\033]104\007\033[\041p\r'
-  #echo -en '\033]104\007\033[\041p\033[?3;4l\033[4l\033>\033[?69l\r'  # full reset seq
-  bind -f ~/.inputrc
-}
-
-# PROMPT_COMMAND
-#
-# Delayed till the end to ensure __prompt_print_status will be
-# the first thing there in order to get the correct $?.
-__bashrc_set_prompt_command() {
-  if [[ "$PROMPT_COMMAND" != *__bashrc_prompt_command* ]]; then
-    PROMPT_COMMAND="__bashrc_prompt_command;$PROMPT_COMMAND"
-  fi
-  unset __bashrc_set_prompt_command
-}
-__BASHRC_EPILOGUE+="__bashrc_set_prompt_command;"
-unset PROMPT_COMMAND
-
-__bashrc_prompt_command() {
-  # Record last command's exit code, has to be first thing in PROMPT_COMMAND.
-  local status=$?
-
-  # Record elapsed time.
-  local elapsedmsg=""
-  if [[ -n "$__PS0_EPOCHSECONDS" ]]; then
-    local cmd="$(HISTTIMEFORMAT= history 1 | cut -c8-80)"
-    __PS0_ELAPSED=$(($EPOCHSECONDS - $__PS0_EPOCHSECONDS))
-    __PS0_ELAPSED_HIST+=("$(printf %7d $__PS0_ELAPSED) $cmd")
-    if (( $__PS0_ELAPSED >= 23*3600 )); then
-      elapsedmsg="Elapsed $(((__PS0_ELAPSED + 1800)/3600))h"
-    fi
-    export __PS0_EPOCHSECONDS=""
-  fi
-
-  if [[ -n "$__vsc_status" && "$TERM_PROGRAM" == "vscode" ]]; then
-    # let vscode shell integration handle non-zero exit codes
-    return
-  fi
-
-  # Print last command's exit code if non zero and elapsed time if large enough.
-  if [[ $status -ne 0 ]]; then
-    if [[ -n "$elapsedmsg" ]]; then
-      echo -e "\033[31m\$? = $status (${elapsedmsg,,})\033[m"  # lowercase msg
-    else
-      echo -e "\033[31m\$? = $status\033[m"
-    fi
-  elif [[ -n "$elapsedmsg" ]]; then
-    echo -e "\033[38;5;8m$elapsedmsg\033[m"
-  fi
-
-  if [[ -n "$HISTFILE" ]]; then
-    history -a
-  fi
-
-  if [[ $status -ne 0 ]]; then
-    __fix_term_input
-  fi
-}
-
-# PS0 (bash 4.4+)
-# Expanded and displayed by interactive shells after reading a command and
-# before the command is executed.
-__bashrc_ps0() {
-  # Update terminal title with currently running command.
-  local cmd=$(HISTTIMEFORMAT= history 1 | cut -c8- | xargs -0 echo)
-  if [[ -n "$USER" && -n "$HOSTNAME" && -n "$cmd" ]]; then
-    echo -e "\e]0;$USER@$HOSTNAME - $cmd\a"
-  fi
-
-  # Write command to be executed to history
-  if [[ -n "$HISTFILE" ]]; then
-    history -a
-  fi
-}
-PS0='$(__bashrc_ps0)'
-if [[ "${BASH_VERSINFO[0]}" -ge 5 ]] && hash printf >/dev/null 2>&1; then
-  # Record command's start time in __PS0_EPOCHSECONDS.
-  # Using substring expansion syntax ${parameter:offset:length} with a side effect
-  # to avoid getting executed in a subshell as $() and avoid printing anything.
-  PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
-
-  # Print recent elapsed times recorded by __bashrc_prompt_command.
-  elapsed() { local s; for s in "${__PS0_ELAPSED_HIST[@]}"; do echo "$s"; done; }
+# Aliases/functions
+if [[ -f ~/.dotfiles/bashrc.aliases ]]; then
+  source ~/.dotfiles/bashrc.aliases
 fi
 
-# PS1
-#
-# Delayed till the end to have the last say on PS1 and get definitions for
-# __git_ps1 and parameters from local scripts:
-#   * PS1_COLOR - user@host color:
-#       30 .. 37      standard ansi colors
-#       38;5;n        256 extended colors (0..255)
-#       38;2;r;g;b    R/G/B (0..255)
-#   * PS1_HOST - hostname to display
-__bashrc_set_ps1() {
-  # set variable identifying the chroot you work in (used in the prompt below)
-  if [[ -z "$debian_chroot" && -r /etc/debian_chroot ]]; then
-    debian_chroot=$(cat /etc/debian_chroot)
-  fi
+# History: bash's ~/.history/bash.YYYYMM, h, histoff; REPL histories (also zsh)
+if [[ -f ~/.dotfiles/bashrc.history ]]; then
+  source ~/.dotfiles/bashrc.history
+fi
 
-  if [[ -z "$PS1_COLOR" ]]; then
-    if [[ $UID == 0 ]]; then
-      PS1_COLOR=31
-    elif hash id >/dev/null 2>&1; then
-      local groups=" $(id -nG) "
-      if [[ "$groups" == *" sudo " && ! "$groups" == *" audio "* ]]; then
-        PS1_COLOR=31
-      else
-        PS1_COLOR=32
-      fi
-    else
-      PS1_COLOR=32
-    fi
-  fi
-
-  if [[ "$TERM" == "dumb" ]]; then
-    PS1='\u@\h:\w\$ '
-  else
-    PS1="\[\033[01;36m\]\A\[\033[m\] "                  # HH:MM
-    PS1+="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}"  # user@host
-    PS1+="\[\033[00m\]:"                                # :
-    PS1+="\[\033[01;34m\]\w\[\033[00m\]"                # workdir
-    if declare -f -F __git_ps1 >/dev/null; then
-      PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'
-    fi
-    PS1+='\$ '
-  fi
-
-  # If this is an xterm or tmux/screen set the title to user@host:dir
-  if [[ "$TERM" == xterm* || "$TERM" == rxvt* || "$TERM" == tmux* || "$TERM" == screen* ]]; then
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-  fi
-
-  if [[ -n "$VIRTUAL_ENV" ]]; then
-    PS1="(${VIRTUAL_ENV##*/}) $PS1"
-  fi
-  if [[ -n "$CONDA_DEFAULT_ENV" ]]; then
-    PS1="(${CONDA_DEFAULT_ENV}) $PS1"
-  fi
-
-  unset PS1_COLOR
-  unset PS1_HOST
-  unset __bashrc_set_ps1
-}
-
-__BASHRC_EPILOGUE+="__bashrc_set_ps1;"
-
-fi  # bash
-# }}}
+# Bash prompt
+if [[ -n "$BASH_VERSION" && -f ~/.dotfiles/bashrc.prompt ]]; then
+  source ~/.dotfiles/bashrc.prompt
+fi
 
 if [[ $UID == 0 ]]; then
   umask 027
@@ -485,8 +146,8 @@ if ! [[ -d ~/.ssh/socket ]]; then
   chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
 fi
 
-if [[ -f ~/.lesshst || -f ~/.wget-hsts || -f ~/.xsel.log || -f ~/.xsession-errors || -f ~/.xsession-errors.old ]]; then
-  rm -f ~/.lesshst ~/.wget-hsts ~/.xsel.log ~/.xsession-errors ~/.xsession-errors.old
+if [[ -f ~/.lesshst || -f ~/.wget-hsts || -f ~/.xsel.log ]]; then
+  rm -f ~/.lesshst ~/.wget-hsts ~/.xsel.log
 fi
 
 if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
@@ -499,12 +160,19 @@ if [[ -z "$HIDPI" && -f "/run/user/$UID/dconf/user" ]]; then
   fi
 fi
 
-if [[ -f ~/.dotfiles/bin/colorfgbg ]]; then
-  source ~/.dotfiles/bin/colorfgbg
+# Disabled for now: asking the terminal for its background can eat keys typed
+# during startup. Assume dark unless the terminal (rxvt) or ssh provides it.
+# To re-enable: uncomment, drop the COLORFGBG guess and the stub below.
+#if [[ -f ~/.dotfiles/bin/colorfgbg ]]; then
+#  source ~/.dotfiles/bin/colorfgbg
+#fi
+if [[ -z "$COLORFGBG" ]]; then
+  export COLORFGBG="15;0"
 fi
+__reset_colorfgbg() { :; }  # stub, called by h()
 
 if [[ -z "$LS_COLORS" ]] && hash dircolors >/dev/null 2>&1; then
-  eval $(SHELL="${SHELL:-/bin/bash}" dircolors ~/.dotfiles/dircolors)
+  eval "$(dircolors -b ~/.dotfiles/dircolors)"
 fi
 
 if [[ -n "$VTE_VERSION" ]]; then
@@ -514,21 +182,57 @@ if [[ -n "$VTE_VERSION" ]]; then
     source /etc/profile.d/vte-2.91.sh
   fi
 fi
+
+# WezTerm: OSC 7 cwd and OSC 133 semantic zones (ScrollToPrompt, select output)
+# via bash-preexec's DEBUG trap, so also on bash 3.2.
+if [[ "$TERM_PROGRAM" == WezTerm ]]; then
+  # shellcheck disable=SC2034  # read by wezterm.sh; user vars cost several forks per prompt
+  WEZTERM_SHELL_SKIP_USER_VARS=1
+  source ~/.dotfiles/third_party/wezterm-shell-integration/wezterm.sh
+  __bp_adjust_histcontrol() { :; }  # keep ignorespace in HISTCONTROL
+fi
 # Workaround to disable "Command complete" notifications in ptyxis
 if [[ -n $PTYXIS_PROFILE ]]; then
-  __vte_termprop_signal() { return; }
+  __vte_termprop_signal() { :; }
 fi
 
-if [[ "${BASH_VERSINFO[0]}" -ge 3 ]]; then
-  if [[ -f /usr/share/bash-completion/bash_completion ]]; then
+if [[ -n "$BASH_VERSION" ]]; then
+  if [[ "$OSTYPE" == darwin* ]]; then
+    # Homebrew bash-completion@2 needs bash 4.2+, v1 (bash-completion) for 3.2
+    __p=${HOMEBREW_PREFIX:-/opt/homebrew}  # Apple Silicon only
+    if (( BASH_VERSINFO[0] * 100 + BASH_VERSINFO[1] >= 402 )) &&
+       [[ -f "$__p/etc/profile.d/bash_completion.sh" ]]; then
+      source "$__p/etc/profile.d/bash_completion.sh"
+    elif [[ -f "$__p/etc/bash_completion" ]]; then
+      source "$__p/etc/bash_completion"
+    fi
+    # __git_ps1 for PS1, unless bash-completion loaded it
+    if ! declare -F __git_ps1 >/dev/null; then
+      for __f in "$__p/etc/bash_completion.d/git-prompt.sh" \
+                 /Library/Developer/CommandLineTools/usr/share/git-core/git-prompt.sh \
+                 /Applications/Xcode.app/Contents/Developer/usr/share/git-core/git-prompt.sh; do
+        if [[ -f "$__f" ]]; then
+          source "$__f"
+          break
+        fi
+      done
+    fi
+    unset __p __f
+  elif [[ -f /usr/share/bash-completion/bash_completion ]]; then
     source /usr/share/bash-completion/bash_completion
   fi
-  if [[ -f /usr/share/doc/fzf/examples/completion.bash ]]; then
-    source /usr/share/doc/fzf/examples/completion.bash
+  # fzf key bindings and completion: `fzf --bash` needs fzf 0.48+
+  if hash fzf >/dev/null 2>&1 && __fzf_init=$(fzf --bash 2>/dev/null); then
+    eval "$__fzf_init"
+  else
+    if [[ -f /usr/share/doc/fzf/examples/completion.bash ]]; then
+      source /usr/share/doc/fzf/examples/completion.bash
+    fi
+    if [[ -f /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
+      source /usr/share/doc/fzf/examples/key-bindings.bash
+    fi
   fi
-  if [[ -f /usr/share/doc/fzf/examples/key-bindings.bash ]]; then
-    source /usr/share/doc/fzf/examples/key-bindings.bash
-  fi
+  unset __fzf_init
   if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
     source ~/.dotfiles/iterm2/iterm2_shell_integration.bash
   fi

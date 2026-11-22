@@ -1,2 +1,15 @@
 #!/bin/sh
 . ~/.profile
+
+# Move the X session log from ~/.xsession-errors (path hardcoded in
+# /etc/X11/Xsession) to ~/.cache, keeping the previous session's as .old.
+# A failed `exec` redirection exits sh, ending the session, so only redirect
+# once writing the new log has worked.
+if [ -d "$HOME/.cache" ] && [ -w "$HOME/.cache" ] &&
+    [ -f "$HOME/.xsession-errors" ] && [ ! -L "$HOME/.xsession-errors" ]; then
+  mv -f "$HOME/.cache/xsession-errors" "$HOME/.cache/xsession-errors.old" 2>/dev/null || true
+  if cat "$HOME/.xsession-errors" 2>/dev/null >"$HOME/.cache/xsession-errors"; then
+    exec >>"$HOME/.cache/xsession-errors" 2>&1
+    rm -f "$HOME/.xsession-errors" "$HOME/.xsession-errors.old"
+  fi
+fi

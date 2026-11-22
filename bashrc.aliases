@@ -1,0 +1,135 @@
+# shellcheck shell=bash
+# Aliases and functions, sourced from bashrc (interactive shells only).
+
+alias ..='cd ..'
+alias R='R --no-save --no-restore --quiet'
+alias bc='bc -q'
+alias cd..='cd ..'
+alias cd3='cd "$(scm-root)"'
+alias cp='cp -i'
+alias cx='chmod a+x'
+alias df='df -h'
+alias diff='diff -u'
+alias du='du -h'
+alias eg='grep -E'
+alias egrep='grep -E'  # egrep/fgrep are obsolescent, these expand to grep alias
+alias fgrep='grep -F'
+alias free='free -h'
+alias g=grep
+alias gdb='gdb --quiet'
+alias gi=git
+alias got=git
+alias grep='grep --color=auto'
+alias gt=git
+alias gti=git
+alias ip='ip --color=auto'
+alias issh='ssh -F ~/.dotfiles/ssh-config-insecure'
+alias json_pp='python -m json.tool --no-ensure-ascii --indent=2'  # NB overrides perl based /usr/bin/json_pp
+alias l='ls -l'
+alias la='ls -la'
+alias le='less'
+alias ll='ls -l -h'
+alias mtr='mtr -bt'  # --show-ips --curses
+alias mv='mv -i'
+alias noping='noping -H 2'
+alias nvidia-mon='nvidia-smi dmon -s pucvmet -o T'
+alias nvimdiff='nvim -d'
+alias octave='octave -q'
+alias parallel='parallel --will-cite'
+alias qvimdiff='qvim -- -d'
+alias rm='rm -i'
+if [[ "$OSTYPE" != darwin* ]]; then
+  alias rsync='rsync --info=progress2'
+fi
+alias sqlite3='sqlite3 -header -column'
+alias susl='sort | uniq -c | sort -nr | less'
+alias venv='python -m venv'
+alias virt-manager='GDK_SCALE=1 virt-manager'
+
+if [[ "$EDITOR" == nvim ]]; then
+  alias n=nvim
+fi
+
+# Alias name=cmd when name doesn't exist and cmd exists
+__maybe_alias() {
+  local arg="$1"
+  local name="${arg%%=*}"
+  local cmd="${arg#*=}"
+  if ! hash "$name" >/dev/null 2>&1; then
+    if [[ "$cmd" == /* && -x "$cmd" ]]; then
+      alias "$name"="$cmd"
+    elif [[ "$cmd" != /* ]] && hash "$cmd" >/dev/null 2>&1; then
+      alias "$name"="$cmd"
+    fi
+  fi
+}
+__maybe_alias bat=batcat
+__maybe_alias blaze=bazel
+__maybe_alias fd=fdfind
+__maybe_alias ifconfig=/sbin/ifconfig
+__maybe_alias ipython=ipython3
+__maybe_alias iwconfig=/sbin/iwconfig
+__maybe_alias keyd=keyd.rvaiya
+__maybe_alias nb=jupyter-notebook
+__maybe_alias o=xdg-open  # e.g. `o ./some.pdf` to open in browser/reader
+__maybe_alias py=python3; __maybe_alias py=ipython3
+__maybe_alias python=python3
+__maybe_alias route=/sbin/route
+__maybe_alias speedify_cli=/usr/share/speedify/speedify_cli
+__maybe_alias sysctl=/sbin/sysctl
+__maybe_alias t=tmux
+__maybe_alias zfs=/sbin/zfs
+__maybe_alias zpool=/sbin/zpool
+
+# Attach to tmux session $1 with byobu, "b" by default, creating if needed
+b() {
+  if hash byobu-tmux 2>/dev/null; then
+    byobu-tmux new-session -A -s "${1:-b}"
+  elif [[ $# -gt 0 ]]; then
+    tmux new-session -A -s "$1"
+  else
+    tmux
+  fi
+}
+
+date() { command date "${@:--R}"; }  # default format if no args
+ts() { command ts "${@:-%.T}"; }
+alias tsd='ts "%Y-%m-%d %.T"'
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  export BASH_SILENCE_DEPRECATION_WARNING=1
+  alias ls='ls --color=auto'  # macOS 13+, we target the latest 1-2 releases
+  function rsync {
+    # Mac's stock /usr/bin/rsync doesn't have --info (rsync 3.1+).
+    # PATH lookup skipping this function: zsh has no `type -P`.
+    local p
+    if [[ -n "$ZSH_VERSION" ]]; then p=$(whence -p rsync); else p=$(type -P rsync); fi
+    if [[ "$p" == /usr/bin/rsync ]]; then
+      command rsync "$@"
+    else
+      command rsync --info=progress2 "$@"
+    fi
+  }
+  if hash container >/dev/null 2>&1; then
+    alias docker=container
+  fi
+else
+  if hash podman >/dev/null 2>&1; then
+    alias docker=podman
+  fi
+  if [[ "$TERM" == dumb ]]; then  # e.g. vim
+    alias ls='ls --group-directories-first'
+  else
+    alias ls='ls --color=auto --group-directories-first'
+  fi
+  alias ping=~/.dotfiles/bin/ping.sh
+fi
+
+# https://github.com/jupyter/docker-stacks
+dr-lab() {
+  local port
+  port=$(find-free-port.py 8888 2>/dev/null || echo 8888)
+  dr -u root -p "$port:$port" "quay.io/jupyter/scipy-notebook" jupyter lab --ip=0.0.0.0 --port="$port" --allow-root
+}
+
+unset -f __maybe_alias

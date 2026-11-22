@@ -14,7 +14,10 @@ import dotfiles.lazyimport
 
 def _import_bashrc_aliases():
     global aliases
-    for line in open(os.environ['HOME'] + '/.bashrc'):
+    path = os.environ['HOME'] + '/.dotfiles/bashrc.aliases'
+    if not os.path.exists(path):
+        return
+    for line in open(path):
         line = re.sub('#.*', '', line).rstrip()
         m = re.match(r'^alias (\w+)=(.+)$', line)
         if not m: continue
@@ -52,7 +55,7 @@ _import_bashrc_aliases()
     'pandas_datareader',
     'pickle',
     'posix',
-    'pprint'
+    'pprint',
     'random',
     'requests',
     'requests_cache',

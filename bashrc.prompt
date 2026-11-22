@@ -1,0 +1,215 @@
+# shellcheck shell=bash
+# Prompt: PS0/PS1/PROMPT_COMMAND, terminal title, elapsed time. Sourced from
+# bashrc (interactive bash 3+ only).
+
+# Fix messed up terminal input handling.
+__fix_term_input() {
+  stty sane cooked
+  echo -en '\033]104\007\033[\041p\r'
+  #echo -en '\033]104\007\033[\041p\033[?3;4l\033[4l\033>\033[?69l\r'  # full reset seq
+  bind -f ~/.inputrc
+}
+
+# Store the last command line in variable $1, or "" if it wasn't saved to
+# history (HISTCONTROL/HISTIGNORE), detected by the last entry's number being
+# unchanged since the last prompt (__bashrc_hist_seen). The entry's number goes
+# to __bashrc_hist_num.
+# Not `fc -ln -1`: it skips the entry of the command line it runs from, which
+# from PS0/PROMPT_COMMAND gives the command before last.
+__bashrc_last_cmd() {
+  local __h __n
+  __h=$(HISTTIMEFORMAT= history 1)
+  # "%5d  cmd" or "%5d* cmd" (modified entry); number may be wider than 5.
+  __n=${__h#"${__h%%[! ]*}"}
+  __n=${__n%%[!0-9]*}
+  if [[ -z "$__n" || "$__n" == "$__bashrc_hist_seen" ]]; then
+    __h=
+  else
+    __h=${__h#*[0-9][ *] }
+  fi
+  __bashrc_hist_num=$__n
+  eval "$1=\$__h"
+}
+
+# PROMPT_COMMAND
+#
+# Delayed till the end to ensure __bashrc_prompt_command will be
+# the first thing there in order to get the correct $?.
+__bashrc_set_prompt_command() {
+  if [[ "$PROMPT_COMMAND" != *__bashrc_prompt_command* ]]; then
+    PROMPT_COMMAND="__bashrc_prompt_command;$PROMPT_COMMAND"
+  fi
+  unset __bashrc_set_prompt_command
+}
+__BASHRC_EPILOGUE+="__bashrc_set_prompt_command;"
+unset PROMPT_COMMAND
+
+__bashrc_prompt_command() {
+  # Record last command's exit code, has to be first thing in PROMPT_COMMAND.
+  local status=$?
+
+  # Record elapsed time.
+  local elapsedmsg="" cmd
+  __bashrc_last_cmd cmd
+  __bashrc_hist_seen=$__bashrc_hist_num
+  if [[ -n "$__PS0_EPOCHSECONDS" ]]; then
+    cmd=${cmd:-?}  # not in history
+    cmd=${cmd:0:73}
+    __PS0_ELAPSED=$(($EPOCHSECONDS - $__PS0_EPOCHSECONDS))
+    __PS0_ELAPSED_HIST+=("$(printf %7d $__PS0_ELAPSED) $cmd")
+    if (( $__PS0_ELAPSED >= 23*3600 )); then
+      elapsedmsg="Elapsed $(((__PS0_ELAPSED + 1800)/3600))h"
+    fi
+    __PS0_EPOCHSECONDS=""
+  fi
+
+  # Print last command's exit code if non zero and elapsed time if large enough.
+  if [[ $status -ne 0 && -n "$__vsc_status" && "$TERM_PROGRAM" == "vscode" ]]; then
+    # let vscode shell integration handle non-zero exit codes
+    if [[ -n "$elapsedmsg" ]]; then
+      echo -e "\033[38;5;8m$elapsedmsg\033[m"
+    fi
+  elif [[ $status -ne 0 ]]; then
+    if [[ -n "$elapsedmsg" ]]; then
+      echo -e "\033[31m\$? = $status (${elapsedmsg,,})\033[m"  # lowercase msg
+    else
+      echo -e "\033[31m\$? = $status\033[m"
+    fi
+  elif [[ -n "$elapsedmsg" ]]; then
+    echo -e "\033[38;5;8m$elapsedmsg\033[m"
+  fi
+
+  if [[ -n "$HISTFILE" ]]; then
+    history -a
+  fi
+
+  # Killed by a signal (128+n, e.g. Ctrl-C, crash) may leave the terminal in a
+  # bad state. For other cases run `h` manually.
+  # Standard signals are 1..31; this excludes plain exit codes like ssh's 255.
+  if (( status > 128 && status < 160 )); then
+    __fix_term_input
+  fi
+}
+
+# PS0 (bash 4.4+, ignored by older bash)
+# Expanded and displayed by interactive shells after reading a command and
+# before the command is executed.
+__bashrc_ps0() {
+  # Update terminal title with currently running command (if in history).
+  # printf %s: backslashes in the command aren't interpreted; control chars
+  # (newlines, a literal ESC/BEL) are replaced so they can't end the sequence.
+  # __bashrc_title is "user@host" as in PS1's title, set by __bashrc_set_ps1
+  # only for terminals that support titles.
+  if [[ -n "$__bashrc_title" ]]; then
+    local cmd
+    __bashrc_last_cmd cmd
+    if [[ -n "$cmd" ]]; then
+      printf '\033]0;%s\007' "$__bashrc_title - ${cmd//[[:cntrl:]]/ }"
+    fi
+  fi
+
+  # Write command to be executed to history. When run in a $() subshell
+  # (bash < 5.3) the parent shell doesn't see this and appends the command
+  # again at the next prompt; erasedups.py cleans that up on startup.
+  if [[ -n "$HISTFILE" ]]; then
+    history -a
+  fi
+}
+
+# Drop any value (and export attribute) inherited from a parent shell.
+unset __PS0_EPOCHSECONDS __PS0_ELAPSED
+
+if (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 3) )); then
+  # ${ cmd; } runs in the current shell (no subshell), so history -a and
+  # variable assignments take effect. Kept in a string so older bash never
+  # parses it.
+  __bashrc_ps0_cur() {
+    __PS0_EPOCHSECONDS=$EPOCHSECONDS  # record command's start time
+    __bashrc_ps0
+  }
+  PS0='${ __bashrc_ps0_cur; }'
+else
+  PS0='$(__bashrc_ps0)'
+  if [[ "${BASH_VERSINFO[0]}" -ge 5 ]]; then
+    # Record command's start time in __PS0_EPOCHSECONDS.
+    # Using substring expansion syntax ${parameter:offset:length} with a side
+    # effect to avoid getting executed in a subshell as $() and avoid printing
+    # anything.
+    PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
+  fi
+fi
+
+if [[ "${BASH_VERSINFO[0]}" -ge 5 ]]; then
+  # Print recent elapsed times recorded by __bashrc_prompt_command.
+  elapsed() { local s; for s in "${__PS0_ELAPSED_HIST[@]}"; do echo "$s"; done; }
+fi
+
+# PS1
+#
+# Delayed till the end to have the last say on PS1 and get definitions for
+# __git_ps1 and parameters from local scripts:
+#   * PS1_COLOR - user@host color:
+#       30 .. 37      standard ansi colors
+#       38;5;n        256 extended colors (0..255)
+#       38;2;r;g;b    R/G/B (0..255)
+#   * PS1_HOST - hostname to display
+__bashrc_set_ps1() {
+  # set variable identifying the chroot you work in (used in the prompt below)
+  if [[ -z "$debian_chroot" && -r /etc/debian_chroot ]]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+  fi
+
+  if [[ -z "$PS1_COLOR" ]]; then
+    if [[ $UID == 0 ]]; then
+      PS1_COLOR=31
+    elif hash id >/dev/null 2>&1; then
+      local groups=" $(id -nG) "
+      if [[ "$groups" == *" sudo "* && ! "$groups" == *" audio "* ]]; then
+        PS1_COLOR=31
+      else
+        PS1_COLOR=32
+      fi
+    else
+      PS1_COLOR=32
+    fi
+  fi
+
+  if [[ "$TERM" == "dumb" ]]; then
+    PS1='\u@\h:\w\$ '
+  else
+    PS1="\[\033[01;36m\]\A\[\033[m\] "                  # HH:MM
+    PS1+="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}"  # user@host
+    PS1+="\[\033[00m\]:"                                # :
+    PS1+="\[\033[01;34m\]\w\[\033[00m\]"                # workdir
+    if declare -F __git_ps1 >/dev/null; then
+      PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'
+    fi
+    PS1+='\$ '
+  fi
+
+  # If the terminal supports it, set the title to user@host:dir
+  # (kitty, ghostty: xterm-kitty, xterm-ghostty)
+  __bashrc_title=
+  case "$TERM" in
+    xterm*|rxvt*|tmux*|screen*|alacritty*|wezterm*|foot*)
+      PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+      # Same user@host for PS0's title; \h is the hostname up to the first dot.
+      if [[ -n "$USER" && -n "$HOSTNAME" ]]; then
+        __bashrc_title="${debian_chroot:+($debian_chroot)}$USER@${HOSTNAME%%.*}"
+      fi
+      ;;
+  esac
+
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    PS1="(${VIRTUAL_ENV##*/}) $PS1"
+  fi
+  if [[ -n "$CONDA_DEFAULT_ENV" ]]; then
+    PS1="(${CONDA_DEFAULT_ENV}) $PS1"
+  fi
+
+  unset PS1_COLOR
+  unset PS1_HOST
+  unset __bashrc_set_ps1
+}
+
+__BASHRC_EPILOGUE+="__bashrc_set_ps1;"
