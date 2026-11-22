@@ -24,4 +24,4 @@ if has('eval')
   else
     nmap <leader>a :A<CR>
   end
-end
+endif

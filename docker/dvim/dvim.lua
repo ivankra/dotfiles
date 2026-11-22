@@ -1,7 +1,7 @@
 -- Dockerized nvim configurations (for lazy.nvim) with extra plugins to experiment with.
 -- Automatically sourced via ~/.dotfiles/nvim/lua/plugins/dvim.lua symlink.
 
-if vim.g.in_container == nil or not vim.g.in_container then
+if not vim.g.in_container then
   return {}
 end
 
@@ -197,7 +197,7 @@ elseif host == "dvim" then
       opts = {
         formatters_by_ft = {
           lua = { "stylua" },
-          python = { "black" },
+          python = { "ruff_format" },  -- same formatter as the host (ruff LSP)
           javascript = { "prettier" },
           typescript = { "prettier" },
           json = { "prettier" },
@@ -217,7 +217,6 @@ elseif host == "dvim" then
       opts = {
         keymap = { preset = "default" },  -- <C-space> trigger, <C-y> accept, <C-e> cancel, <C-n/p> navigate
         appearance = {
-          use_nvim_cmp_as_default = true,
           nerd_font_variant = "mono",
         },
         sources = {
@@ -232,7 +231,7 @@ elseif host == "dvim" then
 
   --Unattended install (:MasonInstall blocks when headless; nvim-treesitter's install() is async, so wait):
   --RUN nvim --headless "+Lazy! sync" "+qa"
-  --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua black prettier shfmt" "+qa"
+  --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua ruff prettier shfmt" "+qa"
   --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
 elseif host:sub(1, 5) == "dvim-" then
   error("Unknown HOST=" .. host)

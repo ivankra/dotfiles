@@ -4,6 +4,22 @@
 " [Ctrl+N]: new tab (note: overrides downward motion)
 nnoremap <silent> <C-N> :tabnew<CR>
 
+" [Ctrl+PageUp/PageDown]: previous/next tab, or buffer when there's only one tab
+function! s:TabOrBuffer(dir) abort
+  if tabpagenr('$') > 1
+    execute (a:dir > 0 ? 'tabnext' : 'tabprevious')
+  elseif exists(':BufferLineCycleNext') == 2
+    " Follows bufferline's visual order when it's loaded
+    execute (a:dir > 0 ? 'BufferLineCycleNext' : 'BufferLineCyclePrev')
+  else
+    execute (a:dir > 0 ? 'bnext' : 'bprevious')
+  endif
+endfunction
+nnoremap <silent> <C-PageUp> :<C-U>call <SID>TabOrBuffer(-1)<CR>
+nnoremap <silent> <C-PageDown> :<C-U>call <SID>TabOrBuffer(1)<CR>
+inoremap <silent> <C-PageUp> <C-O>:call <SID>TabOrBuffer(-1)<CR>
+inoremap <silent> <C-PageDown> <C-O>:call <SID>TabOrBuffer(1)<CR>
+
 " [Ctrl+S]: save file (if modified)
 if has('nvim') || has('patch-8.2.1978')
   nnoremap <C-S> <Cmd>update<CR>
@@ -277,7 +293,7 @@ if has('nvim')
   nnoremap <C-S-F> <Cmd>Telescope live_grep<CR>
   " CLI terminals usually send ^F: mapped in SetupGui()
 
-  " ===== Comment.nvim =====
+  "===== Comment.nvim =====
   " [Ctrl+/]: toggle line comment
   " nmap <C-/> <Plug>(comment_toggle_linewise_current)
   " imap <C-/> <Esc><Plug>(comment_toggle_linewise_current)a

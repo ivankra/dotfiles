@@ -129,6 +129,23 @@ return {
     end,
   },
 
+  -- Auto-close oldest unedited buffers past `threshold`. Editing pins a buffer.
+  {
+    "axkirillov/hbac.nvim",
+    dev = true,
+    lazy = false,
+    keys = {
+      { "<leader>bp", "<cmd>Hbac toggle_pin<cr>", desc = "Pin buffer (don't auto-close)" },
+    },
+    opts = {
+      threshold = 5,
+      -- :bdelete, not the default wipeout: keeps marks/jumplist for <C-o>
+      close_command = function(bufnr)
+        pcall(vim.cmd, "bdelete " .. bufnr)
+      end,
+    },
+  },
+
   -- Modern take on vidir, editable file explorer buffers
   {
     "stevearc/oil.nvim",
@@ -189,6 +206,12 @@ return {
     "akinsho/toggleterm.nvim",
     dev = true,
     -- <C-`> is sent as <C-Space> (NUL) by gnome-terminal
+    cmd = { "ToggleTerm", "TermExec" },
+    -- No rhs: the first press loads the plugin, then hits its open_mapping
+    keys = {
+      { "<C-`>", mode = { "n", "i" }, desc = "Toggle terminal" },
+      { "<C-Space>", mode = { "n", "i" }, desc = "Toggle terminal" },
+    },
     opts = {
       open_mapping = { [[<C-`>]], [[<C-Space>]] }
     }

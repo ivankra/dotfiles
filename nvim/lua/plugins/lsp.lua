@@ -34,6 +34,11 @@ local skip_if = { pyright = "basedpyright" }
 
 -- Format with the server, or with conform.nvim where that's installed (dvim)
 local function format()
+  -- A blockwise selection isn't passed on as a range: it would format the whole file
+  if vim.fn.mode() == "\22" then
+    vim.notify("Can't format a block selection, use v or V", vim.log.levels.WARN)
+    return
+  end
   local ok, conform = pcall(require, "conform")
   if ok then
     conform.format({ async = true, lsp_format = "fallback" })

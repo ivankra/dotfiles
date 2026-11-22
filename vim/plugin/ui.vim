@@ -110,8 +110,15 @@ vim.keymap.set('n', '<leader>us', '<Cmd>call ToggleSpell()<CR>', { desc = 'Toggl
 vim.keymap.set('n', '<leader>uw', '<Cmd>call ToggleWrap()<CR>', { desc = 'Toggle Wrap' })
 vim.keymap.set('n', '<A-z>', '<Cmd>call ToggleWrap()<CR>', { desc = 'Toggle Wrap' })
 vim.keymap.set('n', '<leader>ud', function()
-  local enabled = vim.diagnostic.is_enabled()
-  vim.diagnostic.enable(not enabled)
+  local d = vim.diagnostic
+  local enabled
+  if d.is_enabled then
+    enabled = d.is_enabled()
+    d.enable(not enabled)
+  else  -- 0.9: is_disabled(), and enable()/disable() take a buffer, not a bool
+    enabled = not d.is_disabled()
+    if enabled then d.disable() else d.enable() end
+  end
   vim.notify("Diagnostics " .. (enabled and "off" or "on"))
 end, { desc = 'Toggle Diagnostics' })
 EOF

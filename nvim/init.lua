@@ -1,16 +1,15 @@
--- vim.uv is 0.10+, older nvim only has vim.loop (same libuv module). Lua code
--- loaded later can use vim.uv everywhere. lazy.nvim sets this too, but only
--- once required, and code below runs before that.
-vim.uv = vim.uv or vim.loop
-
 -- Yank/paste using X11 clipboard. Not over SSH: there nvim falls back to OSC 52,
 -- and every paste would ask the terminal for its clipboard (usually refused
 -- or slow). "+y still copies to the local clipboard via OSC 52.
-vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
+-- Scheduled: setting it runs clipboard provider detection, which slows startup.
+vim.schedule(function()
+  vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
+end)
 vim.opt.confirm = true                 -- Confirm to save when closing a modified buffer instead of error
 vim.opt.cursorline = true               -- Highlight current line
 vim.opt.fillchars = { eob = " " }       -- Don't show ~ for non-existing lines in a buffer
 vim.opt.foldmethod = "marker"           -- Default folding method: {{{ and }}} markers
+-- Note: deprecated (flips plugins' :s///g), but no plugin used here runs :s
 vim.opt.gdefault = true                 -- Enable /g flag by default for search & replace (flip its on/off status)
 vim.opt.ignorecase = true               -- Case-insensitive search by default (add \C to pattern to override)
 vim.opt.laststatus = 3                  -- Global statusline (nvim)
@@ -56,6 +55,11 @@ vim.opt.breakindent = true              --  Continue original indentation on wra
 --   if #signs > 0 then return "%3l%s" else return "%3l%#LineNr#│%" end
 -- end
 -- vim.o.statuscolumn = "%!v:lua.get_statuscol()"
+
+-- vim.uv is 0.10+, older nvim only has vim.loop (same libuv module). Lua code
+-- loaded later can use vim.uv everywhere. lazy.nvim sets this too, but only
+-- once required, and code below runs before that.
+vim.uv = vim.uv or vim.loop
 
 -- Initial GUI font. Set here rather than in ginit.vim to reduce flicker at startup.
 -- Must be a single existing font: nvim-qt pre-0.2.20 doesn't support fallback
@@ -151,7 +155,8 @@ vim.api.nvim_create_autocmd("UIEnter", {
 })
 
 -- Typing %%/ in command mode expands to current file's directory
-vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? expand('%:p:h') : '%%']])
+-- fnameescape(): a dir like notes#1 would otherwise expand # to the alternate file
+vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%']])
 
 -- Start terminals in insert mode and define buffer-local keybindings
 vim.api.nvim_create_autocmd("TermOpen", {
@@ -160,7 +165,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
     -- Double [Esc]: switch from terminal to normal mode
     vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], { buffer = ev.buf, silent = true })
     -- [Enter]: switch from normal to insert mode
-    vim.keymap.set("n", "<CR>", "i", { buffer = ev.buf, silent = true, noremap = true })
+    vim.keymap.set("n", "<CR>", "i", { buffer = ev.buf, silent = true })
   end,
 })
 -- Because of <Esc><Esc>, a single Esc reaches the terminal app only after
@@ -210,7 +215,7 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave
 if vim.fn.has("nvim-0.10") == 1 then
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("BundledTreesitter", { clear = true }),
-    pattern = { "c", "lua", "vim", "vimdoc", "markdown", "query" },
+    pattern = { "c", "lua", "vim", "markdown", "query" },  -- help: nvim's own ftplugin
     callback = function(ev)
       pcall(vim.treesitter.start, ev.buf)  -- no-op if this build lacks the parser
     end,
@@ -271,7 +276,7 @@ require("lazy").setup({
 })
 
 -- Autoloaded vim plugins in ~/.config/nvim/plugin/ (shared with vim):
--- chmod.vim: chmod a+x new files with a shebang
+-- chmod.vim: chmod a+rx files that become scripts (new, or shebang added)
 -- fileline.vim: interpret 'filename[:line[:col]]' filenames
 -- projectionist.vim: vim-projectionist config
 -- vscode.vim: vscode-like key bindings

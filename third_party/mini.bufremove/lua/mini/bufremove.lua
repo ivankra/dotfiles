@@ -307,7 +307,13 @@ end
 -- `on_saved`: called when an asynchronous save (oil.nvim) succeeded; the
 -- removal doesn't happen now then (returns false).
 H.can_remove = function(buf_id, force, fun_name, on_saved)
-  if force or not vim.bo[buf_id].modified then return true end
+  if force then return true end
+  local buf = vim.bo[buf_id]
+  if buf.buftype == 'terminal' and vim.fn.jobwait({ buf.channel }, 0)[1] == -1 then
+    local name = vim.api.nvim_buf_get_name(buf_id)
+    return vim.fn.confirm(string.format('Stop the running job in "%s"?', name), '&Yes\n&No', 2, 'Question') == 1
+  end
+  if not buf.modified then return true end
   -- Changes in these don't stop :q / :bd either (scratch buffers etc)
   if H.unsaved_ok_buftypes[vim.bo[buf_id].buftype] then return true end
 

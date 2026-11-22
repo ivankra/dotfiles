@@ -5,8 +5,10 @@
 
 if has("autocmd")
 
-autocmd! BufNewFile *:* nested call s:gotoline()
-autocmd! BufNewFile a/*,b/* nested call s:gotoline()
+augroup FileLineJump
+  autocmd!
+  autocmd BufNewFile *:*,a/*,b/* nested call s:gotoline()
+augroup END
 
 function! s:gotoline()
   let file = bufname("%")
@@ -33,7 +35,7 @@ function! s:gotoline()
   let newfile = ""
 
   " filename:row[:]
-  let matches = matchlist(file, '\(.*\):\(\d\+\):\?')
+  let matches = matchlist(file, '\(.*\):\(\d\+\):\?$')
   if len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
     let newfile = matches[1]
     let row = matches[2]
@@ -49,10 +51,10 @@ function! s:gotoline()
   endif
 
   " filename:
-  let matches = matchlist(file, '\(.*\):')
+  let matches = matchlist(file, '\(.*\):$')
   if len(newfile) == 0 && len(matches) != 0 && filereadable(matches[1]) && !filereadable(file)
     let newfile = matches[1]
-    let row = matches[2]
+    let row = ""
     let col = ""
   endif
 
@@ -61,11 +63,11 @@ function! s:gotoline()
     exec "edit " . fnameescape(newfile)
     if len(col) > 0
       call cursor(row, col)
-    else
+    elseif !empty(row)
       exec ":" . row
     endif
     exec ":bdelete " . l:bufn
-    if foldlevel(row) > 0
+    if !empty(row) && foldlevel(row) > 0
       exec ":foldopen!"
     endif
     return

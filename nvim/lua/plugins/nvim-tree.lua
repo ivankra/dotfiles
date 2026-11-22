@@ -2,7 +2,8 @@ return {
   {
     "nvim-tree/nvim-tree.lua",
     dev = true,
-    lazy = false,
+    -- Lazy: oil.nvim handles directory buffers, so nothing needs the tree at startup
+    cmd = { "NvimTreeToggle", "NvimTreeOpen", "NvimTreeFocus", "NvimTreeFindFile", "NvimTreeFindFileToggle" },
     dependencies = { vim.g.icons_provider },
     keys = {
       { "<C-B>", ":NvimTreeFindFileToggle<CR>", desc = "Toggle Explorer", silent = true },
@@ -65,7 +66,8 @@ return {
         callback = function()
           local tree_wins = {}
           local floating_wins = {}
-          local wins = vim.api.nvim_list_wins()
+          -- Current tab only: with other tabs open, :q here would leave the tree alone in this tab
+          local wins = vim.api.nvim_tabpage_list_wins(0)
           for _, w in ipairs(wins) do
             local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w))
             if bufname:match("NvimTree_") ~= nil then
