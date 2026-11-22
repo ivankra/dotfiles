@@ -545,7 +545,7 @@ if [[ -f ~/.bash_history && ! -L ~/.bash_history ]]; then
   chmod og-rwx ~/.bash_history
 fi
 
-# $PYTHON_HISTORY from bashrc only works from python 3.13 on, older ones
+# $PYTHON_HISTORY from bashrc.history only works from python 3.13 on, older ones
 # always write ~/.python_history and so still need the symlink
 python_version=$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true)
 if [[ -n "$python_version" ]] &&
@@ -560,6 +560,18 @@ elif [[ -L ~/.python_history ]]; then
   rm -f ~/.python_history
   echo "Removed obsolete symlink ~/.python_history"
 fi
+
+# tig has no env var for its history file: it uses $XDG_DATA_HOME/tig/history
+# and falls back to ~/.tig_history only if that can't be opened. Create it and
+# move ~/.tig_history in there.
+tig_history="${XDG_DATA_HOME:-$HOME/.local/share}/tig/history"
+mkdir -p "${tig_history%/*}"
+if [[ -f ~/.tig_history && ! -L ~/.tig_history ]]; then
+  cat ~/.tig_history >>"$tig_history" && rm -f ~/.tig_history &&
+    echo "Moved: ~/.tig_history -> $tig_history"
+fi
+touch "$tig_history"
+chmod 0600 "$tig_history"
 
 # }}}
 # Symlink ~/.cache, ~/.local/share/{containers,flatpak} into /xfs {{{
