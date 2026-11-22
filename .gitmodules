@@ -115,3 +115,6 @@
 [submodule "modules/hbac.nvim"]
 	path = modules/hbac.nvim
 	url = https://github.com/axkirillov/hbac.nvim.git
+[submodule "modules/hotreload.nvim"]
+	path = modules/hotreload.nvim
+	url = https://github.com/diogo464/hotreload.nvim
