@@ -1,4 +1,4 @@
-# wezterm built from upstream git, packaged with upstream's ci/deploy.sh
+# wezterm from github.com/ivankra/wezterm branch dev, packaged with upstream's ci/deploy.sh
 FROM debian:stable
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -37,13 +37,10 @@ RUN apt-get update && \
 
 RUN rustup set profile minimal && rustup default stable
 
-RUN git clone --depth=1 --recurse-submodules --shallow-submodules \
-        https://github.com/wezterm/wezterm.git /src
+RUN git clone --depth=1 --recurse-submodules --shallow-submodules -b dev \
+        https://github.com/ivankra/wezterm.git /src
 
 WORKDIR /src
-
-COPY *.patch /tmp/
-RUN git apply /tmp/*.patch
 
 RUN cargo build --release -p wezterm-gui -p wezterm -p wezterm-mux-server -p strip-ansi-escapes
 
