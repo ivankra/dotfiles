@@ -78,9 +78,46 @@ local function switch_tab_or_send(key, delta)
     end),
   }
 end
+
+-- Ctrl+Shift+PgUp/PgDn move tabs (the default), but reach the app when
+-- there's only one tab (nvim moves its tab/buffer: vim/plugin/vscode.vim)
+local function move_tab_or_send(key, delta)
+  return {
+    key = key,
+    mods = 'CTRL|SHIFT',
+    action = wezterm.action_callback(function(window, pane)
+      if #window:mux_window():tabs() > 1 then
+        window:perform_action(act.MoveTabRelative(delta), pane)
+      else
+        window:perform_action(act.SendKey { key = key, mods = 'CTRL|SHIFT' }, pane)
+      end
+    end),
+  }
+end
+
+-- Shift+PgUp/PgDn scroll wezterm's scrollback (the default), but reach
+-- full-screen apps (alt screen: nvim, less...) which have no scrollback there
+local function scroll_or_send(key, pages)
+  return {
+    key = key,
+    mods = 'SHIFT',
+    action = wezterm.action_callback(function(window, pane)
+      if pane:is_alt_screen_active() then
+        window:perform_action(act.SendKey { key = key, mods = 'SHIFT' }, pane)
+      else
+        window:perform_action(act.ScrollByPage(pages), pane)
+      end
+    end),
+  }
+end
+
 config.keys = {
   switch_tab_or_send('PageUp', -1),
   switch_tab_or_send('PageDown', 1),
+  move_tab_or_send('PageUp', -1),
+  move_tab_or_send('PageDown', 1),
+  scroll_or_send('PageUp', -1),
+  scroll_or_send('PageDown', 1),
 }
 
 -- Open links with Ctrl+click only; a plain click just selects

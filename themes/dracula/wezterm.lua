@@ -5,13 +5,15 @@
 local dracula = {
   bg = '#282a36',
   fg = '#f8f8f2',
-  comment = '#6272a4',
 }
+-- WezTerm tabs touch each other (Ptyxis has gaps between them), so hover
+-- is kept well below the active tab's shade to keep the two apart
 local chrome = {
   bg = '#2d303f',
-  tab = '#373a48',
-  hover = '#333645',
+  tab = '#3a3d4c',
+  hover = '#313443',
   edge = '#3c3f4d',
+  label = '#919099',  -- neutral grey of Ptyxis's tab labels
 }
 
 return {
@@ -20,7 +22,7 @@ return {
     active_titlebar_bg = chrome.bg,
     inactive_titlebar_bg = chrome.bg,
     active_titlebar_fg = dracula.fg,
-    inactive_titlebar_fg = dracula.comment,
+    inactive_titlebar_fg = chrome.label,
     button_bg = chrome.bg,
     button_fg = dracula.fg,
     button_hover_bg = chrome.edge,
@@ -36,9 +38,9 @@ return {
     tab_bar = {
       inactive_tab_edge = chrome.edge,
       active_tab = { bg_color = chrome.tab, fg_color = dracula.fg },
-      inactive_tab = { bg_color = chrome.bg, fg_color = dracula.comment },
-      inactive_tab_hover = { bg_color = chrome.tab, fg_color = dracula.comment },
-      new_tab = { bg_color = chrome.bg, fg_color = dracula.comment },
+      inactive_tab = { bg_color = chrome.bg, fg_color = chrome.label },
+      inactive_tab_hover = { bg_color = chrome.hover, fg_color = chrome.label },
+      new_tab = { bg_color = chrome.bg, fg_color = chrome.label },
       new_tab_hover = { bg_color = chrome.hover, fg_color = dracula.fg },
     },
   },
