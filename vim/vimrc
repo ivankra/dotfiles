@@ -1,6 +1,5 @@
 set nocompatible
 set autoread                            " Automatically re-read files changed outside of vim
-set clipboard=unnamedplus               " Yank/paste using X11 clipboard
 set confirm                             " Confirm to save when closing a modified buffer instead of error
 set encoding=utf-8                      " Use utf-8 to represent text internally in vim
 set fileencodings=ucs-bom,utf-8,cp1251  " List of encodings to check when opening an existing file
@@ -46,6 +45,14 @@ set statusline+=\ \ %{&fenc?&fenc:&enc} " File encoding: utf-8
 set statusline+=\ \ %y                  " FileType: [python]
 set statusline+=\ %3l:%-2c              " line:col
 set statusline+=\ %P                    " Percentage through file
+
+" Yank/paste via the system clipboard: "+" on X11/Wayland.
+" macOS has one "*" and yanks into it only with "unnamed".
+if has("mac")
+  set clipboard=unnamed
+else
+  set clipboard=unnamedplus
+endif
 
 if has("termguicolors") || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "tmux-256color"
   set termguicolors                     " Enable 24-bit color in terminal

@@ -46,13 +46,26 @@ nnoremap <C-Y> <C-R>
 inoremap <expr> <C-Y> pumvisible() ? "\<C-Y>" : "\<C-O>\<C-R>"
 xnoremap <C-Y> <Esc><C-R>
 
+" System clipboard register for the Ctrl+X/C/Shift+V keys, as vimrc's
+" 'clipboard': "* with "unnamed" (macOS: "+ doesn't yank into it), else "+.
+" Vim without clipboard support has neither: its own unnamed register. nvim:
+" always "+, which copies to the local clipboard via OSC 52 over ssh too.
+function! s:ClipReg() abort
+  if has('nvim')
+    return '+'
+  elseif !has('clipboard')
+    return '"'
+  endif
+  return &clipboard =~# '\<unnamed\>' ? '*' : '+'
+endfunction
+
 " [Ctrl+X]: cut selection or current line (note: overrides subtract command)
-nnoremap <C-X> "+dd
-vnoremap <C-X> "+d
+nnoremap <expr> <C-X> '"' . <SID>ClipReg() . 'dd'
+vnoremap <expr> <C-X> '"' . <SID>ClipReg() . 'd'
 
 " [Ctrl+C]: copy selection or current line
-nnoremap <C-C> "+yy
-vnoremap <C-C> "+y
+nnoremap <expr> <C-C> '"' . <SID>ClipReg() . 'yy'
+vnoremap <expr> <C-C> '"' . <SID>ClipReg() . 'y'
 
 " [Ctrl+A]: select all, restore cursor on exit (note: overrides increment number command)
 if exists('##ModeChanged')
@@ -244,12 +257,12 @@ function! s:SetupGui()
 
   " [Ctrl+Shift+V]: paste from clipboard
   " Note - in CLI normally handled by terminal emulator. ^V inserts special chars.
-  cnoremap <C-S-V> <C-R>+
-  nnoremap <C-S-V> "+p
+  cnoremap <expr> <C-S-V> "\<C-R>" . <SID>ClipReg()
+  nnoremap <expr> <C-S-V> '"' . <SID>ClipReg() . 'p'
   " Paste at the cursor literally, without autoindent
-  inoremap <C-S-V> <C-R><C-O>+
+  inoremap <expr> <C-S-V> "\<C-R>\<C-O>" . <SID>ClipReg()
   " P: don't overwrite the clipboard with the replaced text (vim 9/nvim 0.8+)
-  xnoremap <C-S-V> "+P
+  xnoremap <expr> <C-S-V> '"' . <SID>ClipReg() . 'P'
   if has('nvim')
     tnoremap <C-S-V> <C-\><C-N>"+pi
   endif
