@@ -63,7 +63,13 @@ return {
     init = function()
       -- https://github.com/nvim-tree/nvim-tree.lua/wiki/Auto-Close
       vim.api.nvim_create_autocmd("QuitPre", {
+        group = vim.api.nvim_create_augroup("NvimTreeAutoClose", { clear = true }),
         callback = function()
+          -- Quitting a float (e.g. a focused LSP hover) leaves the editor
+          -- windows open, so the tree stays too
+          if vim.api.nvim_win_get_config(0).relative ~= "" then
+            return
+          end
           local tree_wins = {}
           local floating_wins = {}
           -- Current tab only: with other tabs open, :q here would leave the tree alone in this tab

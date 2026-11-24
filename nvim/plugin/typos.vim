@@ -1,0 +1,1 @@
+../../vim/plugin/typos.vim

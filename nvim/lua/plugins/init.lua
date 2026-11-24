@@ -75,8 +75,9 @@ return {
     keys = {
       { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev buffer" },
       { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
-      { "<S-PageUp>", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev buffer" },
-      { "<S-PageDown>", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
+      -- Insert mode too, as init.lua's :bprevious/:bnext fallbacks
+      { "<S-PageUp>", "<cmd>BufferLineCyclePrev<cr>", mode = { "n", "i" }, desc = "Prev buffer" },
+      { "<S-PageDown>", "<cmd>BufferLineCycleNext<cr>", mode = { "n", "i" }, desc = "Next buffer" },
       { "<leader>bl", function() close_buffers("left") end, desc = "Delete buffers to the Left" },
       { "<leader>bo", function() close_buffers("others") end, desc = "Delete Other buffers" },
       { "<leader>br", function() close_buffers("right") end, desc = "Delete buffers to the Right" },
@@ -213,20 +214,75 @@ return {
     }
   },
 
-  -- Toggleable terminal on Ctrl+`
+  -- Completion with blink.cmp (0.10+), instead of nvim's built-in LSP
+  -- completion (lsp.lua): a menu as you type with the server's items, file
+  -- paths, snippets and words from open buffers, docs next to it. Also on the
+  -- : line (Tab).
+  -- Keys: Ctrl+Space opens the menu, Ctrl+N/P or Up/Down select, Ctrl+Y
+  -- accepts, Ctrl+E closes, PageUp/PageDown move a page, Ctrl+B/F scroll the
+  -- docs.
+  {
+    "saghen/blink.cmp",
+    dev = true,
+    cond = vim.fn.has("nvim-0.10") == 1,
+    -- Not lazy-loaded: when loaded, it adds what it supports (snippets etc.)
+    -- to every server's capabilities (0.11+), which has to happen before the
+    -- first server starts. It loads its own parts on demand.
+    lazy = false,
+    init = function()
+      vim.g.lsp_builtin_completion = false  -- see lsp.lua
+    end,
+    opts = {
+      -- The Lua fuzzy matcher, no binary: the prebuilt one comes from
+      -- GitHub releases, with a checksum from the same release (nothing
+      -- pins it). Without typo tolerance or frecency. "lua" skips the
+      -- download code entirely (fuzzy/download/init.lua, ensure_downloaded),
+      -- and unlike "prefer_rust" warns about nothing. download = false: in
+      -- case the implementation is changed.
+      fuzzy = {
+        implementation = "lua",
+        prebuilt_binaries = { download = false },
+      },
+      keymap = {
+        preset = "default",
+        -- A page in the menu, like nvim's own popup menu (its own window,
+        -- so not built in). 10: the menu's height (completion.menu.max_height).
+        ["<PageUp>"] = { function(cmp) return cmp.select_prev({ count = 10 }) end, "fallback" },
+        ["<PageDown>"] = { function(cmp) return cmp.select_next({ count = 10 }) end, "fallback" },
+      },
+      appearance = {
+        nerd_font_variant = "mono",
+      },
+      sources = {
+        default = { "lsp", "path", "snippets", "buffer" },
+      },
+      completion = {
+        documentation = { auto_show = true },
+      },
+    },
+  },
+
+  -- Toggleable terminal on Ctrl+`/Ctrl+Space
   {
     "akinsho/toggleterm.nvim",
     dev = true,
-    -- <C-`> is sent as <C-Space> (NUL) by gnome-terminal
+    -- <C-Space> not in insert mode or on the : line: blink.cmp's (above).
+    -- Terminals that send <C-`> as <C-Space> (NUL), like gnome-terminal and
+    -- ptyxis, toggle with Ctrl+` there too.
     cmd = { "ToggleTerm", "TermExec" },
     -- No rhs: the first press loads the plugin, then hits its open_mapping
     keys = {
       { "<C-`>", mode = { "n", "i" }, desc = "Toggle terminal" },
-      { "<C-Space>", mode = { "n", "i" }, desc = "Toggle terminal" },
+      { "<C-Space>", "<cmd>ToggleTerm<cr>", desc = "Toggle terminal" },
     },
     opts = {
-      open_mapping = { [[<C-`>]], [[<C-Space>]] }
-    }
+      open_mapping = [[<C-`>]],
+      -- Closing from inside one: its own terminal mode only, so programs in
+      -- other terminals (:terminal) keep Ctrl+Space
+      on_create = function(term)
+        vim.keymap.set("t", "<C-Space>", "<cmd>ToggleTerm<cr>", { buffer = term.bufnr, desc = "Toggle terminal" })
+      end,
+    },
   },
 
   -- Visual git integration: highlight changed lines, blame, stage hunks

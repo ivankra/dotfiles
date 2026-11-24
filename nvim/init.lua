@@ -5,8 +5,9 @@
 vim.schedule(function()
   vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
 end)
-vim.opt.confirm = true                 -- Confirm to save when closing a modified buffer instead of error
+vim.opt.confirm = true                  -- Confirm to save when closing a modified buffer instead of error
 vim.opt.cursorline = true               -- Highlight current line
+vim.opt.fileencodings = "ucs-bom,utf-8,cp1251"  -- Encodings to try when opening a file, as vimrc (default ends in latin1)
 vim.opt.fillchars = { eob = " " }       -- Don't show ~ for non-existing lines in a buffer
 vim.opt.foldmethod = "marker"           -- Default folding method: {{{ and }}} markers
 -- Note: deprecated (flips plugins' :s///g), but no plugin used here runs :s
@@ -16,15 +17,22 @@ vim.opt.laststatus = 3                  -- Global statusline (nvim)
 vim.opt.list = true                     -- Show substitutes for some special chars
 vim.opt.listchars = "tab:→ ,trail:▞,nbsp:␣"  -- e.g. →⊢⇤⇠⇢•◌◼⯁▮▯∵∴␠×✘╳␣⎵▞░▒▓◘
 vim.opt.pumheight = 15                  -- Limit popup menu's height
+vim.opt.scrolloff = 5                   -- Keep 5 lines above/below the cursor, as vim's defaults.vim (nvim: 0)
 vim.opt.showmode = false                -- Don't show mode since it's already in the statusline
 vim.opt.smartcase = true                -- Case-sensitive search if pattern contains uppercase characters
 vim.opt.splitbelow = true               -- Put new split window below
 vim.opt.splitright = true               -- Put new vertically split window to the right
-vim.opt.termguicolors = true            -- Enable 24-bit color in terminal
 vim.opt.timeoutlen = 300                -- Wait for mapped sequences (default 1000), shorter in terminal mode below
 vim.opt.undofile = true                 -- Persistent undo history
 vim.opt.virtualedit = "block"           -- Allow cursor to move past end-of-line in block selection mode
 vim.opt.wildmode = "longest:full,full"  -- Completion mode like readline's show-all-if-ambiguous
+
+-- 24-bit color: 0.10+ turns it on by itself when the terminal supports it
+-- ($COLORTERM, terminfo, or asking the terminal, which also works over ssh),
+-- and leaves it off in e.g. the Linux console. Older nvim needs it set.
+if vim.fn.has("nvim-0.10") == 0 then
+  vim.opt.termguicolors = true
+end
 
 -- Default indent options. Will get adjusted by guess-indent.nvim.
 vim.opt.expandtab = true                -- Expand tabs
@@ -45,6 +53,7 @@ end
 vim.opt.wrap = false                    --  No line wrapping by default
 vim.opt.linebreak = true                --  Wrap line at whitespace
 vim.opt.breakindent = true              --  Continue original indentation on wrapped lines
+vim.opt.breakindentopt = "list:-1"      --  ...and indent past list bullets (per 'formatlistpat')
 -- With line numbers on, don't want showbreak
 -- vim.opt.breakindentopt = "shift:2,sbr"  --  At least 2 column indent and enable showbreak
 -- vim.opt.showbreak = "↪"                 --  Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
@@ -77,7 +86,8 @@ vim.g.maplocalleader = "\\"
 vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Go to left window" })
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Go to lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Go to upper window" })
-vim.keymap.set("n", "<C-l>", ":redraw!<CR><C-w>l", { desc = "Go to right window + redraw", silent = true })
+-- Also what the default <C-l> does: clear search highlight, update diffs
+vim.keymap.set("n", "<C-l>", "<Cmd>nohlsearch|diffupdate|redraw!<CR><C-w>l", { desc = "Go to right window + redraw" })
 vim.keymap.set("n", "<S-Left>", "<C-w><C-h>", { desc = "Go to left window" })
 vim.keymap.set("n", "<S-Down>", "<C-w><C-j>", { desc = "Go to lower window" })
 vim.keymap.set("n", "<S-Up>", "<C-w><C-k>", { desc = "Go to upper window" })
@@ -128,7 +138,7 @@ local function toggle_comment_insert()
   local row, col = unpack(vim.api.nvim_win_get_cursor(0))
   local before = vim.api.nvim_get_current_line()
   local indent = (before:find("%S") or 1) - 1  -- where the comment marker goes
-  vim.cmd.normal("gcc")
+  vim.cmd("normal gcc")
   if col >= indent then
     local after = vim.api.nvim_get_current_line()
     -- Not back into the indentation (cursor was inside a removed marker)
@@ -141,37 +151,69 @@ local function map_comment_key(key)
   vim.keymap.set("x", key, "gc", { remap = true, desc = "Toggle comment" })
   vim.keymap.set("i", key, toggle_comment_insert, { desc = "Toggle comment" })
 end
-map_comment_key("<C-/>")
--- CLI terminals usually send <C-_> on Ctrl+/. In GUIs it's Ctrl+- (font size,
--- see vscode.vim). GUIs aren't known yet while init.lua runs (g:GuiLoaded is
--- set after attaching), so decide on UIEnter, like vscode.vim's SetupGui().
-vim.api.nvim_create_autocmd("UIEnter", {
-  once = true,
-  callback = function()
-    if vim.fn.has("gui_running") == 0 and not vim.g.GuiLoaded then
-      map_comment_key("<C-_>")
-    end
-  end,
-})
+-- Older nvim has no gcc to map to
+if vim.fn.has("nvim-0.10") == 1 then
+  map_comment_key("<C-/>")
+  -- CLI terminals usually send <C-_> on Ctrl+/. In GUIs it's Ctrl+- (font size,
+  -- see vscode.vim). GUIs aren't known yet while init.lua runs (g:GuiLoaded is
+  -- set after attaching), so decide on UIEnter, like vscode.vim's SetupGui().
+  vim.api.nvim_create_autocmd("UIEnter", {
+    once = true,
+    callback = function()
+      if vim.fn.has("gui_running") == 0 and not vim.g.GuiLoaded then
+        map_comment_key("<C-_>")
+      end
+    end,
+  })
+end
 
 -- Typing %%/ in command mode expands to current file's directory
 -- fnameescape(): a dir like notes#1 would otherwise expand # to the alternate file
 vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%']])
 
+-- Reopen files where the cursor was last time (the '" mark, kept in shada).
+-- Like vim's defaults.vim, and :h restore-cursor. Not in commit messages and
+-- rebase todos (new text each time), hex dumps or diffs.
+vim.api.nvim_create_autocmd("BufReadPost", {
+  group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
+  callback = function(ev)
+    -- Runs before filetype detection (enabled after init.lua), so ask for it
+    -- (0.8+: older vim.filetype.match() takes other arguments)
+    local ft = vim.bo[ev.buf].filetype
+    if ft == "" and vim.fn.has("nvim-0.8") == 1 then
+      ft = vim.filetype.match({ buf = ev.buf }) or ""
+    end
+    if ft:find("commit") or ft == "gitrebase" or ft == "xxd" or vim.wo.diff then
+      return
+    end
+    local line = vim.api.nvim_buf_get_mark(ev.buf, '"')[1]
+    if line >= 1 and line <= vim.api.nvim_buf_line_count(ev.buf) then
+      vim.cmd('normal! g`"')
+    end
+  end,
+})
+
 -- Start terminals in insert mode and define buffer-local keybindings
 vim.api.nvim_create_autocmd("TermOpen", {
+  group = vim.api.nvim_create_augroup("TermSetup", { clear = true }),
   pattern = "term://*",
   callback = function(ev)
     -- Double [Esc]: switch from terminal to normal mode
     vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], { buffer = ev.buf, silent = true })
     -- [Enter]: switch from normal to insert mode
     vim.keymap.set("n", "<CR>", "i", { buffer = ev.buf, silent = true })
+    -- Only if it's the current buffer: a plugin may start a terminal in a
+    -- hidden buffer, and then this would put the current one in Insert mode
+    if ev.buf == vim.api.nvim_get_current_buf() then
+      vim.cmd("startinsert")
+    end
   end,
 })
 -- Because of <Esc><Esc>, a single Esc reaches the terminal app only after
 -- 'timeoutlen'. Shorten it in terminal mode so Esc-heavy apps (vi-mode shell,
--- fzf, lazygit) don't lag; double-tapping within 150ms still works.
-local term_timeoutlen = 150
+-- fzf, lazygit) lag less. The same value is the double-tap window, so not
+-- too short: 150ms was easy to miss.
+local term_timeoutlen = 250
 local saved_timeoutlen
 vim.api.nvim_create_autocmd("ModeChanged", {
   group = vim.api.nvim_create_augroup("TermTimeoutlen", { clear = true }),
@@ -194,7 +236,7 @@ vim.api.nvim_create_autocmd("ModeChanged", {
 local function checktime()
   -- checktime checks all buffers; it errors in the cmdline window
   if vim.fn.getcmdwintype() == "" then
-    pcall(vim.cmd.checktime)
+    pcall(vim.cmd, "checktime") -- not vim.cmd.checktime: 0.8+
   end
 end
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave" }, {
@@ -246,6 +288,7 @@ vim.g.in_container = vim.env.container ~= nil
   or vim.uv.fs_stat("/.dockerenv") ~= nil
 vim.g.icons_provider = "nvim-mini/mini.icons"
 -- vim.g.icons_provider = "nvim-tree/nvim-web-devicons"
+vim.g.statusline_plugin = "lualine"
 
 -- lazy.nvim requires 0.8+ (skip quietly instead of its error notification)
 if vim.fn.has("nvim-0.8") == 0 then
@@ -285,5 +328,6 @@ require("lazy").setup({
 -- chmod.vim: chmod a+rx files that become scripts (new, or shebang added)
 -- fileline.vim: interpret 'filename[:line[:col]]' filenames
 -- projectionist.vim: vim-projectionist config
+-- typos.vim: :W/:Wq for :w/:wq, 'langmap' for the Russian layout
 -- vscode.vim: vscode-like key bindings
 -- ui.vim: UI toggles (<leader>u*)
