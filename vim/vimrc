@@ -67,9 +67,15 @@ if has("eval")
   let g:tex_flavor = "latex"
   let g:pyindent_open_paren = "&sw"
 
+  " Per-scheme preferences, for whichever way a scheme gets applied (theme,
+  " saved or :colorscheme), as in nvim/lua/plugins/colorscheme.lua
+  let g:dracula_italic = 0
   let g:gruvbox_contrast_dark = "hard"
   let g:gruvbox_italic = 0
+  let g:gruvbox_italicize_comments = 0
+  let g:sonokai_style = "default"
   let g:sonokai_enable_italic = 0
+  let g:sonokai_disable_italic_comment = 1
 end
 
 " [ cd]: cd to current file's directory (alternative: set autochdir)
@@ -96,9 +102,73 @@ if has("autocmd")
   autocmd BufReadPre * if getfsize(expand("<afile>")) > 10485760 | setlocal syntax=OFF fdm=manual | endif
 endif
 
+" Colorschemes
+if has("eval") && has("autocmd")
+  augroup vimrc_colors
+    autocmd!
+  augroup END
+
+  " A package's colors/ may :runtime its other files (tokyonight.vim, dracula's
+  " autoload/, also needed by vim/colors/dracula-dark.vim). That only works
+  " once the package is on 'runtimepath', and pack/*/start only gets there
+  " after vimrc: add the one with the scheme now.
+  function! s:PackaddColors(name) abort
+    let name = a:name ==# "dracula-dark" ? "dracula" : a:name
+    for f in globpath(&packpath, "pack/*/start/*/colors/" . name . ".vim", 0, 1)
+      execute "packadd!" fnameescape(fnamemodify(f, ":h:h:t"))
+    endfor
+  endfunction
+  autocmd vimrc_colors ColorSchemePre * call s:PackaddColors(expand("<amatch>"))
+
+  " Last :colorscheme (name, 'background'): sticks across restarts until a
+  " theme switch (see ~/.dotfiles/themes/) deletes this file. In XDG state,
+  " where vim's own $VIMRUNTIME/xdg.vim puts viminfo. Not nvim's.
+  let s:saved_colors = (empty($XDG_STATE_HOME) ? expand("~/.local/state") : $XDG_STATE_HOME)
+        \ . "/vim/colorscheme"
+
+  function! s:ApplySavedColors() abort
+    let lines = filereadable(s:saved_colors) ? readfile(s:saved_colors) : []
+    if len(lines) < 2 || lines[0] == ""
+      return 0
+    endif
+    let bg = &background
+    try
+      let &background = lines[1]
+      execute "colorscheme" fnameescape(lines[0])
+      return 1
+    catch
+      " Scheme gone or broken: fall back to the theme. Unset colors_name
+      " first, or restoring 'background' would reload the broken scheme.
+      unlet! g:colors_name
+      let &background = bg
+      return 0
+    endtry
+  endfunction
+
+  function! s:SaveColors() abort
+    " The variant actually shown, if it's a scheme of its own, else the name
+    " it was loaded by (<amatch>)
+    let name = get(g:, "colors_name", "")
+    if name == "" || index(getcompletion(name, "color"), name) < 0
+      let name = expand("<amatch>")
+    endif
+    if name == ""  " :doautocmd ColorScheme without a name
+      return
+    endif
+    call mkdir(fnamemodify(s:saved_colors, ":h"), "p")
+    call writefile([name, &background], s:saved_colors)
+  endfunction
+  " Only after startup, so applying the theme doesn't count. Changing
+  " 'background' reloads the scheme, so that's saved too.
+  autocmd vimrc_colors VimEnter * ++once
+        \ autocmd vimrc_colors ColorScheme * call s:SaveColors()
+endif
+
 if $COLORFGBG == "" || $COLORFGBG == "15;default;0" || $COLORFGBG == "15;0" || has("gui_running")
-  " Current theme, see ~/.dotfiles/themes/
-  if filereadable(expand("~/.config/theme/vim.vim"))
+  " Saved colorscheme, else the current theme (see ~/.dotfiles/themes/)
+  if has("eval") && has("autocmd") && s:ApplySavedColors()
+    " applied
+  elseif filereadable(expand("~/.config/theme/vim.vim"))
     source ~/.config/theme/vim.vim
   else
     set background=dark
