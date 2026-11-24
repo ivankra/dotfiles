@@ -224,7 +224,7 @@ if [[ -z "$COLORFGBG" ]]; then
 fi
 
 if [[ -z "$LS_COLORS" ]] && hash dircolors >/dev/null 2>&1; then
-  eval "$(dircolors -b ~/.dotfiles/dircolors)"
+  eval "$(dircolors -b)"
 fi
 
 # Unless its hook is in already (login profile, or bashrc re-sourced): vte.sh
