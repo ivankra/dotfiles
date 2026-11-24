@@ -1,0 +1,31 @@
+#!/bin/bash
+# Sort the [submodule "..."] sections of .gitmodules by name (byte order),
+# keeping each section's lines as they are. Lines before the first section
+# stay first.
+#
+# Usage: git sort-gitmodules [FILE]   (default: .gitmodules at the repo top)
+
+set -euo pipefail
+
+file=${1:-$(git rev-parse --show-toplevel)/.gitmodules}
+tmp=$(mktemp "$file.XXXXXX")
+trap 'rm -f "$tmp"' EXIT
+
+# One line per section: header, tab, its lines joined with \001. Lines before
+# the first section get an empty key, which sorts first (-s keeps their order).
+awk '
+  /^\[submodule / { if (key != "") print key "\t" blk; key = $0; blk = $0; next }
+  key == "" { print "\t" $0; next }
+  { blk = blk "\001" $0 }
+  END { if (key != "") print key "\t" blk }
+' "$file" | LC_ALL=C sort -s -t $'\t' -k1,1 | cut -f2- | tr '\001' '\n' >"$tmp"
+
+# Same settings as before, only in a different order
+if ! diff -q <(git config -f "$file" --list | LC_ALL=C sort) \
+             <(git config -f "$tmp" --list | LC_ALL=C sort) >/dev/null; then
+  echo "${0##*/}: sorted $file would differ in content, left unchanged" >&2
+  exit 1
+fi
+
+chmod --reference="$file" "$tmp"
+mv "$tmp" "$file"
