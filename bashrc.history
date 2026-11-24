@@ -1,91 +1,80 @@
 # shellcheck shell=bash
-# History, sourced from bashrc (interactive bash and zsh).
-
-# Bash history (zsh is set up in zshrc):
+# Bash history:
 # * keep deduped in ~/.history/bash.YYYYMM files
 # * load last few months on startup
 # * append to last history file but don't read back
 # * force to re-read history: h
-if [[ -n "$BASH_VERSION" ]]; then
-  shopt -s cmdhist histverify histreedit
+#
+# Turning history off: unset HISTFILE or make ~/.history a regular file.
 
-  HISTFILE=
-  if ! [[ -d ~/.history ]] && { [[ -e ~/.history ]] || ! mkdir -m 0700 -p ~/.history; }; then
-    # history disabled
-    HISTCONTROL=ignoreboth
-    HISTSIZE=100000
-    h() { hash -r; __reset_colorfgbg; __fix_term_input; }
-  else
-    shopt -s histappend
-    HISTCONTROL=ignoreboth
-    HISTFILESIZE=-1
-    HISTIGNORE='bg:fg:clear:ls:pwd:history:exit'
-    HISTSIZE=100000
-    HISTTIMEFORMAT='[%F %T] '
-
-    # Flush history, dedup and reread recent history files
-    __run_erasedup() {
-      if [[ -n "$HISTFILE" ]]; then
-        history -a
-        history -c
-      fi
-
-      local interp=""
-      if hash python3 >/dev/null 2>&1; then
-        interp=python3
-      elif hash python >/dev/null 2>&1; then
-        interp=python
-      fi
-
-      if [[ -n "$interp" && -f ~/.dotfiles/bin/erasedups.py ]]; then
-        local histf
-        for histf in $($interp ~/.dotfiles/bin/erasedups.py --expand=12 "$HOME/.history/bash.%Y%m"); do
-          history -r "$histf"
-          HISTFILE="$histf"    # last month last
-        done
-      elif [[ -n "$HISTFILE" ]]; then
-        history -r
-      fi
-    }
-    __run_erasedup
-
-    # Re-read history to synchronize with other shell instances.
-    # Also fix various terminal issues.
-    h() { __run_erasedup; hash -r; __reset_colorfgbg; __fix_term_input; }
-
-    histoff() {
-      HISTFILE=
-    }
+# Re-read history (if on) to synchronize with other shell instances.
+# Also fix various terminal issues.
+h() {
+  if [[ -n "$HISTFILE" ]]; then
+    __bashrc_erasedups
   fi
+  hash -r
+  declare -F __reset_colorfgbg >/dev/null && __reset_colorfgbg
+  declare -F __bashrc_fix_tty >/dev/null && __bashrc_fix_tty
+}
+
+# Dedup the last 12 months' files and load them, oldest first, the current
+# month's as HISTFILE. With $1 = startup, bash loads HISTFILE itself after
+# bashrc, so not here; else (h) flush and reload all. Any python works, also
+# 2.x on old systems; without one: no dedup, only the current month.
+__bashrc_erasedups() {
+  if [[ "$1" != startup ]]; then
+    history -a
+    history -c
+  fi
+
+  local py f files=()
+  for py in python3 python ''; do
+    hash "$py" 2>/dev/null && break
+  done
+  if [[ -n "$py" ]]; then
+    while IFS= read -r f; do  # one per line: paths may have spaces
+      files+=("$f")
+    done < <("$py" ~/.dotfiles/bin/erasedups.py --expand=12 "$HOME/.history/bash.%Y%m")
+  fi
+  if (( ${#files[@]} == 0 )); then
+    files=("$HOME/.history/bash.$(date +%Y%m)")
+  fi
+
+  for f in "${files[@]}"; do
+    HISTFILE=$f
+    if [[ "$1" != startup || "$f" != "${files[${#files[@]}-1]}" ]]; then
+      history -r "$f"
+    fi
+  done
+}
+
+# Append new history lines to HISTFILE, if history is on.
+# Called from PS0 and PROMPT_COMMAND before and after a command runs.
+__bashrc_history_append() {
+  if [[ -n "$HISTFILE" ]]; then
+    history -a
+  fi
+}
+
+shopt -s cmdhist histverify histreedit
+
+HISTCONTROL=ignoreboth
+HISTSIZE=100000
+
+# No ~/.history and can't create it (e.g. a file there): history disabled
+if [[ ! -d ~/.history ]] && ! mkdir -m 0700 ~/.history 2>/dev/null; then
+  HISTFILE=
+  return
 fi
 
-# REPL and zsh histories in ~/.history/<name> (bash and zsh): move the tool's
-# default file there and point its env var at it, if any. Symlinked defaults
-# (setup.sh's ~/.python_history) stay; a regular file at ~/.history disables this.
-if [[ -d ~/.history ]] || mkdir -m 0700 ~/.history 2>/dev/null; then
-  # dst can also be a symlink (e.g. to /dev/null, to keep no history): it's
-  # never replaced, and a failed move (e.g. read-only dir) stays quiet.
-  __history_env() {
-    local var="$1" src="$2" dst="$HOME/.history/$3"
-    if [[ -L "$src" && ! -e "$src" ]]; then
-      rm -f "$src"  # dangling symlink
-    elif [[ -f "$src" && ! -L "$src" ]]; then
-      if [[ ! -e "$dst" && ! -L "$dst" ]]; then
-        mv "$src" "$dst" 2>/dev/null
-      elif [[ -f "$dst" ]]; then
-        cat "$src" >>"$dst" 2>/dev/null && rm -f "$src"
-      fi
-    fi
-    if [[ -n "$var" && -e "$dst" && ! -d "$dst" ]]; then
-      export "$var=$dst"
-    fi
-  }
-  __history_env "" ~/.zsh_history zsh  # e.g. from macOS's /etc/zshrc; zshrc sets HISTFILE
-  __history_env JULIA_HISTORY ~/.julia/logs/repl_history.jl julia
-  __history_env MYSQL_HISTFILE ~/.mysql_history mysql
-  __history_env NODE_REPL_HISTORY ~/.node_repl_history node
-  __history_env PSQL_HISTORY ~/.psql_history psql
-  __history_env PYTHON_HISTORY ~/.python_history python  # python 3.13+
-  __history_env SQLITE_HISTORY ~/.sqlite_history sqlite
-  unset -f __history_env
+shopt -s histappend
+HISTFILESIZE=-1
+HISTIGNORE='bg:fg:clear:ls:pwd:history:exit'
+HISTTIMEFORMAT='[%F %T] '
+
+# Once per shell: re-sourcing bashrc keeps the loaded history and HISTFILE
+if [[ -z "$__bashrc_history_loaded" ]]; then
+  __bashrc_history_loaded=1
+  __bashrc_erasedups startup
 fi

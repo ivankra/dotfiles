@@ -1,5 +1,5 @@
 # shellcheck shell=bash
-# Aliases and functions, sourced from bashrc (interactive shells only).
+# Aliases and functions, sourced by interactive shells (bash and zsh)
 
 alias ..='cd ..'
 alias R='R --no-save --no-restore --quiet'
@@ -38,9 +38,6 @@ alias octave='octave -q'
 alias parallel='parallel --will-cite'
 alias qvimdiff='qvim -- -d'
 alias rm='rm -i'
-if [[ "$OSTYPE" != darwin* ]]; then
-  alias rsync='rsync --info=progress2'
-fi
 alias sqlite3='sqlite3 -header -column'
 alias susl='sort | uniq -c | sort -nr | less'
 alias venv='python -m venv'
@@ -92,6 +89,7 @@ b() {
   fi
 }
 
+mcd() { mkdir -p -- "$1" && cd -- "$1" || return; }  # mkdir and cd
 date() { command date "${@:--R}"; }  # default format if no args
 ts() { command ts "${@:-%.T}"; }
 alias tsd='ts "%Y-%m-%d %.T"'
@@ -123,6 +121,7 @@ else
     alias ls='ls --color=auto --group-directories-first'
   fi
   alias ping=~/.dotfiles/bin/ping.sh
+  alias rsync='rsync --info=progress2'
 fi
 
 # https://github.com/jupyter/docker-stacks

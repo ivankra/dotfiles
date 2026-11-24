@@ -1,174 +1,211 @@
 # shellcheck shell=bash
-# Prompt: PS0/PS1/PROMPT_COMMAND, terminal title, elapsed time. Sourced from
-# bashrc (interactive bash 3+ only).
+# PROMPT_COMMAND/PS1/PS0: OSC 2/7/133, elapsed time tracking.
+#
+# PROMPT_COMMAND and PS0 hooks are set up once next to others' hooks,
+# so that re-sourcing is safe (guarded by __bashrc_prompt_installed).
+
+# Helpers {{{
 
 # Fix messed up terminal input handling.
-__fix_term_input() {
-  stty sane cooked
+# Run if a command terminates by a signal and by `h` (bashrc.history).
+__bashrc_fix_tty() {
+  stty sane cooked -ixon  # -ixon as in bashrc: macOS's sane turns it back on
   echo -en '\033]104\007\033[\041p\r'
-  #echo -en '\033]104\007\033[\041p\033[?3;4l\033[4l\033>\033[?69l\r'  # full reset seq
-  bind -f ~/.inputrc
-}
-
-# Store the last command line in variable $1, or "" if it wasn't saved to
-# history (HISTCONTROL/HISTIGNORE), detected by the last entry's number being
-# unchanged since the last prompt (__bashrc_hist_seen). The entry's number goes
-# to __bashrc_hist_num.
-# Not `fc -ln -1`: it skips the entry of the command line it runs from, which
-# from PS0/PROMPT_COMMAND gives the command before last.
-__bashrc_last_cmd() {
-  local __h __n
-  __h=$(HISTTIMEFORMAT= history 1)
-  # "%5d  cmd" or "%5d* cmd" (modified entry); number may be wider than 5.
-  __n=${__h#"${__h%%[! ]*}"}
-  __n=${__n%%[!0-9]*}
-  if [[ -z "$__n" || "$__n" == "$__bashrc_hist_seen" ]]; then
-    __h=
-  else
-    __h=${__h#*[0-9][ *] }
+  if [[ -f ~/.inputrc ]]; then
+    bind -f ~/.inputrc
   fi
-  __bashrc_hist_num=$__n
-  eval "$1=\$__h"
 }
 
-# PROMPT_COMMAND
+# Read the current command line into $1; "" if not in history.
+__bashrc_read_last_cmd() {
+  local __cmd=""  # not "cmd": would shadow the caller's
+  # If HISTCMD moved since the last prompt, the line went into history
+  if [[ "$HISTCMD" != "$__bashrc_last_histcmd" ]]; then
+    __cmd=$(fc -ln -0)  # bash 4.3+
+    __cmd=${__cmd#$'\t '}
+  fi
+  printf -v "$1" '%s' "$__cmd"  # set $1=$__cmd
+}
+
+# Percent-encode path $2 byte by byte into $1, for a file:// URL.
+__bashrc_url_encode() {
+  local LC_ALL=C __url=$2 __i __ch  # C: bytes, not characters
+  if [[ "$2" == *[!A-Za-z0-9/._~-]* ]]; then
+    __url=
+    for (( __i = 0; __i < ${#2}; __i++ )); do
+      __ch=${2:__i:1}
+      case "$__ch" in
+        [A-Za-z0-9/._~-]) __url+=$__ch ;;
+        # Last 2 digits: bash 3.2 makes bytes > 127 negative (FFFF...C3)
+        *) printf -v __ch '%02X' "'$__ch"; __url+=%${__ch: -2} ;;
+      esac
+    done
+  fi
+  printf -v "$1" '%s' "$__url"
+}
+
+# }}}
+
+# Terminal integrations {{{
+
+# Only emit OSC sequences for terminals known to support them
+__bashrc_osc=
+case "$TERM" in
+  xterm*|rxvt*|tmux*|screen*|alacritty*|wezterm*|foot*|gnome*|vte*) __bashrc_osc=1 ;;
+esac
+
+# Our OSC 133 marks and OSC 7 cwd, unless an integration sends them:
+# VS Code; kitty, Ghostty (their script sources bashrc, so it's in
+# BASH_SOURCE; kitty needs bash 4+, can turn off either); iTerm2, VTE below.
+if [[ -z "$__bashrc_prompt_installed" ]]; then
+  __bashrc_osc133=$__bashrc_osc
+  __bashrc_osc7=$__bashrc_osc
+  if [[ -n "$VSCODE_SHELL_INTEGRATION" || " ${BASH_SOURCE[*]}" == *"/ghostty.bash"* ]]; then
+    __bashrc_osc133= __bashrc_osc7=
+  elif [[ " ${BASH_SOURCE[*]}" == *"/kitty.bash"* ]] && (( BASH_VERSINFO[0] >= 4 )); then
+    # kitty keeps its options (e.g. "enabled no-title") here meanwhile
+    if [[ " $ksi_val " != *" no-prompt-mark "* ]]; then
+      __bashrc_osc133=
+    fi
+    if [[ " $ksi_val " != *" no-cwd "* ]]; then
+      __bashrc_osc7=
+    fi
+  fi
+fi
+
+# The rest of the check (in bashrc's epilogue), once bashrc has sourced them:
+# iTerm2 sends its own marks and cwd (1337), vte.sh its own OSC 7.
+__bashrc_osc_late_check() {
+  if [[ -z "$__bashrc_prompt_installed" ]]; then
+    if [[ -n "$ITERM_SHELL_INTEGRATION_INSTALLED" ]]; then
+      __bashrc_osc133=
+      __bashrc_osc7=
+    fi
+    if [[ "${PROMPT_COMMAND[*]}" == *__vte_* ]]; then
+      __bashrc_osc7=
+    fi
+  fi
+  unset -f __bashrc_osc_late_check
+}
+__BASHRC_EPILOGUE+="__bashrc_osc_late_check;"  # before __bashrc_set_ps1
+
+# Ghostty's script, injected after bashrc, reads this: no title (ours) and no
+# bar cursor at the prompt, as kitty.conf's no-title no-cursor
+if [[ -n "$GHOSTTY_SHELL_FEATURES" ]]; then
+  GHOSTTY_SHELL_FEATURES=${GHOSTTY_SHELL_FEATURES//title/}
+  GHOSTTY_SHELL_FEATURES=${GHOSTTY_SHELL_FEATURES//cursor/}
+fi
+
+# }}}
+
+# PROMPT_COMMAND {{{
 #
-# Delayed till the end to ensure __bashrc_prompt_command will be
-# the first thing there in order to get the correct $?.
-__bashrc_set_prompt_command() {
-  if [[ "$PROMPT_COMMAND" != *__bashrc_prompt_command* ]]; then
-    PROMPT_COMMAND="__bashrc_prompt_command;$PROMPT_COMMAND"
-  fi
-  unset __bashrc_set_prompt_command
-}
-__BASHRC_EPILOGUE+="__bashrc_set_prompt_command;"
-unset PROMPT_COMMAND
+# Run after a command line finishes, before PS1 is shown:
+#   * prints non-zero exit status in red (unless VS Code does)
+#   * records command run time for `elapsed` (bash 5+)
+#   * saves HISTCMD for __bashrc_read_last_cmd
+#   * reports the current directory to the terminal (OSC 7)
+#   * appends new lines to the history file (history -a)
+#   * fixes the terminal after a command killed by a signal
 
 __bashrc_prompt_command() {
-  # Record last command's exit code, has to be first thing in PROMPT_COMMAND.
+  # Record last command's exit code. This has to be the first thing in PROMPT_COMMAND.
   local status=$?
 
-  # Record elapsed time.
-  local elapsedmsg="" cmd
-  __bashrc_last_cmd cmd
-  __bashrc_hist_seen=$__bashrc_hist_num
-  if [[ -n "$__PS0_EPOCHSECONDS" ]]; then
-    cmd=${cmd:-?}  # not in history
-    cmd=${cmd:0:73}
-    __PS0_ELAPSED=$(($EPOCHSECONDS - $__PS0_EPOCHSECONDS))
-    __PS0_ELAPSED_HIST+=("$(printf %7d $__PS0_ELAPSED) $cmd")
-    if (( $__PS0_ELAPSED >= 23*3600 )); then
-      elapsedmsg="Elapsed $(((__PS0_ELAPSED + 1800)/3600))h"
-    fi
-    __PS0_EPOCHSECONDS=""
+  # Did a command run? PS0 (bash 4.4+) sets this, but isn't shown for an
+  # empty line or Ctrl-C at the prompt. Older bash: assume it did.
+  local ran=1
+  if (( BASH_VERSINFO[0] * 100 + BASH_VERSINFO[1] >= 404 )); then
+    ran=$__bashrc_cmd_ran
+    __bashrc_cmd_ran=
   fi
 
-  # Print last command's exit code if non zero and elapsed time if large enough.
-  if [[ $status -ne 0 && -n "$__vsc_status" && "$TERM_PROGRAM" == "vscode" ]]; then
-    # let vscode shell integration handle non-zero exit codes
-    if [[ -n "$elapsedmsg" ]]; then
-      echo -e "\033[38;5;8m$elapsedmsg\033[m"
+  # Record elapsed time; report it from 23h on.
+  local hours=""
+  if [[ -n "$__bashrc_ps0_epochseconds" ]]; then
+    local cmd line secs=$((EPOCHSECONDS - __bashrc_ps0_epochseconds))
+    __bashrc_ps0_epochseconds=""
+    __bashrc_read_last_cmd cmd
+    printf -v line '%7d %s' "$secs" "${cmd:-?}"  # ?: not in history
+    # Command up to 73 chars; not %.73s, printf's precision counts bytes.
+    __bashrc_ps0_elapsed_history+=("${line:0:81}")
+    if (( secs >= 23*3600 )); then
+      hours=$(((secs + 1800) / 3600))h
     fi
-  elif [[ $status -ne 0 ]]; then
-    if [[ -n "$elapsedmsg" ]]; then
-      echo -e "\033[31m\$? = $status (${elapsedmsg,,})\033[m"  # lowercase msg
-    else
-      echo -e "\033[31m\$? = $status\033[m"
+  fi
+  __bashrc_last_histcmd=$HISTCMD
+
+  # (conda) (venv) label for PS1, at each prompt: VS Code and nested shells
+  # activate them after bashrc
+  __bashrc_env_label="${CONDA_DEFAULT_ENV:+($CONDA_DEFAULT_ENV) }${VIRTUAL_ENV:+(${VIRTUAL_ENV##*/}) }"
+
+  # OSC 133: previous command done (D;status), prompt starts (A).
+  # Here, not in PS1: before the $? line below, and not replayed when
+  # PS1 is redrawn.
+  if [[ -n "$__bashrc_osc133" ]]; then
+    if [[ -n "$ran" ]]; then
+      printf '\033]133;D;%s\007' "$status"
     fi
-  elif [[ -n "$elapsedmsg" ]]; then
-    echo -e "\033[38;5;8m$elapsedmsg\033[m"
+    printf '\033]133;A\007'
   fi
 
-  if [[ -n "$HISTFILE" ]]; then
-    history -a
+  # Non-zero exit code in red (unless VS Code shows it), else elapsed time in grey.
+  if [[ -n "$ran" ]] && (( status )) &&
+     [[ -z "$__vsc_status" || "$TERM_PROGRAM" != vscode ]]; then
+    echo -e "\033[31m\$? = $status${hours:+ (elapsed $hours)}\033[m"
+  elif [[ -n "$hours" ]]; then
+    echo -e "\033[38;5;8mElapsed $hours\033[m"
   fi
 
-  # Killed by a signal (128+n, e.g. Ctrl-C, crash) may leave the terminal in a
-  # bad state. For other cases run `h` manually.
-  # Standard signals are 1..31; this excludes plain exit codes like ssh's 255.
-  if (( status > 128 && status < 160 )); then
-    __fix_term_input
+  # OSC 7: current directory (and host), e.g. for "new tab here".
+  # Report at *every* prompt: an ssh, nested shell or sudo -s may have reported
+  # another one meanwhile.
+  if [[ -n "$__bashrc_osc7" ]]; then
+    if [[ "$PWD" != "$__bashrc_osc7_pwd" ]]; then  # encode once per directory
+      __bashrc_osc7_pwd=$PWD
+      __bashrc_url_encode __bashrc_osc7_url "$PWD"
+    fi
+    printf '\033]7;file://%s%s\007' "$HOSTNAME" "$__bashrc_osc7_url"
   fi
+
+  __bashrc_history_append
+
+  # Killed by a signal, which may leave the terminal in a bad state.
+  if [[ -n "$ran" ]] && (( status > 128 && status < 160 )); then
+    __bashrc_fix_tty
+  fi
+
+  # Pass $? on: in a string PROMPT_COMMAND (a;b), later hooks see our status.
+  return "$status"
 }
 
-# PS0 (bash 4.4+, ignored by older bash)
-# Expanded and displayed by interactive shells after reading a command and
-# before the command is executed.
-__bashrc_ps0() {
-  # Update terminal title with currently running command (if in history).
-  # printf %s: backslashes in the command aren't interpreted; control chars
-  # (newlines, a literal ESC/BEL) are replaced so they can't end the sequence.
-  # __bashrc_title is "user@host" as in PS1's title, set by __bashrc_set_ps1
-  # only for terminals that support titles.
-  if [[ -n "$__bashrc_title" ]]; then
-    local cmd
-    __bashrc_last_cmd cmd
-    if [[ -n "$cmd" ]]; then
-      printf '\033]0;%s\007' "$__bashrc_title - ${cmd//[[:cntrl:]]/ }"
-    fi
-  fi
-
-  # Write command to be executed to history. When run in a $() subshell
-  # (bash < 5.3) the parent shell doesn't see this and appends the command
-  # again at the next prompt; erasedups.py cleans that up on startup.
-  if [[ -n "$HISTFILE" ]]; then
-    history -a
-  fi
-}
-
-# Drop any value (and export attribute) inherited from a parent shell.
-unset __PS0_EPOCHSECONDS __PS0_ELAPSED
-
-if (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 3) )); then
-  # ${ cmd; } runs in the current shell (no subshell), so history -a and
-  # variable assignments take effect. Kept in a string so older bash never
-  # parses it.
-  __bashrc_ps0_cur() {
-    __PS0_EPOCHSECONDS=$EPOCHSECONDS  # record command's start time
-    __bashrc_ps0
-  }
-  PS0='${ __bashrc_ps0_cur; }'
-else
-  PS0='$(__bashrc_ps0)'
-  if [[ "${BASH_VERSINFO[0]}" -ge 5 ]]; then
-    # Record command's start time in __PS0_EPOCHSECONDS.
-    # Using substring expansion syntax ${parameter:offset:length} with a side
-    # effect to avoid getting executed in a subshell as $() and avoid printing
-    # anything.
-    PS0+='${$:$((__PS0_EPOCHSECONDS=$EPOCHSECONDS)):0}'
-  fi
+# Prepended once at the end of bashrc, ahead of hooks added before and by
+# scripts sourced later, to get the right $?. With an array PROMPT_COMMAND
+# (bash 5.1+, e.g. systemd's) this sets its first element.
+if [[ -z "$__bashrc_prompt_installed" ]]; then
+  __BASHRC_EPILOGUE+='PROMPT_COMMAND="__bashrc_prompt_command;$PROMPT_COMMAND";'
 fi
 
-if [[ "${BASH_VERSINFO[0]}" -ge 5 ]]; then
-  # Print recent elapsed times recorded by __bashrc_prompt_command.
-  elapsed() { local s; for s in "${__PS0_ELAPSED_HIST[@]}"; do echo "$s"; done; }
+# Disable macOS Terminal.app's OSC 7 PROMPT_COMMAND hook
+if [[ "$TERM_PROGRAM" == Apple_Terminal ]]; then
+  update_terminal_cwd() { :; }
 fi
 
-# PS1
-#
-# Delayed till the end to have the last say on PS1 and get definitions for
-# __git_ps1 and parameters from local scripts:
-#   * PS1_COLOR - user@host color:
-#       30 .. 37      standard ansi colors
-#       38;5;n        256 extended colors (0..255)
-#       38;2;r;g;b    R/G/B (0..255)
-#   * PS1_HOST - hostname to display
+# }}}
+
+# PS1: `(env) HH:MM user@host:cwd (branch)$` + OSC 2/7/133 {{{
+
 __bashrc_set_ps1() {
-  # set variable identifying the chroot you work in (used in the prompt below)
+  # chroot name, shown in the title
   if [[ -z "$debian_chroot" && -r /etc/debian_chroot ]]; then
-    debian_chroot=$(cat /etc/debian_chroot)
+    debian_chroot=$(</etc/debian_chroot)
   fi
 
+  # Red for root and sudoers on servers (no audio group)
   if [[ -z "$PS1_COLOR" ]]; then
-    if [[ $UID == 0 ]]; then
+    local groups=" $(id -nG 2>/dev/null) "
+    if (( UID == 0 )) || [[ "$groups" == *" sudo "* && "$groups" != *" audio "* ]]; then
       PS1_COLOR=31
-    elif hash id >/dev/null 2>&1; then
-      local groups=" $(id -nG) "
-      if [[ "$groups" == *" sudo "* && ! "$groups" == *" audio "* ]]; then
-        PS1_COLOR=31
-      else
-        PS1_COLOR=32
-      fi
     else
       PS1_COLOR=32
     fi
@@ -177,39 +214,120 @@ __bashrc_set_ps1() {
   if [[ "$TERM" == "dumb" ]]; then
     PS1='\u@\h:\w\$ '
   else
-    PS1="\[\033[01;36m\]\A\[\033[m\] "                  # HH:MM
-    PS1+="\[\033[01;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}"  # user@host
-    PS1+="\[\033[00m\]:"                                # :
-    PS1+="\[\033[01;34m\]\w\[\033[00m\]"                # workdir
+    PS1="\[\e[1;36m\]\A\[\e[m\] "                    # HH:MM
+    PS1+="\[\e[1;${PS1_COLOR}m\]\u@${PS1_HOST:-\h}"  # user@host
+    PS1+="\[\e[m\]:"                                 # :
+    PS1+="\[\e[1;34m\]\w\[\e[m\]"                    # workdir
     if declare -F __git_ps1 >/dev/null; then
-      PS1+='\[\033[35m\]$(__git_ps1)\[\033[00m\]'
+      PS1+='\[\e[35m\]$(__git_ps1)\[\e[m\]'
     fi
     PS1+='\$ '
   fi
 
-  # If the terminal supports it, set the title to user@host:dir
-  # (kitty, ghostty: xterm-kitty, xterm-ghostty)
+  # Terminal title "user@host: workdir", if supported. __bashrc_title is
+  # reused by PS0. Use OSC 2 to set the window title only; OSC 0 would set
+  # icon too.
   __bashrc_title=
-  case "$TERM" in
-    xterm*|rxvt*|tmux*|screen*|alacritty*|wezterm*|foot*)
-      PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-      # Same user@host for PS0's title; \h is the hostname up to the first dot.
-      if [[ -n "$USER" && -n "$HOSTNAME" ]]; then
-        __bashrc_title="${debian_chroot:+($debian_chroot)}$USER@${HOSTNAME%%.*}"
-      fi
-      ;;
-  esac
-
-  if [[ -n "$VIRTUAL_ENV" ]]; then
-    PS1="(${VIRTUAL_ENV##*/}) $PS1"
-  fi
-  if [[ -n "$CONDA_DEFAULT_ENV" ]]; then
-    PS1="(${CONDA_DEFAULT_ENV}) $PS1"
+  if [[ -n "$__bashrc_osc" ]]; then
+    __bashrc_title="${debian_chroot:+($debian_chroot)}\u@\h"
+    PS1="\[\e]2;$__bashrc_title: \w\a\]$PS1"  # OSC 2: title
   fi
 
-  unset PS1_COLOR
-  unset PS1_HOST
-  unset __bashrc_set_ps1
+  # (conda) (venv) label in front, set by __bashrc_prompt_command. By
+  # reference: PS1 expands the variable, not what's in it, so a name
+  # containing $(...) or \w stays text.
+  PS1='${__bashrc_env_label}'"$PS1"
+
+  # OSC 133 (D and A in __bashrc_prompt_command): command line starts (B).
+  # PS0: output starts (C), last before the command; once, and not if there's
+  # one (vte.sh from a login profile).
+  if [[ -n "$__bashrc_osc133" ]]; then
+    PS1="$PS1\[\e]133;B\a\]"
+    if [[ -z "$__bashrc_prompt_installed" && "$PS0" != *']133;C'* ]]; then
+      PS0+='\e]133;C\a'
+    fi
+  fi
+
+  unset PS1_COLOR PS1_HOST
+  unset -f __bashrc_set_ps1
 }
 
+# Delay setting PS1 until the end of bashrc to have the last say on PS1 and
+# get definitions for  __git_ps1 and any PS1_{COLOR,HOST} overrides
 __BASHRC_EPILOGUE+="__bashrc_set_ps1;"
+
+# Placeholder till __bashrc_set_ps1: vte.sh, sourced later by bashrc, skips
+# its own 133 marks if PS1 has some, else they'd be lost in the rebuild.
+if [[ -n "$__bashrc_osc133" ]]; then
+  PS1="\[\e]133;A\a\]$PS1"
+fi
+
+# }}}
+
+# PS0 (bash 4.4+) {{{
+#
+# Shown after reading a command line, before running it:
+#   * Sets terminal title: "user@host - command"
+#   * Records start time for `elapsed` (bash 5+)
+#   * Appends the command to the history file (history -a)
+
+__bashrc_ps0() {
+  # Update terminal title with currently running command (if in history).
+  # printf %s: backslashes in the command aren't interpreted; control chars
+  # (newlines, a literal ESC/BEL) are replaced so they can't end the sequence.
+  # __bashrc_title: PS1's "user@host" title (prompt escapes), if supported.
+  if [[ -n "$__bashrc_title" ]]; then
+    local cmd
+    __bashrc_read_last_cmd cmd
+    if [[ -n "$cmd" ]]; then
+      printf '\033]2;%s\007' "${__bashrc_title@P} - ${cmd//[[:cntrl:]]/ }"  # OSC 2: title
+    fi
+  fi
+
+  # Write command to be executed to history. When run in a $() subshell
+  # (bash < 5.3) the parent shell doesn't see this and appends the command
+  # again at the next prompt; erasedups.py cleans that up on startup.
+  __bashrc_history_append
+}
+
+# Once per shell, ahead of what's in PS0 already (e.g. systemd's OSC 3008
+# hook): run __bashrc_ps0 before each command, except in VS Code
+if [[ -z "$__bashrc_prompt_installed" ]]; then
+  if [[ -n "$VSCODE_SHELL_INTEGRATION" ]]; then
+    # bashrc.history sets HISTCONTROL=ignoreboth, so VS Code's DEBUG trap
+    # takes $BASH_COMMAND as the command line, which would be __bashrc_ps0.
+    # Its history -a is left to PROMPT_COMMAND, after the command instead.
+    :
+  elif (( BASH_VERSINFO[0] > 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 3) )); then
+    # bash 5.3+: ${ cmd; } runs it in the current shell, so its history -a
+    # counts (no fork). In a string so older bash never parses it.
+    PS0='${ __bashrc_ps0; }'"$PS0"
+  else
+    # Older bash: a $() subshell
+    PS0='$(__bashrc_ps0)'"$PS0"
+  fi
+
+  # Flag that a command runs, for __bashrc_prompt_command: an arithmetic side
+  # effect in a ${$:offset:0} substring expansion runs in the current shell
+  # and expands to "" (no command, so also fine in VS Code).
+  PS0+='${$:$((__bashrc_cmd_ran=1)):0}'
+
+  if (( BASH_VERSINFO[0] >= 5 )); then
+    # Clear any stale var from previous shells
+    unset __bashrc_ps0_epochseconds
+    # Record command's start time, the same way
+    PS0+='${$:$((__bashrc_ps0_epochseconds=EPOCHSECONDS)):0}'
+  fi
+fi
+
+if (( BASH_VERSINFO[0] >= 5 )); then
+  # Print recent elapsed times recorded by __bashrc_prompt_command.
+  elapsed() {
+    local s
+    for s in "${__bashrc_ps0_elapsed_history[@]}"; do echo "$s"; done
+  }
+fi
+
+# }}}
+
+__BASHRC_EPILOGUE+="__bashrc_prompt_installed=1;"
