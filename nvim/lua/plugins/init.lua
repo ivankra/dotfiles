@@ -168,7 +168,7 @@ return {
   -- Reload unmodified buffers as soon as their files change on disk (fs
   -- watchers on the files' dirs). Built into nvim 0.13 (neovim#37971).
   -- TODO: once on nvim 0.13+, drop this and modules/hotreload.nvim; check the
-  -- built-in watcher works and the autoread events in init.lua still fit.
+  -- built-in watcher works and plugin/autocmds.lua's checktime still fits.
   {
     "diogo464/hotreload.nvim",
     dev = true,
