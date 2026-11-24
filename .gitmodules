@@ -1,120 +1,129 @@
-[submodule "modules/catppuccin.nvim"]
-	path = modules/catppuccin.nvim
-	url = https://github.com/catppuccin/nvim.git
-	ignore = untracked
-[submodule "modules/which-key.nvim"]
-	path = modules/which-key.nvim
-	url = https://github.com/folke/which-key.nvim
-	ignore = untracked
-[submodule "modules/lazy.nvim"]
-	path = modules/lazy.nvim
-	url = https://github.com/folke/lazy.nvim.git
-	ignore = untracked
-[submodule "modules/gruvbox.nvim"]
-	path = modules/gruvbox.nvim
-	url = https://github.com/ellisonleao/gruvbox.nvim.git
-	ignore = untracked
-[submodule "modules/toggleterm.nvim"]
-	path = modules/toggleterm.nvim
-	url = https://github.com/akinsho/toggleterm.nvim.git
-	ignore = untracked
-[submodule "modules/guess-indent.nvim"]
-	path = modules/guess-indent.nvim
-	url = https://github.com/NMAC427/guess-indent.nvim.git
-	ignore = untracked
-[submodule "modules/oil.nvim"]
-	path = modules/oil.nvim
-	url = https://github.com/stevearc/oil.nvim.git
-	ignore = untracked
-[submodule "modules/lualine.nvim"]
-	path = modules/lualine.nvim
-	url = https://github.com/nvim-lualine/lualine.nvim.git
-	ignore = untracked
-[submodule "modules/nvim-tree.lua"]
-	path = modules/nvim-tree.lua
-	url = https://github.com/nvim-tree/nvim-tree.lua.git
-	ignore = untracked
-[submodule "modules/telescope.nvim"]
-	path = modules/telescope.nvim
-	url = https://github.com/nvim-telescope/telescope.nvim.git
-	ignore = untracked
-[submodule "modules/plenary.nvim"]
-	path = modules/plenary.nvim
-	url = https://github.com/nvim-lua/plenary.nvim.git
-	ignore = untracked
-[submodule "modules/github-nvim-theme"]
-	path = modules/github-nvim-theme
-	url = https://github.com/projekt0n/github-nvim-theme.git
-	ignore = untracked
-[submodule "modules/tokyonight.nvim"]
-	path = modules/tokyonight.nvim
-	url = https://github.com/folke/tokyonight.nvim.git
-	ignore = untracked
-[submodule "modules/onedark.vim"]
-	path = modules/onedark.vim
-	url = https://github.com/joshdick/onedark.vim.git
-	ignore = untracked
-[submodule "modules/sonokai"]
-	path = modules/sonokai
-	url = https://github.com/sainnhe/sonokai.git
-	ignore = untracked
-[submodule "modules/vim-beancount"]
-	path = modules/vim-beancount
-	url = https://github.com/nathangrigg/vim-beancount.git
-	ignore = untracked
-[submodule "modules/vim-jsonnet"]
-	path = modules/vim-jsonnet
-	url = https://github.com/google/vim-jsonnet.git
-	ignore = untracked
-[submodule "modules/mini.icons"]
-	path = modules/mini.icons
-	url = https://github.com/nvim-mini/mini.icons.git
-	ignore = untracked
-[submodule "modules/todo-comments.nvim"]
-	path = modules/todo-comments.nvim
-	url = https://github.com/folke/todo-comments.nvim.git
-	ignore = untracked
-[submodule "modules/nvim-colorizer.lua"]
-	path = modules/nvim-colorizer.lua
-	url = https://github.com/catgoose/nvim-colorizer.lua.git
-	ignore = untracked
+[submodule "modules/blink.cmp"]
+	path = modules/blink.cmp
+	url = https://github.com/saghen/blink.cmp.git
 [submodule "modules/bufferline.nvim"]
 	path = modules/bufferline.nvim
 	url = https://github.com/akinsho/bufferline.nvim.git
 	ignore = untracked
-[submodule "modules/gitsigns.nvim"]
-	path = modules/gitsigns.nvim
-	url = https://github.com/lewis6991/gitsigns.nvim.git
-	ignore = untracked
-[submodule "modules/vim-fugitive"]
-	path = modules/vim-fugitive
-	url = https://github.com/tpope/vim-fugitive.git
+[submodule "modules/catppuccin.nvim"]
+	path = modules/catppuccin.nvim
+	url = https://github.com/catppuccin/nvim.git
 	ignore = untracked
 [submodule "modules/catppuccin.vim"]
 	path = modules/catppuccin.vim
 	url = https://github.com/catppuccin/vim.git
 	ignore = untracked
-[submodule "modules/gruvbox.vim"]
-	path = modules/gruvbox.vim
-	url = https://github.com/morhetz/gruvbox.git
-	ignore = untracked
+[submodule "modules/conform.nvim"]
+	path = modules/conform.nvim
+	url = https://github.com/stevearc/conform.nvim.git
 [submodule "modules/csvview.nvim"]
 	path = modules/csvview.nvim
 	url = https://github.com/hat0uma/csvview.nvim
 	ignore = untracked
-[submodule "modules/render-markdown.nvim"]
-	path = modules/render-markdown.nvim
-	url = https://github.com/meanderingprogrammer/render-markdown.nvim
+[submodule "modules/github-nvim-theme"]
+	path = modules/github-nvim-theme
+	url = https://github.com/projekt0n/github-nvim-theme.git
 	ignore = untracked
-[submodule "modules/x11docker"]
-	path = modules/x11docker
-	url = https://github.com/mviereck/x11docker.git
-[submodule "modules/nvim-lspconfig"]
-	path = modules/nvim-lspconfig
-	url = https://github.com/neovim/nvim-lspconfig.git
+[submodule "modules/gitsigns.nvim"]
+	path = modules/gitsigns.nvim
+	url = https://github.com/lewis6991/gitsigns.nvim.git
+	ignore = untracked
+[submodule "modules/gruvbox.nvim"]
+	path = modules/gruvbox.nvim
+	url = https://github.com/ellisonleao/gruvbox.nvim.git
+	ignore = untracked
+[submodule "modules/gruvbox.vim"]
+	path = modules/gruvbox.vim
+	url = https://github.com/morhetz/gruvbox.git
+	ignore = untracked
+[submodule "modules/guess-indent.nvim"]
+	path = modules/guess-indent.nvim
+	url = https://github.com/NMAC427/guess-indent.nvim.git
+	ignore = untracked
 [submodule "modules/hbac.nvim"]
 	path = modules/hbac.nvim
 	url = https://github.com/axkirillov/hbac.nvim.git
 [submodule "modules/hotreload.nvim"]
 	path = modules/hotreload.nvim
 	url = https://github.com/diogo464/hotreload.nvim
+[submodule "modules/kanagawa.nvim"]
+	path = modules/kanagawa.nvim
+	url = https://github.com/rebelot/kanagawa.nvim.git
+[submodule "modules/lazy.nvim"]
+	path = modules/lazy.nvim
+	url = https://github.com/folke/lazy.nvim.git
+	ignore = untracked
+[submodule "modules/lualine.nvim"]
+	path = modules/lualine.nvim
+	url = https://github.com/nvim-lualine/lualine.nvim.git
+	ignore = untracked
+[submodule "modules/mini.icons"]
+	path = modules/mini.icons
+	url = https://github.com/nvim-mini/mini.icons.git
+	ignore = untracked
+[submodule "modules/nvim-colorizer.lua"]
+	path = modules/nvim-colorizer.lua
+	url = https://github.com/catgoose/nvim-colorizer.lua.git
+	ignore = untracked
+[submodule "modules/nvim-lspconfig"]
+	path = modules/nvim-lspconfig
+	url = https://github.com/neovim/nvim-lspconfig.git
+[submodule "modules/nvim-tree.lua"]
+	path = modules/nvim-tree.lua
+	url = https://github.com/nvim-tree/nvim-tree.lua.git
+	ignore = untracked
+[submodule "modules/oil.nvim"]
+	path = modules/oil.nvim
+	url = https://github.com/stevearc/oil.nvim.git
+	ignore = untracked
+[submodule "modules/onedark.vim"]
+	path = modules/onedark.vim
+	url = https://github.com/joshdick/onedark.vim.git
+	ignore = untracked
+[submodule "modules/plenary.nvim"]
+	path = modules/plenary.nvim
+	url = https://github.com/nvim-lua/plenary.nvim.git
+	ignore = untracked
+[submodule "modules/render-markdown.nvim"]
+	path = modules/render-markdown.nvim
+	url = https://github.com/meanderingprogrammer/render-markdown.nvim
+	ignore = untracked
+[submodule "modules/sonokai"]
+	path = modules/sonokai
+	url = https://github.com/sainnhe/sonokai.git
+	ignore = untracked
+[submodule "modules/telescope.nvim"]
+	path = modules/telescope.nvim
+	url = https://github.com/nvim-telescope/telescope.nvim.git
+	ignore = untracked
+[submodule "modules/todo-comments.nvim"]
+	path = modules/todo-comments.nvim
+	url = https://github.com/folke/todo-comments.nvim.git
+	ignore = untracked
+[submodule "modules/toggleterm.nvim"]
+	path = modules/toggleterm.nvim
+	url = https://github.com/akinsho/toggleterm.nvim.git
+	ignore = untracked
+[submodule "modules/tokyonight.nvim"]
+	path = modules/tokyonight.nvim
+	url = https://github.com/folke/tokyonight.nvim.git
+	ignore = untracked
+[submodule "modules/vim-beancount"]
+	path = modules/vim-beancount
+	url = https://github.com/nathangrigg/vim-beancount.git
+	ignore = untracked
+[submodule "modules/vim-fugitive"]
+	path = modules/vim-fugitive
+	url = https://github.com/tpope/vim-fugitive.git
+	ignore = untracked
+[submodule "modules/vim-jsonnet"]
+	path = modules/vim-jsonnet
+	url = https://github.com/google/vim-jsonnet.git
+	ignore = untracked
+[submodule "modules/which-key.nvim"]
+	path = modules/which-key.nvim
+	url = https://github.com/folke/which-key.nvim
+	ignore = untracked
+[submodule "modules/x11docker"]
+	path = modules/x11docker
+	url = https://github.com/mviereck/x11docker.git
