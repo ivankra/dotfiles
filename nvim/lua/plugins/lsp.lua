@@ -19,6 +19,7 @@
 -- trigger characters (`.`, `->`, ...), anytime with Ctrl+X Ctrl+O.
 
 -- { lspconfig name, executable }
+-- stylua: ignore
 local servers = {
   { "clangd", "clangd" },                         -- C/C++
   { "lua_ls", "lua-language-server" },
@@ -83,7 +84,9 @@ return {
       vim.lsp.config("lua_ls", {
         on_init = function(client)
           local folder = client.workspace_folders and client.workspace_folders[1]
-          if folder and (vim.uv.fs_stat(folder.name .. "/.luarc.json") or vim.uv.fs_stat(folder.name .. "/.luarc.jsonc")) then
+          if
+            folder and (vim.uv.fs_stat(folder.name .. "/.luarc.json") or vim.uv.fs_stat(folder.name .. "/.luarc.jsonc"))
+          then
             return
           end
           client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua or {}, {
@@ -119,7 +122,9 @@ return {
 
       -- No preselected item, docs next to the menu, fuzzy matching.
       -- pcall: values unknown to this nvim build would error.
-      if not pcall(function() vim.opt.completeopt = { "menuone", "noselect", "popup", "fuzzy" } end) then
+      if not pcall(function()
+        vim.opt.completeopt = { "menuone", "noselect", "popup", "fuzzy" }
+      end) then
         vim.opt.completeopt = { "menuone", "noselect" }
       end
       -- No "match 1 of 2" etc. messages while the popup is open

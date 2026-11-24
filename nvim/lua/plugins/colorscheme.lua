@@ -41,7 +41,7 @@ return {
   -- Applied from init, which runs before any plugin loads, so that e.g.
   -- lualine picks up its colors. Not a plugin, only this init.
   {
-    "theme",  -- lazy needs [1], dir or url; a bare name without "/" is just the name
+    "theme", -- lazy needs [1], dir or url; a bare name without "/" is just the name
     virtual = true,
     lazy = true,
     init = function()
@@ -73,7 +73,7 @@ return {
               then
                 name = ev.match
               end
-              if name == "" then  -- :doautocmd ColorScheme without a name
+              if name == "" then -- :doautocmd ColorScheme without a name
                 return
               end
               vim.fn.mkdir(vim.fn.fnamemodify(saved_file, ":h"), "p")
@@ -92,14 +92,14 @@ return {
     dev = true,
     event = "VeryLazy",
     config = function()
-      require("tokyonight").setup {
+      require("tokyonight").setup({
         style = "moon",
         -- styles = { comments = { italic = false } },
         on_colors = function(colors)
-          colors.fg_dark = "#e6e7f1"  -- brighten vim command line's color (MsgArea)
-          colors.comment = "#8095D6"  -- moon: #636da6
-        end
-      }
+          colors.fg_dark = "#e6e7f1" -- brighten vim command line's color (MsgArea)
+          colors.comment = "#8095D6" -- moon: #636da6
+        end,
+      })
       -- vim.cmd("colorscheme tokyonight")
       -- vim.api.nvim_set_hl(0, 'MsgArea', { fg = '#e6e7f1' })
     end,
@@ -121,9 +121,9 @@ return {
       contrast = "hard",
       italic = {
         strings = false,
-        comments = false
-      }
-    }
+        comments = false,
+      },
+    },
   },
 
   -- kanagawa (= kanagawa-wave), kanagawa-dragon, kanagawa-lotus (light)

@@ -56,6 +56,7 @@ end
 
 -- Filetypes shown as just their icon (no name) in lualine_x: the icon
 -- already says what the type is, so the name would just repeat it
+-- stylua: ignore
 local icon_only_fts = {
   bash = true,       -- "$" icon
   c = true,          -- "C" icon
@@ -235,7 +236,7 @@ return {
     dependencies = { vim.g.icons_provider },
     opts = {
       options = {
-        theme = 'auto',
+        theme = "auto",
         component_separators = { left = "", right = "" },
         globalstatus = true,
       },
@@ -295,6 +296,6 @@ return {
           { ll_location, cond = min_width(40) },
         },
       },
-    }
-  }
+    },
+  },
 }

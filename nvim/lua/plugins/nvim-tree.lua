@@ -1,3 +1,15 @@
+-- Git status as letters, nvim-tree's default glyphs in the comments
+-- stylua: ignore
+local git_glyphs = {
+  unstaged =  "M",  -- ✗ 
+  staged =    "A",  -- ✓ 
+  unmerged =  "C",  -- 
+  renamed =   "R",  -- ➜
+  untracked = "U",  -- ★ 
+  deleted =   "D",
+  ignored =   "I",  -- ◌ 
+}
+
 return {
   {
     "nvim-tree/nvim-tree.lua",
@@ -33,7 +45,7 @@ return {
           enable = true,
         },
         update_focused_file = {
-          enable = true,  -- automatically focus on current buffer's file
+          enable = true, -- automatically focus on current buffer's file
         },
         renderer = {
           -- Don't append /.. to the path of root folder
@@ -45,18 +57,10 @@ return {
             modified_placement = "signcolumn",
             git_placement = "right_align",
             glyphs = {
-              git = {
-                unstaged =  "M",  -- ✗ 
-                staged =    "A",  -- ✓ 
-                unmerged =  "C",  -- 
-                renamed =   "R",  -- ➜
-                untracked = "U",  -- ★ 
-                deleted =   "D",
-                ignored =   "I",  -- ◌ 
-              }
-            }
-          }
-        }
+              git = git_glyphs,
+            },
+          },
+        },
       }
     end,
 
@@ -79,7 +83,7 @@ return {
             if bufname:match("NvimTree_") ~= nil then
               table.insert(tree_wins, w)
             end
-            if vim.api.nvim_win_get_config(w).relative ~= '' then
+            if vim.api.nvim_win_get_config(w).relative ~= "" then
               table.insert(floating_wins, w)
             end
           end
@@ -89,10 +93,10 @@ return {
               vim.api.nvim_win_close(w, true)
             end
           end
-        end
+        end,
       })
     end,
-  }
+  },
 }
 
 -- return {

@@ -5,7 +5,7 @@ if not vim.g.in_container then
   return {}
 end
 
-local host = vim.uv.os_gethostname()  -- from podman --hostname
+local host = vim.uv.os_gethostname() -- from podman --hostname
 
 -- IDE-like config: treesitter + mason
 if host == "dvim" then
@@ -41,13 +41,15 @@ if host == "dvim" then
           if win ~= -1 then
             vim.wo[win][0].foldmethod = "expr"
             vim.wo[win][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
-            vim.wo[win][0].foldlevel = 99  -- start with all folds open
+            vim.wo[win][0].foldlevel = 99 -- start with all folds open
           end
         end
 
         vim.api.nvim_create_autocmd("FileType", {
           group = vim.api.nvim_create_augroup("DvimTreesitter", { clear = true }),
-          callback = function(ev) setup(ev.buf) end,
+          callback = function(ev)
+            setup(ev.buf)
+          end,
         })
 
         -- Async, and skips parsers that are already installed. On a fresh
@@ -55,17 +57,28 @@ if host == "dvim" then
         -- queries existed: no highlighting, or (with a parser bundled with
         -- nvim, e.g. lua) no indents query yet. Set them all up again once
         -- the install has finished; restarting highlighting is harmless.
-        require("nvim-treesitter").install({
-          "lua", "vim", "vimdoc", "bash", "python", "javascript", "typescript", "json", "yaml", "markdown",
-        }):await(function()
-          vim.schedule(function()
-            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-              if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= "" then
-                setup(buf)
+        require("nvim-treesitter")
+          .install({
+            "lua",
+            "vim",
+            "vimdoc",
+            "bash",
+            "python",
+            "javascript",
+            "typescript",
+            "json",
+            "yaml",
+            "markdown",
+          })
+          :await(function()
+            vim.schedule(function()
+              for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= "" then
+                  setup(buf)
+                end
               end
-            end
+            end)
           end)
-        end)
       end,
     },
 
@@ -99,21 +112,21 @@ if host == "dvim" then
   --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua ruff prettier shfmt" "+qa"
   --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
 
--- org + org-roam for nvim
--- https://github.com/nvim-orgmode/orgmode (3.6k★)
--- https://github.com/chipsenkbeil/org-roam.nvim (0.25k★)
+  -- org + org-roam for nvim
+  -- https://github.com/nvim-orgmode/orgmode (3.6k★)
+  -- https://github.com/chipsenkbeil/org-roam.nvim (0.25k★)
 elseif host == "dvim-org" then
   return {
     {
-      'nvim-orgmode/orgmode',
+      "nvim-orgmode/orgmode",
       lazy = false,
       config = function()
         -- Setup orgmode
-        require('orgmode').setup({
-          org_agenda_files = '~/notes/org/**/*',
+        require("orgmode").setup({
+          org_agenda_files = "~/notes/org/**/*",
           --org_default_notes_file = '~/notes/org/refile.org',
         })
-      end
+      end,
     },
     {
       "chipsenkbeil/org-roam.nvim",
@@ -128,8 +141,8 @@ elseif host == "dvim-org" then
           --   "~/a/single/org_file.org",
           -- }
         })
-      end
-    }
+      end,
+    },
   }
 
 -- https://github.com/obsidian-nvim/obsidian.nvim (1.4k★)
@@ -147,7 +160,7 @@ elseif host == "dvim-obsidian" then
         legacy_commands = false, -- this will be removed in the next major release
         -- At least one workspace is required
         workspaces = {
-          { name = "notes", path = "/notes" },  -- bind-mounted in run.sh
+          { name = "notes", path = "/notes" }, -- bind-mounted in run.sh
         },
         daily_notes = {
           folder = "journals",
@@ -158,12 +171,11 @@ elseif host == "dvim-obsidian" then
       dependencies = {
         "nvim-lua/plenary.nvim",
         -- optional
-        "nvim-treesitter/nvim-treesitter",  -- markdown syntax highlighting
-        "hrsh7th/nvim-cmp",                 -- for completion of note references
+        "nvim-treesitter/nvim-treesitter", -- markdown syntax highlighting
+        "hrsh7th/nvim-cmp", -- for completion of note references
       },
-    }
+    },
   }
-
 elseif host:sub(1, 5) == "dvim-" then
   error("Unknown HOST=" .. host)
 

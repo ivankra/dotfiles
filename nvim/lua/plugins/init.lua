@@ -50,7 +50,7 @@ return {
     dependencies = { vim.g.icons_provider },
     opts = {
       options = {
-        always_show_bufferline = false,  -- hide if only one buffer
+        always_show_bufferline = false, -- hide if only one buffer
         -- Default is "bdelete! %d", which silently discards unsaved changes.
         -- :Bd (mini.bufremove spec below) asks Save/No/Cancel like :q and keeps
         -- the window layout.
@@ -78,9 +78,27 @@ return {
       -- Insert mode too, as init.lua's :bprevious/:bnext fallbacks
       { "<S-PageUp>", "<cmd>BufferLineCyclePrev<cr>", mode = { "n", "i" }, desc = "Prev buffer" },
       { "<S-PageDown>", "<cmd>BufferLineCycleNext<cr>", mode = { "n", "i" }, desc = "Next buffer" },
-      { "<leader>bl", function() close_buffers("left") end, desc = "Delete buffers to the Left" },
-      { "<leader>bo", function() close_buffers("others") end, desc = "Delete Other buffers" },
-      { "<leader>br", function() close_buffers("right") end, desc = "Delete buffers to the Right" },
+      {
+        "<leader>bl",
+        function()
+          close_buffers("left")
+        end,
+        desc = "Delete buffers to the Left",
+      },
+      {
+        "<leader>bo",
+        function()
+          close_buffers("others")
+        end,
+        desc = "Delete Other buffers",
+      },
+      {
+        "<leader>br",
+        function()
+          close_buffers("right")
+        end,
+        desc = "Delete buffers to the Right",
+      },
       -- Alt+N to switch to buffer N (vscode-like keymaps)
       { "<A-1>", "<cmd>BufferLineGoToBuffer 1<cr>", desc = "Go to buffer 1" },
       { "<A-2>", "<cmd>BufferLineGoToBuffer 2<cr>", desc = "Go to buffer 2" },
@@ -170,7 +188,7 @@ return {
     },
     opts = {
       columns = { "icon", "permissions", "size", "mtime" },
-    }
+    },
   },
 
   -- Fuzzy search
@@ -199,7 +217,7 @@ return {
     event = "VeryLazy",
     dependencies = { vim.g.icons_provider },
     opts = {
-      preset = "helix",  -- show floating window at the right
+      preset = "helix", -- show floating window at the right
       spec = {
         { "<leader>b", group = "buffer" },
         { "<leader>c", group = "code" },
@@ -207,11 +225,11 @@ return {
         { "<leader>u", group = "ui" },
         { "<leader>g", group = "git" },
         { "<leader>gh", group = "hunks" },
-      }
+      },
     },
     keys = {
       { "<leader>?", "<cmd>WhichKey<cr>", desc = "Show all keymaps" },
-    }
+    },
   },
 
   -- Completion with blink.cmp (0.10+), instead of nvim's built-in LSP
@@ -230,7 +248,7 @@ return {
     -- first server starts. It loads its own parts on demand.
     lazy = false,
     init = function()
-      vim.g.lsp_builtin_completion = false  -- see lsp.lua
+      vim.g.lsp_builtin_completion = false -- see lsp.lua
     end,
     opts = {
       -- The Lua fuzzy matcher, no binary: the prebuilt one comes from
@@ -247,8 +265,18 @@ return {
         preset = "default",
         -- A page in the menu, like nvim's own popup menu (its own window,
         -- so not built in). 10: the menu's height (completion.menu.max_height).
-        ["<PageUp>"] = { function(cmp) return cmp.select_prev({ count = 10 }) end, "fallback" },
-        ["<PageDown>"] = { function(cmp) return cmp.select_next({ count = 10 }) end, "fallback" },
+        ["<PageUp>"] = {
+          function(cmp)
+            return cmp.select_prev({ count = 10 })
+          end,
+          "fallback",
+        },
+        ["<PageDown>"] = {
+          function(cmp)
+            return cmp.select_next({ count = 10 })
+          end,
+          "fallback",
+        },
       },
       appearance = {
         nerd_font_variant = "mono",
@@ -330,17 +358,27 @@ return {
             gs.nav_hunk("prev")
           end
         end, "Prev Hunk")
-        map("n", "]H", function() gs.nav_hunk("last") end, "Last Hunk")
-        map("n", "[H", function() gs.nav_hunk("first") end, "First Hunk")
+        map("n", "]H", function()
+          gs.nav_hunk("last")
+        end, "Last Hunk")
+        map("n", "[H", function()
+          gs.nav_hunk("first")
+        end, "First Hunk")
         map({ "n", "x" }, "<leader>ghs", ":Gitsigns stage_hunk<CR>", "Stage/Unstage Hunk")
         map({ "n", "x" }, "<leader>ghr", ":Gitsigns reset_hunk<CR>", "Reset Hunk")
         map("n", "<leader>ghS", gs.stage_buffer, "Stage Buffer")
         map("n", "<leader>ghR", gs.reset_buffer, "Reset Buffer")
         map("n", "<leader>ghp", gs.preview_hunk_inline, "Preview Hunk Inline")
-        map("n", "<leader>ghb", function() gs.blame_line({ full = true }) end, "Blame Line")
-        map("n", "<leader>ghB", function() gs.blame() end, "Blame Buffer")
+        map("n", "<leader>ghb", function()
+          gs.blame_line({ full = true })
+        end, "Blame Line")
+        map("n", "<leader>ghB", function()
+          gs.blame()
+        end, "Blame Buffer")
         map("n", "<leader>ghd", gs.diffthis, "Diff This")
-        map("n", "<leader>ghD", function() gs.diffthis("~") end, "Diff This ~")
+        map("n", "<leader>ghD", function()
+          gs.diffthis("~")
+        end, "Diff This ~")
         map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "GitSigns Select Hunk")
       end,
     },
@@ -405,15 +443,15 @@ return {
       -- Block-width code blocks with language tab
       code = {
         sign = false,
-        width = 'block',
+        width = "block",
         right_pad = 1,
         min_width = 80,
         disable_background = false,
-        language_border = ' ',
-        language_left = '',
-        language_right = '',
+        language_border = " ",
+        language_left = "",
+        language_right = "",
       },
-      pipe_table = { style = 'normal' },
+      pipe_table = { style = "normal" },
     },
   },
 
