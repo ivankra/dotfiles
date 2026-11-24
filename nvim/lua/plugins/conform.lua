@@ -18,9 +18,22 @@ local formatters_by_ft = {
 }
 -- Prettier's languages, LazyVim's list
 for _, ft in ipairs({
-  "css", "graphql", "handlebars", "html", "javascript", "javascriptreact",
-  "json", "jsonc", "less", "markdown", "markdown.mdx", "scss", "typescript",
-  "typescriptreact", "vue", "yaml",
+  "css",
+  "graphql",
+  "handlebars",
+  "html",
+  "javascript",
+  "javascriptreact",
+  "json",
+  "jsonc",
+  "less",
+  "markdown",
+  "markdown.mdx",
+  "scss",
+  "typescript",
+  "typescriptreact",
+  "vue",
+  "yaml",
 }) do
   formatters_by_ft[ft] = prettier
 end
@@ -41,10 +54,19 @@ return {
     cond = vim.fn.has("nvim-0.10") == 1,
     cmd = "ConformInfo",
     keys = {
-      { "<leader>cf", function() format({ async = true }) end, mode = { "n", "x" }, desc = "Format buffer/selection" },
+      {
+        "<leader>cf",
+        function()
+          format({ async = true })
+        end,
+        mode = { "n", "x" },
+        desc = "Format buffer/selection",
+      },
       {
         "<leader>cF",
-        function() format({ formatters = { "injected" }, async = true }) end,
+        function()
+          format({ formatters = { "injected" }, async = true })
+        end,
         mode = { "n", "x" },
         desc = "Format code in other languages (injected)",
       },

@@ -1,10 +1,4 @@
--- Yank/paste using X11 clipboard. Not over SSH: there nvim falls back to OSC 52,
--- and every paste would ask the terminal for its clipboard (usually refused
--- or slow). "+y still copies to the local clipboard via OSC 52.
--- Scheduled: setting it runs clipboard provider detection, which slows startup.
-vim.schedule(function()
-  vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
-end)
+-- stylua: ignore start
 vim.opt.confirm = true                  -- Confirm to save when closing a modified buffer instead of error
 vim.opt.cursorline = true               -- Highlight current line
 vim.opt.fileencodings = "ucs-bom,utf-8,cp1251"  -- Encodings to try when opening a file, as vimrc (default ends in latin1)
@@ -26,6 +20,11 @@ vim.opt.timeoutlen = 300                -- Wait for mapped sequences (default 10
 vim.opt.undofile = true                 -- Persistent undo history
 vim.opt.virtualedit = "block"           -- Allow cursor to move past end-of-line in block selection mode
 vim.opt.wildmode = "longest:full,full"  -- Completion mode like readline's show-all-if-ambiguous
+
+-- Yank/paste using X11 clipboard, except over SSH (OSC 52)
+vim.schedule(function()
+  vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
+end)
 
 -- 24-bit color: 0.10+ turns it on by itself when the terminal supports it
 -- ($COLORTERM, terminfo, or asking the terminal, which also works over ssh),
@@ -57,6 +56,7 @@ vim.opt.breakindentopt = "list:-1"      --  ...and indent past list bullets (per
 -- With line numbers on, don't want showbreak
 -- vim.opt.breakindentopt = "shift:2,sbr"  --  At least 2 column indent and enable showbreak
 -- vim.opt.showbreak = "↪"                 --  Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
+-- stylua: ignore end
 
 -- Add a LineNr-colored bar in signcolumn when there are no signs, in order to blend in with gitsigns
 -- _G.get_statuscol = function()
@@ -79,7 +79,7 @@ else
   vim.o.guifont = "Monospace:h12"
 end
 
-vim.g.mapleader = " "                   -- <leader> key
+vim.g.mapleader = " " -- <leader> key
 vim.g.maplocalleader = "\\"
 
 -- Window navigation: Ctrl+hjkl/arrows to switch windows
@@ -95,8 +95,8 @@ vim.keymap.set("n", "<S-Right>", "<C-w>l", { desc = "Go to right window", silent
 
 -- Buffers (bufferline will override some of these if loaded)
 -- Shift+PgUp/Down to switch buffers (rationale: next to Ctrl - switch tabs)
-vim.keymap.set({"n", "i"}, "<S-PageUp>", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
-vim.keymap.set({"n", "i"}, "<S-PageDown>", "<cmd>bnext<cr>", { desc = "Next buffer" })
+vim.keymap.set({ "n", "i" }, "<S-PageUp>", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
+vim.keymap.set({ "n", "i" }, "<S-PageDown>", "<cmd>bnext<cr>", { desc = "Next buffer" })
 vim.keymap.set("n", "[b", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
 vim.keymap.set("n", "]b", "<cmd>bnext<cr>", { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to other buffer" })
@@ -122,7 +122,7 @@ local function comment_cursor_shift(before, after, indent, commentstring)
   local left, right = commentstring:match("^(.-)%%s(.-)$")
   if left then
     if text == "" then
-      return sign * #left:match("^%s*(.-)%s*$")  -- blank line: unpadded marker
+      return sign * #left:match("^%s*(.-)%s*$") -- blank line: unpadded marker
     elseif long == short:sub(1, indent) .. left .. text .. right then
       return sign * #left
     end
@@ -137,7 +137,7 @@ end
 local function toggle_comment_insert()
   local row, col = unpack(vim.api.nvim_win_get_cursor(0))
   local before = vim.api.nvim_get_current_line()
-  local indent = (before:find("%S") or 1) - 1  -- where the comment marker goes
+  local indent = (before:find("%S") or 1) - 1 -- where the comment marker goes
   vim.cmd("normal gcc")
   if col >= indent then
     local after = vim.api.nvim_get_current_line()
@@ -263,9 +263,9 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave
 if vim.fn.has("nvim-0.10") == 1 then
   vim.api.nvim_create_autocmd("FileType", {
     group = vim.api.nvim_create_augroup("BundledTreesitter", { clear = true }),
-    pattern = { "c", "lua", "vim", "markdown", "query" },  -- help: nvim's own ftplugin
+    pattern = { "c", "lua", "vim", "markdown", "query" }, -- help: nvim's own ftplugin
     callback = function(ev)
-      pcall(vim.treesitter.start, ev.buf)  -- no-op if this build lacks the parser
+      pcall(vim.treesitter.start, ev.buf) -- no-op if this build lacks the parser
     end,
   })
 end
@@ -313,15 +313,15 @@ require("lazy").setup({
     rtp = {
       disabled_plugins = {
         -- Disable netrw in favor of nvim-tree/oil
-        "netrwPlugin"
-      }
-    }
+        "netrwPlugin",
+      },
+    },
   },
 
   spec = {
     -- Imports all ~/.config/nvim/lua/plugins/*.lua
-    { import = "plugins" }
-  }
+    { import = "plugins" },
+  },
 })
 
 -- Autoloaded vim plugins in ~/.config/nvim/plugin/ (shared with vim):

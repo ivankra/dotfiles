@@ -23,7 +23,7 @@ return {
         softtabstop = "detected",
         shiftwidth = "detected",
       },
-    }
+    },
   },
 
   -- Highlight TODO/FIXME/etc keywords in comments
@@ -36,8 +36,8 @@ return {
       signs = false,
       -- Accept TODO(text) pattern
       search = { pattern = [[\b(KEYWORDS)(\([^\)]*\))?:]] },
-      highlight = { pattern = [[.*<((KEYWORDS)%(\(.{-1,}\))?):]], keyword = "bg" }
-    }
+      highlight = { pattern = [[.*<((KEYWORDS)%(\(.{-1,}\))?):]], keyword = "bg" },
+    },
   },
 
   -- Colorize CSS color codes (#RRGGBB)
@@ -83,7 +83,7 @@ return {
           require("colorizer").setup(opts)
           -- Buffers read before: run setup()'s FileType autocmd for them
           vim.cmd("silent! doautoall ColorizerSetup FileType")
-          return true  -- delete this autocmd
+          return true -- delete this autocmd
         end,
       })
     end,
