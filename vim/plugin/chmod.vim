@@ -20,7 +20,7 @@ function! s:ChmodShebang(file) abort
   if l:own
     let b:chmod_shebang = l:shebang
   endif
-  if !l:shebang || l:had || !executable('/bin/chmod')
+  if !l:shebang || l:had || !executable('chmod')
     return
   endif
   let l:perm = getfperm(a:file)
@@ -30,5 +30,5 @@ function! s:ChmodShebang(file) abort
   endif
   " Not setfperm(): it only knows the 9 rwx bits and would clear
   " setuid/setgid/sticky. Symbolic chmod only adds the r and x bits.
-  silent! call system('/bin/chmod a+rx ' . shellescape(a:file))
+  silent! call system('chmod a+rx ' . shellescape(a:file))
 endfunction

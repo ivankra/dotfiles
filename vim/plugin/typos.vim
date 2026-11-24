@@ -1,72 +1,30 @@
-if has("user_commands")
-  com! -nargs=? Tabe tabedit <args>
-  com! -nargs=? E e <args>
-  com! -nargs=? W w <args>
-  com! -nargs=? Wq wq <args>
+scriptencoding utf-8
+
+" Shift held too long: :W, :Wq etc. as their lowercase commands, with ! and
+" filename completion
+if has("user_commands") || has("nvim")
+  com! -bang -nargs=? -complete=file Tabe tabedit<bang> <args>
+  com! -bang -nargs=? -complete=file E e<bang> <args>
+  com! -bang -nargs=? -complete=file W w<bang> <args>
+  com! -bang -nargs=? -complete=file Wq wq<bang> <args>
+  com! -bang Q q<bang>
+  com! -bang Qa qa<bang>
+  com! -bang Wa wa<bang>
+  com! -bang Wqa wqa<bang>
 endif
 
-" йцукен->qwerty translations for normal mode
-map й q
-map ц w
-map у e
-map к r
-map е t
-map н y
-map г u
-map ш i
-map щ o
-map з p
-map х [
-map ъ ]
-map ф a
-map ы s
-map в d
-map а f
-map п g
-map р h
-map о j
-map л k
-map д l
-map ж ;
-map э '
-map я z
-map ч x
-map с c
-map м v
-map и b
-map т n
-map ь m
-map б ,
-map ю .
-map Й Q
-map Ц W
-map У E
-map К R
-map Е T
-map Н Y
-map Г U
-map Ш I
-map Щ O
-map З P
-map Х {
-map Ъ }
-map Ф A
-map Ы S
-map В D
-map А F
-map П G
-map Р H
-map О J
-map Л K
-map Д L
-map Ж :
-map Э "
-map Я Z
-map Ч X
-map С C
-map М V
-map И B
-map Т N
-map Ь M
-map Б <
-map Ю >
+" Russian ЙЦУКЕН layout: commands typed with it act as on QWERTY, also the
+" second key of gg, zz, ZZ, marks (mф = ma) and registers ("фy). Not in
+" Insert/Command-line mode, and not for the char after f/t/r, which is text.
+" Unlike :map, also leaves Select mode typing alone.
+" nolangremap: don't apply it to the result of mappings (defaults.vim and
+" nvim's default; set here in case defaults.vim wasn't loaded).
+if exists("+langmap")
+  if exists("+langremap")
+    set nolangremap
+  endif
+  " ; , " need a backslash in 'langmap'
+  let &langmap = 'ЙЦУКЕНГШЩЗФЫВАПРОЛДЯЧСМИТЬ;QWERTYUIOPASDFGHJKLZXCVBNM,'
+        \ . 'йцукенгшщзфывапролдячсмить;qwertyuiopasdfghjklzxcvbnm,'
+        \ . 'х[,ъ],Х{,Ъ},ж\;,Ж:,э'',Э\",б\,,Б<,ю.,Ю>,ё`,Ё~'
+endif

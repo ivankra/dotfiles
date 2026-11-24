@@ -26,7 +26,7 @@ function! s:gotoline()
       if filereadable(file) && !filereadable(bufname("%"))
         let l:bufn = bufnr("%")
         exec "edit " . fnameescape(file)
-        exec ":bdelete " . l:bufn
+        exec ":bwipeout " . l:bufn
         return
       endif
     endif
@@ -66,7 +66,7 @@ function! s:gotoline()
     elseif !empty(row)
       exec ":" . row
     endif
-    exec ":bdelete " . l:bufn
+    exec ":bwipeout " . l:bufn
     if !empty(row) && foldlevel(row) > 0
       exec ":foldopen!"
     endif

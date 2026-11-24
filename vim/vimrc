@@ -1,25 +1,31 @@
-set nocompatible
+" Load vim's defaults.vim, which it skips once a vimrc exists
+silent! source $VIMRUNTIME/defaults.vim
+
 set autoread                            " Automatically re-read files changed outside of vim
+set belloff=all                         " No beeps or flashes
 set confirm                             " Confirm to save when closing a modified buffer instead of error
 set encoding=utf-8                      " Use utf-8 to represent text internally in vim
 set fileencodings=ucs-bom,utf-8,cp1251  " List of encodings to check when opening an existing file
-set foldmethod=marker                   " Folds are defined by lines with {{{ and }}} markers
+set foldmethod=marker                   " Folds are defined by triple curly brace markers
 set formatoptions+=r                    " Automatically continue comments after pressing <Enter>
+set formatoptions+=j                    " Remove comment leaders when joining lines (J)
 set gdefault                            " Replace does /g by default
+set hidden                              " Switch away from modified buffers without saving first
 set hlsearch                            " Highlight all matches
 set ignorecase                          " Case-insensitive search by default (add \C to pattern to override)
-set incsearch                           " Incremental search as you type
 set laststatus=2                        " Always show statusline
+set mouse=                              " No mouse in terminal Vim (defaults.vim sets mouse=a)
 set noswapfile viminfo=""               " Don't create any kind of temporary files
-set pastetoggle=<F12>                   " Key to toggle paste mode
 set pumheight=10                        " Limit popup menu's height
-set showcmd                             " Show command on the last screen line
+set sidescroll=1                        " Scroll horizontally by one column (nowrap), not half a screen
 set smartcase                           " Case-sensitive search if pattern contains uppercase characters
 set splitbelow                          " Put new split window below
 set splitright                          " Put new vertically split window to the right
+set timeoutlen=300                      " Wait 300ms for mapped sequences, e.g. ui.vim's <Esc>z (Alt+Z), as in nvim
+set ttimeoutlen=50                      " Wait 50ms (defaults.vim: 100), not 'timeoutlen', for key codes: no Esc lag
 set virtualedit=block                   " Allow cursor to move beyond end-of-line in block selection mode
 set wildmode=longest:full,full          " Completion mode like readline
-set wildoptions=pum                     " Show a popup menu for autocompletions
+silent! set wildoptions=pum             " Show a popup menu for autocompletions (8.2.4325+, e.g. not Ubuntu 22.04)
 
 " Default indent options. Will get adjusted by vim-sleuth.
 set autoindent                          " Basic autoindent
@@ -31,8 +37,8 @@ set shiftwidth=2                        " 2 space indent
 set nowrap                              " No line wrapping by default
 set linebreak                           " Wrap line at whitespace
 set breakindent                         " Continue original indentation on wrapped lines
-set breakindentopt="shift:2,sbr"        " At least 2 column indent and enable showbreak
-set showbreak="↪"                       " Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
+set breakindentopt=shift:2,sbr          " At least 2 column indent and enable showbreak
+set showbreak=↪\                        " Wrapping indicator e.g. ↪ ⤷ ↳ └─▶ (no quotes: " starts a comment)
 
 set statusline=
 set statusline+=%<%f                    " File path
@@ -41,7 +47,7 @@ set statusline+=%m                      " Modified flag [+]
 set statusline+=%r                      " Readonly flag [RO]
 set statusline+=%=                      " === Right side ===
 set statusline+=\ 0x%02B                " Hex value of char under cursor
-set statusline+=\ \ %{&fenc?&fenc:&enc} " File encoding: utf-8
+set statusline+=\ \ %{&fenc!=''?&fenc:&enc} " File encoding: utf-8
 set statusline+=\ \ %y                  " FileType: [python]
 set statusline+=\ %3l:%-2c              " line:col
 set statusline+=\ %P                    " Percentage through file
@@ -54,8 +60,11 @@ else
   set clipboard=unnamedplus
 endif
 
-if has("termguicolors") || $TERM == "xterm-256color" || $TERM == "screen-256color" || $TERM == "tmux-256color"
-  set termguicolors                     " Enable 24-bit color in terminal
+" 24-bit color in terminals that announce it (kitty, Ghostty, WezTerm, ...) or,
+" e.g. over ssh where $COLORTERM is dropped, look like xterm/tmux; not in the
+" Linux console
+if has("termguicolors") && ($COLORTERM =~# '^\%(truecolor\|24bit\)$' || $TERM =~# '^\%(xterm\|screen\|tmux\)-256color$')
+  set termguicolors
 endif
 
 if has("eval")
@@ -78,14 +87,29 @@ if has("eval")
   let g:sonokai_disable_italic_comment = 1
 end
 
+" Optional packages bundled with Vim 9.1+, for what nvim has built in.
+" silent!: older Vims don't have them.
+if has("eval")
+  silent! packadd! comment       " gc{motion}, gcc: toggle comments. Ctrl+/ in plugin/vscode.vim
+  silent! packadd! editorconfig  " Apply .editorconfig (vim-sleuth reads its indent settings too)
+  silent! packadd! hlyank        " Highlight yanked text briefly
+  silent! packadd! matchit       " Extend % to if/else/endif etc
+  silent! packadd! nohlsearch    " Clear search highlight after 'updatetime' idle or in Insert mode
+endif
+
 " [ cd]: cd to current file's directory (alternative: set autochdir)
-noremap <leader>cd :cd %:p:h<CR>
+nnoremap <leader>cd :cd %:p:h<CR>
+" Visual: <C-U> drops the '<,'> range :cd can't take
+xnoremap <leader>cd :<C-U>cd %:p:h<CR>gv
 
-" Typing %%/ in command mode expands to current file's directory
-cabbr <expr> %% expand("%:p:h")
+" Typing %%/ in command mode expands to current file's directory. Only on the
+" : line, not in / searches. fnameescape(): a dir like notes#1 would otherwise
+" expand # to the alternate file. Same in nvim/init.lua.
+cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%'
 
-" Ctrl-L clears search highlight in addition to redraw
-noremap <silent> <C-L> :nohls<CR><C-L>
+" Ctrl-L also clears search highlight and updates diffs, as in nvim
+nnoremap <silent> <C-L> :nohls<Bar>diffupdate<CR><C-L>
+xnoremap <silent> <C-L> :<C-U>nohls<Bar>diffupdate<CR>gv<C-L>
 
 if has("syntax")
   syntax on
@@ -94,12 +118,19 @@ endif
 if has("autocmd")
   filetype plugin indent on
 
-  autocmd FileType c,cpp,java,javascript  setlocal cin cino=j1,+2s,g1,h1,(0,l1
-  autocmd FileType make                   setlocal noet
-  autocmd FileType markdown               syn sync minlines=1000
+  " In a group cleared first, so re-sourcing vimrc doesn't add them again
+  augroup vimrc
+    autocmd!
+    " Not javascript: its indent script sets 'indentexpr', which wins over
+    " 'cindent'. Java's also does, but calls cindent(), which uses 'cino'.
+    autocmd FileType c,cpp,java             setlocal cin cino=j1,+2s,g1,h1,(0,l1
+    autocmd FileType make                   setlocal noet
 
-  " Load large files faster: disable syntax/folding
-  autocmd BufReadPre * if getfsize(expand("<afile>")) > 10485760 | setlocal syntax=OFF fdm=manual | endif
+    " Load large files faster: disable syntax/folding. BufReadPost, after
+    " filetype detection (filetypedetect is defined earlier), which would
+    " otherwise set 'syntax' again.
+    autocmd BufReadPost * if getfsize(expand("<afile>")) > 10485760 | setlocal syntax=OFF fdm=manual | endif
+  augroup END
 endif
 
 " Colorschemes
@@ -107,18 +138,6 @@ if has("eval") && has("autocmd")
   augroup vimrc_colors
     autocmd!
   augroup END
-
-  " A package's colors/ may :runtime its other files (tokyonight.vim, dracula's
-  " autoload/, also needed by vim/colors/dracula-dark.vim). That only works
-  " once the package is on 'runtimepath', and pack/*/start only gets there
-  " after vimrc: add the one with the scheme now.
-  function! s:PackaddColors(name) abort
-    let name = a:name ==# "dracula-dark" ? "dracula" : a:name
-    for f in globpath(&packpath, "pack/*/start/*/colors/" . name . ".vim", 0, 1)
-      execute "packadd!" fnameescape(fnamemodify(f, ":h:h:t"))
-    endfor
-  endfunction
-  autocmd vimrc_colors ColorSchemePre * call s:PackaddColors(expand("<amatch>"))
 
   " Last :colorscheme (name, 'background'): sticks across restarts until a
   " theme switch (see ~/.dotfiles/themes/) deletes this file. In XDG state,
@@ -158,24 +177,40 @@ if has("eval") && has("autocmd")
     call mkdir(fnamemodify(s:saved_colors, ":h"), "p")
     call writefile([name, &background], s:saved_colors)
   endfunction
-  " Only after startup, so applying the theme doesn't count. Changing
-  " 'background' reloads the scheme, so that's saved too.
-  autocmd vimrc_colors VimEnter * ++once
-        \ autocmd vimrc_colors ColorScheme * call s:SaveColors()
+
+  " Saved colorscheme, else the current theme (see ~/.dotfiles/themes/).
+  " Not over one given with -c, which runs before VimEnter.
+  function! s:ApplyStartupColors() abort
+    if exists("g:colors_name") || s:ApplySavedColors()
+      return
+    endif
+    if filereadable(expand("~/.config/theme/vim.vim"))
+      source ~/.config/theme/vim.vim
+    endif
+  endfunction
 endif
 
 if $COLORFGBG == "" || $COLORFGBG == "15;default;0" || $COLORFGBG == "15;0" || has("gui_running")
-  " Saved colorscheme, else the current theme (see ~/.dotfiles/themes/)
-  if has("eval") && has("autocmd") && s:ApplySavedColors()
-    " applied
+  set background=dark  " all themes are dark
+  " The scheme on VimEnter, not now: packages (pack/*/start) get on
+  " 'runtimepath' only after vimrc, and a scheme from one may :runtime its
+  " other files (dracula: autoload/, dracula_base.vim), finding none before.
+  if has("eval") && has("autocmd")
+    autocmd vimrc_colors VimEnter * ++once call s:ApplyStartupColors()
   elseif filereadable(expand("~/.config/theme/vim.vim"))
     source ~/.config/theme/vim.vim
-  else
-    set background=dark
   endif
 else
   set background=light
   colorscheme fruidle
+endif
+
+" Save later :colorscheme changes. Only from VimEnter (after the scheme
+" above, autocmds run in order), so applying it doesn't count. Changing
+" 'background' reloads the scheme, so that's saved too.
+if has("eval") && has("autocmd")
+  autocmd vimrc_colors VimEnter * ++once
+        \ autocmd vimrc_colors ColorScheme * call s:SaveColors()
 endif
 
 if has("gui_running")
