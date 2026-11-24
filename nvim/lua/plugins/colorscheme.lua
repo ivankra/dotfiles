@@ -15,17 +15,6 @@ vim.g.dracula_italic = 0
 vim.g.sonokai_style = "default"
 vim.g.sonokai_disable_italic_comment = 1
 
--- dracula-dark (nvim/colors/) is an overlay on dracula.vim, which lazy only
--- loads on demand for dracula.vim's own colors/
--- (augroup: lazy re-imports specs on :Lazy sync etc.)
-vim.api.nvim_create_autocmd("ColorSchemePre", {
-  group = vim.api.nvim_create_augroup("DraculaDark", { clear = true }),
-  pattern = "dracula-dark",
-  callback = function()
-    require("lazy").load({ plugins = { "dracula.vim" } })
-  end,
-})
-
 local function apply_saved()
   local ok, lines = pcall(vim.fn.readfile, saved_file)
   if not ok or #lines < 2 or lines[1] == "" then

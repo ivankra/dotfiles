@@ -65,5 +65,27 @@ return {
         },
       },
     },
+    -- setup() needs 'termguicolors' at that moment, else it errors and does
+    -- nothing. nvim turns it on by itself, but where it has to ask the
+    -- terminal (no $COLORTERM, e.g. over ssh) only a moment after startup,
+    -- after the first file is read. Never in e.g. the Linux console.
+    config = function(_, opts)
+      if vim.o.termguicolors then
+        require("colorizer").setup(opts)
+        return
+      end
+      vim.api.nvim_create_autocmd("OptionSet", {
+        pattern = "termguicolors",
+        callback = function()
+          if not vim.o.termguicolors then
+            return
+          end
+          require("colorizer").setup(opts)
+          -- Buffers read before: run setup()'s FileType autocmd for them
+          vim.cmd("silent! doautoall ColorizerSetup FileType")
+          return true  -- delete this autocmd
+        end,
+      })
+    end,
   },
 }

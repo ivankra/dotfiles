@@ -9,12 +9,14 @@
 --   K hover, grn rename, gra code action, grr references, gri implementation,
 --   grt type definition (0.12), gO document symbols, <C-s> signature help
 --   (insert mode), [d ]d next/prev diagnostic, <C-]> definition (tagfunc).
--- Added below: gd definition, gD declaration, <leader>cf format,
---   <leader>uh toggle inlay hints, and VS Code keys
---   F2 rename, F12 definition, Shift+F12 references, Ctrl+. code action.
+-- Added below: gd definition, gD declaration, <leader>uh toggle inlay hints,
+--   and VS Code keys F2 rename, F12 definition, Shift+F12 references,
+--   Ctrl+. code action.
+-- Formatting (<leader>cf, gq): conform.nvim in conform.lua, which falls back to the server.
 --
--- Completion: the popup opens after the server's trigger characters (`.`,
--- `->`, ...), anytime with Ctrl+X Ctrl+O. Ctrl+N/P select, Ctrl+Y accepts.
+-- Completion: blink.cmp (init.lua). Without it (nvim 0.10, or its
+-- submodule not checked out), nvim's own: the popup opens after the server's
+-- trigger characters (`.`, `->`, ...), anytime with Ctrl+X Ctrl+O.
 
 -- { lspconfig name, executable }
 local servers = {
@@ -32,21 +34,6 @@ local servers = {
 -- Servers to skip when another one is enabled
 local skip_if = { pyright = "basedpyright" }
 
--- Format with the server, or with conform.nvim where that's installed (dvim)
-local function format()
-  -- A blockwise selection isn't passed on as a range: it would format the whole file
-  if vim.fn.mode() == "\22" then
-    vim.notify("Can't format a block selection, use v or V", vim.log.levels.WARN)
-    return
-  end
-  local ok, conform = pcall(require, "conform")
-  if ok then
-    conform.format({ async = true, lsp_format = "fallback" })
-  else
-    vim.lsp.buf.format({ async = true })
-  end
-end
-
 local function on_attach(ev)
   local client = vim.lsp.get_client_by_id(ev.data.client_id)
   if not client then
@@ -56,7 +43,6 @@ local function on_attach(ev)
     vim.keymap.set(mode, lhs, rhs, { buffer = ev.buf, desc = desc })
   end
   map("n", "gd", vim.lsp.buf.definition, "Go to definition")
-  map({ "n", "x" }, "<leader>cf", format, "Format buffer/selection")
   map("n", "<F2>", vim.lsp.buf.rename, "Rename symbol")
   map("n", "<F12>", vim.lsp.buf.definition, "Go to definition")
   map("n", "<S-F12>", vim.lsp.buf.references, "Find references")
@@ -73,8 +59,13 @@ local function on_attach(ev)
     end, "Toggle inlay hints")
   end
 
-  -- vim.g.lsp_builtin_completion = false: another completion plugin is used (dvim)
+  -- vim.g.lsp_builtin_completion = false: a completion plugin is used
+  -- (blink.cmp, init.lua)
   if vim.g.lsp_builtin_completion ~= false and client:supports_method("textDocument/completion") then
+    -- Not 0.12's 'autocomplete' (popup as you type): its 'autocompletedelay'
+    -- doesn't work with the LSP source, it only delays drawing what you
+    -- type (0.12.6, neovim#38628), and with no delay the popup flashes up
+    -- mid-word.
     vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
   end
 end
@@ -133,24 +124,20 @@ return {
       end
       -- No "match 1 of 2" etc. messages while the popup is open
       vim.opt.shortmess:append("c")
-
-      -- 0.11 shows only signs by default: also the message at the line end.
-      -- [d / ]d: show the message after jumping. 0.11 only knows jump.float,
-      -- 0.12 deprecates it in favor of jump.on_jump.
-      local jump = { float = true }
-      if vim.fn.has("nvim-0.12") == 1 then
-        jump = {
-          on_jump = function(diagnostic, bufnr)
-            if diagnostic then
-              vim.diagnostic.open_float({ bufnr = bufnr, scope = "cursor", focus = false })
-            end
-          end,
-        }
+      -- Cap the menu's width (0.12+), cutting long lines with "…" (default
+      -- ">"), so the docs window next to it keeps room
+      if vim.fn.exists("+pummaxwidth") == 1 then
+        vim.o.pummaxwidth = 70
+        vim.opt.fillchars:append({ trunc = "…" })
       end
+
+      -- 0.11 shows only signs by default. Also the full messages, on lines
+      -- of their own below the cursor line only (none get cut off at the
+      -- window edge, and other lines stay clean). [d / ]d land there too.
       -- The sign column is one sign wide and shared with gitsigns (priority
       -- 6). Diagnostic signs go below it, so a changed line keeps its git
-      -- sign; the diagnostic still shows as the colored line number and the
-      -- message at the line end. severity_sort adds 0-3 to the priority
+      -- sign; the diagnostic still shows as the colored line number, and
+      -- its message on the cursor line. severity_sort adds 0-3 to the priority
       -- (ERROR highest), so 2 keeps all severities under 6.
       local sev = vim.diagnostic.severity
       vim.diagnostic.config({
@@ -163,10 +150,9 @@ return {
             [sev.HINT] = "DiagnosticSignHint",
           },
         },
-        virtual_text = true,
+        virtual_lines = { current_line = true },
         severity_sort = true,
         float = { source = "if_many" },
-        jump = jump,
       })
     end,
   },

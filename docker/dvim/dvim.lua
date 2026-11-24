@@ -7,105 +7,12 @@ end
 
 local host = vim.uv.os_gethostname()  -- from podman --hostname
 
--- Org-inspired outliner PKM, however uses own markup flavor (.norg)
--- https://github.com/nvim-neorg/neorg (7.2k★)
-if host == "dvim-neorg" then
-  return {
-    {
-      "nvim-neorg/neorg",
-      lazy = false,
-      version = "*",
-      config = true,
-      dependencies = {
-        "MunifTanjim/nui.nvim",
-        "nvim-lua/plenary.nvim",
-        "nvim-neorg/lua-utils.nvim",
-        "nvim-neotest/nvim-nio",
-        "nvim-treesitter/nvim-treesitter",
-        "pysan3/pathlib.nvim",
-        "vhyrro/luarocks.nvim",
-      }
-    }
-  }
-
--- org + org-roam for nvim
--- https://github.com/nvim-orgmode/orgmode (3.6k★)
--- https://github.com/chipsenkbeil/org-roam.nvim (0.25k★)
-elseif host == "dvim-org" then
-  return {
-    {
-      'nvim-orgmode/orgmode',
-      lazy = false,
-      config = function()
-        -- Setup orgmode
-        require('orgmode').setup({
-          org_agenda_files = '~/notes/org/**/*',
-          --org_default_notes_file = '~/notes/org/refile.org',
-        })
-      end
-    },
-    {
-      "chipsenkbeil/org-roam.nvim",
-      lazy = false,
-      config = function()
-        require("org-roam").setup({
-          directory = "~/orgroamfiles",
-          -- optional
-          -- org_files = {
-          --   "~/another_org_dir",
-          --   "~/some/folder/*.org",
-          --   "~/a/single/org_file.org",
-          -- }
-        })
-      end
-    }
-  }
-
--- https://github.com/obsidian-nvim/obsidian.nvim (1.4k★)
-elseif host == "dvim-obsidian" then
-  vim.opt.conceallevel = 2
-
-  return {
-    {
-      "obsidian-nvim/obsidian.nvim",
-      version = "*", -- use latest release, remove to use latest commit
-      lazy = false,
-      ---@module 'obsidian'
-      ---@type obsidian.config
-      opts = {
-        legacy_commands = false, -- this will be removed in the next major release
-        -- At least one workspace is required
-        workspaces = {
-          { name = "notes", path = "/notes" },  -- bind-mounted in run.sh
-        },
-        daily_notes = {
-          folder = "journals",
-          date_format = "%Y-%m-%d",
-        },
-        new_notes_location = "pages",
-      },
-      dependencies = {
-        "nvim-lua/plenary.nvim",
-        -- optional
-        "nvim-treesitter/nvim-treesitter",  -- markdown syntax highlighting
-        "hrsh7th/nvim-cmp",                 -- for completion of note references
-      },
-    }
-  }
-
--- maybe try
--- https://github.com/jakewvincent/mkdnflow.nvim + obsidian
--- https://github.com/zk-org/zk-nvim
-
--- IDE-like config
-elseif host == "dvim" then
+-- IDE-like config: treesitter + mason
+if host == "dvim" then
   vim.opt.number = true
   vim.opt.signcolumn = "yes"
   -- vim.opt.statuscolumn = "%4l %s"
   vim.opt.statuscolumn = "%s %4l "
-  -- Completion via blink.cmp below, not nvim's built-in LSP completion
-  -- (nvim/lua/plugins/lsp.lua)
-  vim.g.lsp_builtin_completion = false
 
   return {
     -- Treesitter: syntax highlighting, indentation, folding
@@ -185,57 +92,82 @@ elseif host == "dvim" then
       "neovim/nvim-lspconfig",
       dependencies = { "mason-org/mason-lspconfig.nvim" },
     },
-
-    -- Conform: lightweight formatter
-    {
-      "stevearc/conform.nvim",
-      event = "BufWritePre",
-      cmd = "ConformInfo",
-      keys = {
-        { "<leader>cf", function() require("conform").format({ async = true }) end, desc = "Format buffer" },
-      },
-      opts = {
-        formatters_by_ft = {
-          lua = { "stylua" },
-          python = { "ruff_format" },  -- same formatter as the host (ruff LSP)
-          javascript = { "prettier" },
-          typescript = { "prettier" },
-          json = { "prettier" },
-          yaml = { "prettier" },
-          markdown = { "prettier" },
-          sh = { "shfmt" },
-        },
-      },
-    },
-
-    -- Blink.cmp: fast completion
-    {
-      "saghen/blink.cmp",
-      event = "InsertEnter",
-      dependencies = { "rafamadriz/friendly-snippets" },
-      version = "*",  -- use releases for prebuilt binaries
-      opts = {
-        keymap = { preset = "default" },  -- <C-space> trigger, <C-y> accept, <C-e> cancel, <C-n/p> navigate
-        appearance = {
-          nerd_font_variant = "mono",
-        },
-        sources = {
-          default = { "lsp", "path", "snippets", "buffer" },
-        },
-        completion = {
-          documentation = { auto_show = true },
-        },
-      },
-    },
   }
 
   --Unattended install (:MasonInstall blocks when headless; nvim-treesitter's install() is async, so wait):
   --RUN nvim --headless "+Lazy! sync" "+qa"
   --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua ruff prettier shfmt" "+qa"
   --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
+
+-- org + org-roam for nvim
+-- https://github.com/nvim-orgmode/orgmode (3.6k★)
+-- https://github.com/chipsenkbeil/org-roam.nvim (0.25k★)
+elseif host == "dvim-org" then
+  return {
+    {
+      'nvim-orgmode/orgmode',
+      lazy = false,
+      config = function()
+        -- Setup orgmode
+        require('orgmode').setup({
+          org_agenda_files = '~/notes/org/**/*',
+          --org_default_notes_file = '~/notes/org/refile.org',
+        })
+      end
+    },
+    {
+      "chipsenkbeil/org-roam.nvim",
+      lazy = false,
+      config = function()
+        require("org-roam").setup({
+          directory = "~/orgroamfiles",
+          -- optional
+          -- org_files = {
+          --   "~/another_org_dir",
+          --   "~/some/folder/*.org",
+          --   "~/a/single/org_file.org",
+          -- }
+        })
+      end
+    }
+  }
+
+-- https://github.com/obsidian-nvim/obsidian.nvim (1.4k★)
+elseif host == "dvim-obsidian" then
+  vim.opt.conceallevel = 2
+
+  return {
+    {
+      "obsidian-nvim/obsidian.nvim",
+      version = "*", -- use latest release, remove to use latest commit
+      lazy = false,
+      ---@module 'obsidian'
+      ---@type obsidian.config
+      opts = {
+        legacy_commands = false, -- this will be removed in the next major release
+        -- At least one workspace is required
+        workspaces = {
+          { name = "notes", path = "/notes" },  -- bind-mounted in run.sh
+        },
+        daily_notes = {
+          folder = "journals",
+          date_format = "%Y-%m-%d",
+        },
+        new_notes_location = "pages",
+      },
+      dependencies = {
+        "nvim-lua/plenary.nvim",
+        -- optional
+        "nvim-treesitter/nvim-treesitter",  -- markdown syntax highlighting
+        "hrsh7th/nvim-cmp",                 -- for completion of note references
+      },
+    }
+  }
+
 elseif host:sub(1, 5) == "dvim-" then
   error("Unknown HOST=" .. host)
-end
 
 -- Some other container (toolbox, distrobox, ...): no extra plugins
-return {}
+else
+  return {}
+end
