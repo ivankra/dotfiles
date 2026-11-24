@@ -19,7 +19,7 @@ vim.opt.splitright = true               -- Put new vertically split window to th
 vim.opt.timeoutlen = 300                -- Wait for mapped sequences (default 1000), shorter in terminal mode below
 vim.opt.undofile = true                 -- Persistent undo history
 vim.opt.virtualedit = "block"           -- Allow cursor to move past end-of-line in block selection mode
-vim.opt.wildmode = "longest:full,full"  -- Completion mode like readline's show-all-if-ambiguous
+vim.opt.wildmode = "longest:full,full"  -- completion mode like readline's show-all-if-ambiguous
 
 -- Yank/paste using X11 clipboard, except over SSH (OSC 52)
 vim.schedule(function()
@@ -56,6 +56,10 @@ vim.opt.breakindentopt = "list:-1"      --  ...and indent past list bullets (per
 -- With line numbers on, don't want showbreak
 -- vim.opt.breakindentopt = "shift:2,sbr"  --  At least 2 column indent and enable showbreak
 -- vim.opt.showbreak = "↪"                 --  Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
+-- Alternatively, show in place of a line number (busier screen):
+-- if vim.fn.has("nvim-0.10") == 1 then
+--  vim.opt.statuscolumn = "%{%v:virtnum > 0 && (&nu || &rnu) ? '%=↪' : '%3l'%}%s"
+-- end
 -- stylua: ignore end
 
 -- Add a LineNr-colored bar in signcolumn when there are no signs, in order to blend in with gitsigns
@@ -108,118 +112,6 @@ vim.keymap.set("n", "<leader>cd", ":cd %:p:h<CR>", { desc = "Change to current f
 -- fnameescape(): a dir like notes#1 would otherwise expand # to the alternate file
 vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%']])
 
--- Reopen files where the cursor was last time (the '" mark, kept in shada).
--- Like vim's defaults.vim, and :h restore-cursor. Not in commit messages and
--- rebase todos (new text each time), hex dumps or diffs.
-vim.api.nvim_create_autocmd("BufReadPost", {
-  group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
-  callback = function(ev)
-    -- Runs before filetype detection (enabled after init.lua), so ask for it
-    -- (0.8+: older vim.filetype.match() takes other arguments)
-    local ft = vim.bo[ev.buf].filetype
-    if ft == "" and vim.fn.has("nvim-0.8") == 1 then
-      ft = vim.filetype.match({ buf = ev.buf }) or ""
-    end
-    if ft:find("commit") or ft == "gitrebase" or ft == "xxd" or vim.wo.diff then
-      return
-    end
-    local line = vim.api.nvim_buf_get_mark(ev.buf, '"')[1]
-    if line >= 1 and line <= vim.api.nvim_buf_line_count(ev.buf) then
-      vim.cmd('normal! g`"')
-    end
-  end,
-})
-
--- Start terminals in insert mode and define buffer-local keybindings
-vim.api.nvim_create_autocmd("TermOpen", {
-  group = vim.api.nvim_create_augroup("TermSetup", { clear = true }),
-  pattern = "term://*",
-  callback = function(ev)
-    -- Double [Esc]: switch from terminal to normal mode
-    vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], { buffer = ev.buf, silent = true })
-    -- [Enter]: switch from normal to insert mode
-    vim.keymap.set("n", "<CR>", "i", { buffer = ev.buf, silent = true })
-    -- Only if it's the current buffer: a plugin may start a terminal in a
-    -- hidden buffer, and then this would put the current one in Insert mode
-    if ev.buf == vim.api.nvim_get_current_buf() then
-      vim.cmd("startinsert")
-    end
-  end,
-})
--- Because of <Esc><Esc>, a single Esc reaches the terminal app only after
--- 'timeoutlen'. Shorten it in terminal mode so Esc-heavy apps (vi-mode shell,
--- fzf, lazygit) lag less. The same value is the double-tap window, so not
--- too short: 150ms was easy to miss.
-local term_timeoutlen = 250
-local saved_timeoutlen
-vim.api.nvim_create_autocmd("ModeChanged", {
-  group = vim.api.nvim_create_augroup("TermTimeoutlen", { clear = true }),
-  pattern = { "*:t", "t:*" },
-  callback = function()
-    if vim.v.event.new_mode == "t" then
-      saved_timeoutlen = saved_timeoutlen or vim.o.timeoutlen
-      vim.o.timeoutlen = term_timeoutlen
-    elseif saved_timeoutlen then
-      vim.o.timeoutlen = saved_timeoutlen
-      saved_timeoutlen = nil
-    end
-  end,
-})
-
--- Autoread: 'autoread' only acts when nvim checks files, so check on these
--- events. Instant reloads: hotreload.nvim (lua/plugins/init.lua), which skips
--- modified buffers; these checks prompt for those. FocusGained needs tmux
--- focus-events.
-local function checktime()
-  -- checktime checks all buffers; it errors in the cmdline window
-  if vim.fn.getcmdwintype() == "" then
-    pcall(vim.cmd, "checktime") -- not vim.cmd.checktime: 0.8+
-  end
-end
-vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "TermClose", "TermLeave" }, {
-  group = vim.api.nvim_create_augroup("AutoReadCheck", { clear = true }),
-  callback = function(ev)
-    checktime()
-
-    -- Refresh nvim-tree if it's open. Only on focus: while in nvim, its
-    -- filesystem watchers already keep it up to date.
-    local tree_api = package.loaded["nvim-tree.api"]
-    if ev.event == "FocusGained" and tree_api then
-      -- pcall around the lookups too, in case the API isn't fully there
-      pcall(function()
-        if tree_api.tree.is_visible() then
-          tree_api.tree.reload()
-        end
-      end)
-    end
-  end,
-})
-
--- Treesitter highlighting for languages whose parsers ship with nvim.
--- More languages need nvim-treesitter (see docker/dvim/dvim.lua).
-if vim.fn.has("nvim-0.10") == 1 then
-  vim.api.nvim_create_autocmd("FileType", {
-    group = vim.api.nvim_create_augroup("BundledTreesitter", { clear = true }),
-    pattern = { "c", "lua", "vim", "markdown", "query" }, -- help: nvim's own ftplugin
-    callback = function(ev)
-      pcall(vim.treesitter.start, ev.buf) -- no-op if this build lacks the parser
-    end,
-  })
-end
-
--- Highlight yanked text briefly
-vim.api.nvim_create_autocmd("TextYankPost", {
-  group = vim.api.nvim_create_augroup("HighlightYank", { clear = true }),
-  callback = function()
-    -- 0.13 replaces on_yank() with hl_op(); vim.hl is 0.11+, vim.highlight older
-    if vim.fn.has("nvim-0.13") == 1 then
-      vim.hl.hl_op()
-    else
-      (vim.hl or vim.highlight).on_yank()
-    end
-  end,
-})
-
 vim.g.in_container = vim.env.container ~= nil
   or vim.uv.fs_stat("/run/.containerenv") ~= nil
   or vim.uv.fs_stat("/.dockerenv") ~= nil
@@ -262,10 +154,13 @@ require("lazy").setup({
 })
 
 -- Autoloaded vim plugins in ~/.config/nvim/plugin/ (shared with vim):
--- chmod.vim: chmod a+rx files that become scripts (new, or shebang added)
--- comment.vim: Ctrl+/ toggles comments (gcc/gc)
--- fileline.vim: interpret 'filename[:line[:col]]' filenames
--- projectionist.vim: vim-projectionist config
--- typos.vim: :W/:Wq for :w/:wq, 'langmap' for the Russian layout
--- vscode.vim: vscode-like key bindings
--- ui.vim: UI toggles (<leader>u*)
+-- * chmod.vim: chmod a+rx files that become scripts (new, or shebang added)
+-- * comment.vim: Ctrl+/ toggles comments (gcc/gc)
+-- * fileline.vim: interpret 'filename[:line[:col]]' filenames
+-- * projectionist.vim: vim-projectionist config
+-- * typos.vim: :W/:Wq for :w/:wq, 'langmap' for the Russian layout
+-- * vscode.vim: vscode-like key bindings
+-- * ui.vim: UI toggles (<leader>u*)
+--
+-- Autoloaded lua plugins in ~/.config/nvim/plugin/:
+-- * autocmds.lua: autocommands (reload changed files, restore cursor, ...)
