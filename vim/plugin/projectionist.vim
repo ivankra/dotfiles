@@ -4,8 +4,8 @@
 if has('eval')
   let g:projectionist_heuristics = {
   \  '*': {
-  \    '*.cpp': { 'alternate': '{}.h', 'type': 'source' },
-  \    '*.cc':  { 'alternate': '{}.h', 'type': 'source' },
+  \    '*.cpp': { 'alternate': ['{}.h', '{}.hpp'], 'type': 'source' },
+  \    '*.cc':  { 'alternate': ['{}.h', '{}.hpp'], 'type': 'source' },
   \    '*.c':   { 'alternate': '{}.h', 'type': 'source' },
   \    '*.h':   { 'alternate': ['{}.cpp', '{}.cc', '{}.c'], 'type': 'header' },
   \    '*.hpp': { 'alternate': ['{}.cpp', '{}.cc'], 'type': 'header' },
@@ -22,6 +22,6 @@ if has('eval')
   if has('nvim')
     lua vim.keymap.set('n', '<leader>a', ':A<CR>', { desc = 'Switch to alternate file (.c/.h)' })
   else
-    nmap <leader>a :A<CR>
+    nnoremap <leader>a :A<CR>
   end
 endif

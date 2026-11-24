@@ -94,10 +94,39 @@ function! s:bufdelete(force) abort
 
   let l:is_last_listed = s:is_listed_buffer(l:target) && s:listed_buffer_count() <= 1
 
+  " Settle unsaved changes before any window switches away from the buffer,
+  " so that Cancel (or an error) leaves everything as it was. :bdelete would
+  " ask only after the windows were already switched. Like mini.bufremove.
+  let l:discard = a:force
+  if !a:force && getbufvar(l:target, '&modified') && getbufvar(l:target, '&buftype') ==# ''
+    if !&confirm
+      echohl ErrorMsg
+      echom 'E89: No write since last change for buffer ' . l:target . ' (add ! to override)'
+      echohl None
+      return 0
+    endif
+    let l:name = bufname(l:target) ==# '' ? 'Untitled' : bufname(l:target)
+    let l:choice = confirm('Save changes to "' . l:name . '"?', "&Yes\n&No\n&Cancel", 1, 'Question')
+    if l:choice == 1
+      try
+        write
+      catch
+        echohl ErrorMsg
+        echom v:exception
+        echohl None
+        return 0
+      endtry
+    elseif l:choice == 2
+      let l:discard = 1
+    else
+      return 0
+    endif
+  endif
+
   call s:unshow_buffer_everywhere(l:target)
 
   try
-    if a:force
+    if l:discard
       execute 'bdelete!' l:target
     else
       execute 'bdelete' l:target
@@ -112,7 +141,9 @@ function! s:bufdelete(force) abort
     return 0
   endtry
 
-  if l:is_last_listed
+  " Only once it's really gone: :bdelete can still fail or be cancelled
+  " (e.g. a terminal job's prompt), and then the buffer stays listed
+  if l:is_last_listed && !buflisted(l:target)
     if a:force
       quit!
     else
@@ -125,8 +156,8 @@ endfunction
 
 command! -bar -bang Bd call <SID>bufdelete(<bang>0)
 
+" Also covers `bd!`: typing `!` already expands `bd` to `Bd`
 cabbr <expr> bd (getcmdtype() ==# ':' && getcmdline() ==# 'bd') ? 'Bd' : 'bd'
-cabbr <expr> bd! (getcmdtype() ==# ':' && getcmdline() ==# 'bd!') ? 'Bd!' : 'bd!'
 
 nnoremap <silent> <leader>bd :Bd<CR>
 nnoremap <silent> <C-Q> :Bd<CR>

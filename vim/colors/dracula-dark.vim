@@ -3,6 +3,13 @@
 " colors/alucard.vim: override the palette, build the theme with
 " dracula_base.vim, then override a few highlight groups.
 
+" nvim: get dracula/vim on 'runtimepath' first, for its autoload/ and
+" colors/ below. A lazy.nvim plugin, which :colorscheme loads on demand only
+" for its own schemes. (Vim: a package, on 'runtimepath' from startup.)
+if has('nvim')
+  lua pcall(function() require('lazy').load({ plugins = { 'dracula.vim' } }) end)
+endif
+
 runtime autoload/dracula.vim
 
 let g:dracula#palette.fg       = ['#FFFFFF', 253]  " Original: #F8F8F2

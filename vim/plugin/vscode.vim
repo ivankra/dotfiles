@@ -53,7 +53,9 @@ xnoremap <C-Y> <Esc><C-R>
 function! s:ClipReg() abort
   if has('nvim')
     return '+'
-  elseif !has('clipboard')
+  elseif !has('clipboard') && get(v:, 'clipmethod', 'none') =~# '^\%(none\)\=$'
+    " Neither built-in clipboard support nor a clipboard provider (the osc52
+    " package, see vimrc)
     return '"'
   endif
   return &clipboard =~# '\<unnamed\>' ? '*' : '+'
@@ -214,19 +216,20 @@ function! s:AdjustGuiFont(delta)
   " Reset to original
   if a:delta == 0
     let l:newfont = g:GuiFontOriginal
-  " Handle 'name:hNN[:wNN]' format
+  " Handle 'name:hNN[:wNN]' format. 'g': every font of a fallback list
+  " (ginit.vim sets one for nvim-qt), not only the first.
   elseif l:font =~ ':h\d\+'
     let l:height = str2nr(matchstr(l:font, ':h\zs\d\+'))
     let l:newheight = l:height + a:delta
     if l:newheight > 1
-      let l:newfont = substitute(l:font, ':h\d\+', ':h'.l:newheight, '')
+      let l:newfont = substitute(l:font, ':h\d\+', ':h'.l:newheight, 'g')
     endif
-  " Handle 'name NN' format
-  elseif l:font =~ '\s\+\d\+$'
-    let l:height = str2nr(matchstr(l:font, '\s\+\zs\d\+$'))
+  " Handle 'name NN' format (GTK), also a 'name NN,name NN' list
+  elseif l:font =~ '\s\d\+\%(,\|$\)'
+    let l:height = str2nr(matchstr(l:font, '\s\zs\d\+\ze\%(,\|$\)'))
     let l:newheight = l:height + a:delta
     if l:newheight > 1
-      let l:newfont = substitute(l:font, '\s\+\d\+$', ' '.l:newheight, '')
+      let l:newfont = substitute(l:font, '\s\zs\d\+\ze\%(,\|$\)', l:newheight, 'g')
     endif
   endif
 
@@ -291,6 +294,49 @@ else
   call s:SetupGui()
 endif
 
+" [Ctrl+/]: toggle line comment. nvim: init.lua (built-in gcc). Vim: the
+" comment package (packadd! in vimrc), when this Vim has it.
+if !has('nvim')
+  " In Insert mode keep typing where you were (gcc moves the cursor to the
+  " indent): shift by the width of the opening marker added or removed, like
+  " init.lua. comment.vim pads the marker with spaces, so for e.g. /* %s */
+  " the line grows by "/* " + " */": only the first part is before the cursor.
+  function! s:CommentInsert() abort
+    let [l:lnum, l:col] = [line('.'), col('.')]
+    let l:before = getline('.')
+    let l:indent = match(l:before, '\S')  " -1: blank line, left as it is
+    execute "normal \<Plug>(comment-toggle-line)"
+    if l:indent >= 0 && l:col > l:indent
+      let l:delta = strlen(getline('.')) - strlen(l:before)
+      let l:cms = substitute(substitute(&commentstring, '\S\zs%s\s*', ' %s', ''), '%s\ze\S', '%s ', '')
+      let l:right = strlen(matchstr(l:cms, '%s\zs.*$'))
+      let l:shift = l:delta > 0 ? l:delta - l:right : l:delta < 0 ? l:delta + l:right : 0
+      " Not back into the indentation (cursor was inside a removed marker)
+      let l:col = max([l:indent + 1, l:col + l:shift])
+    endif
+    call cursor(l:lnum, l:col)
+  endfunction
+
+  " On VimEnter: the package's <Plug> maps exist only once plugins are
+  " loaded, and GUI vs terminal is known.
+  function! s:MapComment() abort
+    if empty(maparg('<Plug>(comment-toggle-line)', 'n'))
+      return
+    endif
+    " CLI terminals usually send <C-_> on Ctrl+/. In the GUI it's Ctrl+-
+    " (zoom out, SetupGui()).
+    for l:key in ['<C-/>'] + (has('gui_running') ? [] : ['<C-_>'])
+      execute 'nmap' l:key '<Plug>(comment-toggle-line)'
+      execute 'xmap' l:key '<Plug>(comment-toggle)'
+      execute 'inoremap <silent>' l:key '<Cmd>call <SID>CommentInsert()<CR>'
+    endfor
+  endfunction
+  augroup VscodeComment
+    autocmd!
+    autocmd VimEnter * call s:MapComment()
+  augroup END
+endif
+
 if has('nvim')
   " Alt+Z: toggle word wrap
   " nmap <A-z> :call ToggleWrap()<CR>
@@ -305,18 +351,6 @@ if has('nvim')
   " [Ctrl+Shift+F]: grep
   nnoremap <C-S-F> <Cmd>Telescope live_grep<CR>
   " CLI terminals usually send ^F: mapped in SetupGui()
-
-  "===== Comment.nvim =====
-  " [Ctrl+/]: toggle line comment
-  " nmap <C-/> <Plug>(comment_toggle_linewise_current)
-  " imap <C-/> <Esc><Plug>(comment_toggle_linewise_current)a
-  " vmap <C-/> <Plug>(comment_toggle_linewise_visual)
-  " if !exists('g:GuiLoaded')
-  "   " CLI terminals usually send ^_
-  "   nmap <C-_> <Plug>(comment_toggle_linewise_current)
-  "   imap <C-_> <Esc><Plug>(comment_toggle_linewise_current)a
-  "   vmap <C-_> <Plug>(comment_toggle_linewise_visual)
-  " endif
 
   " ===== toggleterm.nvim =====
   " [Ctrl+`]: toggleable terminal
