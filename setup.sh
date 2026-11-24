@@ -538,8 +538,8 @@ fi
 # Install/update ~/.config/theme symlink
 if [[ -n "$THEME" ]]; then
   setup_ln "themes/$THEME" ~/.config/theme
-  # Drop nvim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua)
-  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/nvim/colorscheme"
+  # Drop nvim's and vim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua, vimrc)
+  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}"/{nvim,vim}/colorscheme
 elif ! [[ -e ~/.config/theme ]]; then
   setup_ln themes/dracula-dark ~/.config/theme
 fi

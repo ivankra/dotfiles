@@ -24,20 +24,21 @@ The theme can also be switched as part of a full setup run:
 ~/.dotfiles/gui-setup.sh --theme=<name>  # runs the theme's setup.sh
 ```
 
-## Neovim
+## Neovim and Vim
 
-Unlike the other apps, nvim has no theme file. Everything is in
-`nvim/lua/plugins/colorscheme.lua`:
-
-- **Scheme:** the theme's directory name, e.g. `:colorscheme dracula-dark`, with
-  `background=dark`. A new theme's directory must be named after an nvim
-  colorscheme that comes from a plugin spec in that file or from `nvim/colors/`.
-- **Options** (e.g. no italics) are set there per scheme, so they apply however the
+- **Scheme:** nvim has no theme file: it runs `:colorscheme` with the theme's
+  directory name, e.g. `dracula-dark`, with `background=dark`. A new theme's
+  directory must be named after an nvim colorscheme that comes from a plugin
+  spec in `nvim/lua/plugins/colorscheme.lua` or from `nvim/colors/`. Vim sources
+  the theme's `vim.vim`, which sets `background` and runs `:colorscheme`.
+- **Options** (e.g. no italics) are set per scheme in
+  `nvim/lua/plugins/colorscheme.lua` and `vim/vimrc`, so they apply however the
   scheme gets chosen.
 - **Sticky `:colorscheme`:** the last `:colorscheme` (and `'background'`) is
-  saved to `~/.local/state/nvim/colorscheme` and used instead of the theme's
-  scheme at startup. Switching themes either way above deletes that file. You
-  can also delete it by hand to go back to the theme.
+  saved to `~/.local/state/nvim/colorscheme` (vim: `~/.local/state/vim/colorscheme`)
+  and used instead of the theme's scheme at startup. Switching themes either
+  way above deletes both files. You can also delete one by hand to go back to
+  the theme.
 
 ## Maintenance
 
