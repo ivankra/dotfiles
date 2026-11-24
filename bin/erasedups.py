@@ -3,11 +3,12 @@
 
 import argparse
 import datetime
+import fcntl
 import os
 import re
 import sys
 
-TIMESTAMP_RE = re.compile("^# *[0-9]+$")
+TIMESTAMP_RE = re.compile(b"^# *[0-9]+$")
 
 
 def process_file(filename):
@@ -15,44 +16,59 @@ def process_file(filename):
         return
     if os.path.islink(filename):
         filename = os.readlink(filename)
-    f = open(filename, "r")
 
-    f_iter = iter(f)
-    hashmap = dict()
-    history = []
-    ts = None
-    entry = []
+    # One run at a time: shells started together would write the same .tmp
+    lock_path = os.path.join(os.path.dirname(filename), ".erasedups.lock")
+    with open(lock_path, "a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)  # released on close
 
-    while True:
-        line = next(f_iter, None)
-        if line is not None and not TIMESTAMP_RE.match(line):
-            entry.append(line)
-            continue
+        # Kept open past the rename: shells append without locking, and late
+        # appends to the old file are copied over.
+        with open(filename, "rb") as f:
+            data = f.read()
 
-        if len(entry) > 0:
-            if ts is None:
-                raise Exception("Need history file with timestamps")
-            e = tuple(entry)
-            hashmap[e] = len(history)
-            history.append((ts, e))
+            # Dedup up to the last timestamp: that entry may still be being
+            # written, so it's copied as is, with anything appended since.
+            end = pos = 0
+            for line in data.splitlines(True):
+                if TIMESTAMP_RE.match(line):
+                    end = pos
+                pos += len(line)
+
+            hashmap = dict()
+            history = []
+            ts = None
             entry = []
+            for line in data[:end].splitlines(True) + [None]:
+                if line is not None and not TIMESTAMP_RE.match(line):
+                    entry.append(line)
+                    continue
+                if entry:
+                    if ts is None:
+                        raise Exception("Need history file with timestamps")
+                    e = tuple(entry)
+                    hashmap[e] = len(history)
+                    history.append((ts, e))
+                    entry = []
+                ts = line
 
-        ts = line
-        if line is None:
-            break
+            if len(history) == len(hashmap):
+                return
 
-    if len(history) == len(hashmap):
-        return
+            with open(filename + ".tmp", "wb") as out:
+                for i, (ts, entry) in enumerate(history):
+                    if hashmap[entry] == i:
+                        out.write(ts)
+                        out.writelines(entry)
+                out.write(data[end:])
+                out.write(f.read())  # appended since our read
 
-    with open(filename + ".tmp", "w") as f:
-        for i, (ts, entry) in enumerate(history):
-            if hashmap[entry] == i:
-                f.write(ts)
-                for l in entry:
-                    f.write(l)
-        f.flush()
-
-    os.rename(filename + ".tmp", filename)
+            os.chmod(filename + ".tmp", os.fstat(f.fileno()).st_mode & 0o777)
+            os.rename(filename + ".tmp", filename)
+            rest = f.read()  # appended to the old file during the rename
+            if rest:
+                with open(filename, "ab") as out:
+                    out.write(rest)
 
 
 def process_pattern(pattern, N=12):
@@ -80,10 +96,13 @@ def process_pattern(pattern, N=12):
     except:
         pass
 
-    # Dedup still writeable older history files and mark them read-only
+    # Dedup still writeable older history files and mark them read-only, but
+    # last month's only from the month after: shells started then may still
+    # append to it (HISTFILE is set at startup and by h).
     for path in sorted(set(expanded)):
         if path == current_path:
             continue
+        mode = 0o600 if path == expanded[1] else 0o400
         try:
             st = os.stat(path)
         except:
@@ -91,14 +110,15 @@ def process_pattern(pattern, N=12):
         if st.st_mode & 0o222:
             try:
                 process_file(path)
-                os.chmod(path, 0o600)
+                os.chmod(path, mode)
             except:
                 pass
         print(path)
 
     if not os.path.exists(current_path):
         try:
-            with open(current_path, 'w+') as fp:
+            # 'a': another shell may have just created it, don't truncate
+            with open(current_path, 'a') as fp:
                 pass
         except:
             pass
