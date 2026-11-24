@@ -294,48 +294,7 @@ else
   call s:SetupGui()
 endif
 
-" [Ctrl+/]: toggle line comment. nvim: init.lua (built-in gcc). Vim: the
-" comment package (packadd! in vimrc), when this Vim has it.
-if !has('nvim')
-  " In Insert mode keep typing where you were (gcc moves the cursor to the
-  " indent): shift by the width of the opening marker added or removed, like
-  " init.lua. comment.vim pads the marker with spaces, so for e.g. /* %s */
-  " the line grows by "/* " + " */": only the first part is before the cursor.
-  function! s:CommentInsert() abort
-    let [l:lnum, l:col] = [line('.'), col('.')]
-    let l:before = getline('.')
-    let l:indent = match(l:before, '\S')  " -1: blank line, left as it is
-    execute "normal \<Plug>(comment-toggle-line)"
-    if l:indent >= 0 && l:col > l:indent
-      let l:delta = strlen(getline('.')) - strlen(l:before)
-      let l:cms = substitute(substitute(&commentstring, '\S\zs%s\s*', ' %s', ''), '%s\ze\S', '%s ', '')
-      let l:right = strlen(matchstr(l:cms, '%s\zs.*$'))
-      let l:shift = l:delta > 0 ? l:delta - l:right : l:delta < 0 ? l:delta + l:right : 0
-      " Not back into the indentation (cursor was inside a removed marker)
-      let l:col = max([l:indent + 1, l:col + l:shift])
-    endif
-    call cursor(l:lnum, l:col)
-  endfunction
-
-  " On VimEnter: the package's <Plug> maps exist only once plugins are
-  " loaded, and GUI vs terminal is known.
-  function! s:MapComment() abort
-    if empty(maparg('<Plug>(comment-toggle-line)', 'n'))
-      return
-    endif
-    " CLI terminals usually send <C-_> on Ctrl+/. In the GUI it's Ctrl+-
-    " (zoom out, SetupGui()).
-    for l:key in ['<C-/>'] + (has('gui_running') ? [] : ['<C-_>'])
-      execute 'nmap' l:key '<Plug>(comment-toggle-line)'
-      execute 'xmap' l:key '<Plug>(comment-toggle)'
-      execute 'inoremap <silent>' l:key '<Cmd>call <SID>CommentInsert()<CR>'
-    endfor
-  endfunction
-  augroup VscodeComment
-    autocmd!
-    autocmd VimEnter * call s:MapComment()
-  augroup END
-endif
+" [Ctrl+/]: toggle line comment - see comment.vim
 
 if has('nvim')
   " Alt+Z: toggle word wrap

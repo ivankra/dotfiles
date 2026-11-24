@@ -10,6 +10,19 @@ augroup FileLineJump
   autocmd BufNewFile *:*,a/*,b/* nested call s:gotoline()
 augroup END
 
+" Wipe the <filename>:<line> buffer after the BufNewFile event is over. Wiping
+" it right away breaks the BufNewFile handlers that run after this one for the
+" same buffer (guess-indent.nvim: "Invalid buffer id").
+function! s:WipeLater(bufn)
+  call timer_start(0, function('s:Wipe', [a:bufn]))
+endfunction
+
+function! s:Wipe(bufn, timer)
+  if bufexists(a:bufn) && empty(win_findbuf(a:bufn)) && !getbufvar(a:bufn, '&modified')
+    exec "silent! bwipeout " . a:bufn
+  endif
+endfunction
+
 function! s:gotoline()
   let file = bufname("%")
 
@@ -26,7 +39,7 @@ function! s:gotoline()
       if filereadable(file) && !filereadable(bufname("%"))
         let l:bufn = bufnr("%")
         exec "edit " . fnameescape(file)
-        exec ":bwipeout " . l:bufn
+        call s:WipeLater(l:bufn)
         return
       endif
     endif
@@ -66,7 +79,7 @@ function! s:gotoline()
     elseif !empty(row)
       exec ":" . row
     endif
-    exec ":bwipeout " . l:bufn
+    call s:WipeLater(l:bufn)
     if !empty(row) && foldlevel(row) > 0
       exec ":foldopen!"
     endif
