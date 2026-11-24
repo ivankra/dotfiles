@@ -90,7 +90,7 @@ end
 " Optional packages bundled with Vim 9.1+, for what nvim has built in.
 " silent!: older Vims don't have them.
 if has("eval")
-  silent! packadd! comment       " gc{motion}, gcc: toggle comments. Ctrl+/ in plugin/vscode.vim
+  silent! packadd! comment       " gc{motion}, gcc: toggle comments. Ctrl+/ in plugin/comment.vim
   silent! packadd! editorconfig  " Apply .editorconfig (vim-sleuth reads its indent settings too)
   silent! packadd! hlyank        " Highlight yanked text briefly
   silent! packadd! matchit       " Extend % to if/else/endif etc

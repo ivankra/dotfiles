@@ -104,69 +104,6 @@ vim.keymap.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to other buff
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 vim.keymap.set("n", "<leader>cd", ":cd %:p:h<CR>", { desc = "Change to current file's directory" })
 
--- Comments: built-in `gcc` (line, takes a count) and `gc{motion}` / visual `gc` (0.10+).
--- Ctrl+/ toggles line comments (VS Code style binding).
--- Cursor column shift for text after the indentation when gcc turned line
--- `before` into `after`: the width of the opening marker that was added (+)
--- or removed (-). Not the whole length change: a closing marker (HTML's
--- ` -->`) goes after the cursor.
-local function comment_cursor_shift(before, after, indent, commentstring)
-  local long, short, sign = after, before, 1
-  if #after < #before then
-    long, short, sign = before, after, -1
-  elseif #after == #before then
-    return 0
-  end
-  local text = short:sub(indent + 1)
-  -- gcc inserts commentstring's parts as they are: indent .. left .. text .. right
-  local left, right = commentstring:match("^(.-)%%s(.-)$")
-  if left then
-    if text == "" then
-      return sign * #left:match("^%s*(.-)%s*$") -- blank line: unpadded marker
-    elseif long == short:sub(1, indent) .. left .. text .. right then
-      return sign * #left
-    end
-  end
-  -- Otherwise (treesitter-injected language with its own commentstring, like
-  -- JS inside HTML; a marker removed without its padding): where the text
-  -- starts, after a non-empty marker
-  local s = long:find(text, indent + 2, true)
-  return s and sign * (s - 1 - indent) or 0
-end
--- In insert mode, keep typing where you were: gcc moves the cursor to column 0
-local function toggle_comment_insert()
-  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-  local before = vim.api.nvim_get_current_line()
-  local indent = (before:find("%S") or 1) - 1 -- where the comment marker goes
-  vim.cmd("normal gcc")
-  if col >= indent then
-    local after = vim.api.nvim_get_current_line()
-    -- Not back into the indentation (cursor was inside a removed marker)
-    col = math.max(indent, col + comment_cursor_shift(before, after, indent, vim.bo.commentstring))
-  end
-  vim.api.nvim_win_set_cursor(0, { row, col })
-end
-local function map_comment_key(key)
-  vim.keymap.set("n", key, "gcc", { remap = true, desc = "Toggle comment" })
-  vim.keymap.set("x", key, "gc", { remap = true, desc = "Toggle comment" })
-  vim.keymap.set("i", key, toggle_comment_insert, { desc = "Toggle comment" })
-end
--- Older nvim has no gcc to map to
-if vim.fn.has("nvim-0.10") == 1 then
-  map_comment_key("<C-/>")
-  -- CLI terminals usually send <C-_> on Ctrl+/. In GUIs it's Ctrl+- (font size,
-  -- see vscode.vim). GUIs aren't known yet while init.lua runs (g:GuiLoaded is
-  -- set after attaching), so decide on UIEnter, like vscode.vim's SetupGui().
-  vim.api.nvim_create_autocmd("UIEnter", {
-    once = true,
-    callback = function()
-      if vim.fn.has("gui_running") == 0 and not vim.g.GuiLoaded then
-        map_comment_key("<C-_>")
-      end
-    end,
-  })
-end
-
 -- Typing %%/ in command mode expands to current file's directory
 -- fnameescape(): a dir like notes#1 would otherwise expand # to the alternate file
 vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%']])
@@ -326,6 +263,7 @@ require("lazy").setup({
 
 -- Autoloaded vim plugins in ~/.config/nvim/plugin/ (shared with vim):
 -- chmod.vim: chmod a+rx files that become scripts (new, or shebang added)
+-- comment.vim: Ctrl+/ toggles comments (gcc/gc)
 -- fileline.vim: interpret 'filename[:line[:col]]' filenames
 -- projectionist.vim: vim-projectionist config
 -- typos.vim: :W/:Wq for :w/:wq, 'langmap' for the Russian layout
