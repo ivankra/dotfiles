@@ -176,6 +176,14 @@ elseif host == "dvim-obsidian" then
       },
     },
   }
+elseif host == "dvim-devicons" then
+  -- nvim-web-devicons instead of mini.icons
+
+  vim.g.icons_plugin = "nvim-tree/nvim-web-devicons"
+  return {
+    { "nvim-mini/mini.icons", enabled = false },
+    { "nvim-tree/nvim-web-devicons", lazy = true, opts = {} },
+  }
 elseif host:sub(1, 5) == "dvim-" then
   error("Unknown HOST=" .. host)
 

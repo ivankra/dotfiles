@@ -162,7 +162,7 @@ local function ll_pretty_path()
     -- Add readonly indicator
     local readonly = ""
     if vim.bo.readonly then
-      readonly = format_hl(self, " 󰌾 ", modified_hl)
+      readonly = format_hl(self, vim.g.nerd_font and " 󰌾 " or " [RO]", modified_hl)
     end
 
     -- fugitive:// buffer: which version of the file this is
@@ -206,7 +206,7 @@ local function ll_encoding()
   end
   local ff = vim.bo.fileformat
   if ff ~= "unix" then
-    local ff_icon = { dos = "", mac = "" }
+    local ff_icon = vim.g.nerd_font and { dos = "", mac = "" } or {}
     table.insert(parts, ff_icon[ff] or ff)
   end
   return table.concat(parts, " ")
@@ -233,11 +233,15 @@ return {
     cond = function()
       return vim.g.statusline_plugin == "lualine"
     end,
-    dependencies = { vim.g.icons_provider },
+    dependencies = { vim.g.icons_plugin },
     opts = {
       options = {
         theme = "auto",
         component_separators = { left = "", right = "" },
+        -- Without a Nerd Font: no arrows between sections, names instead of
+        -- icons (filetype, branch), E:/W: for diagnostics
+        section_separators = not vim.g.nerd_font and { left = "", right = "" } or nil,
+        icons_enabled = vim.g.nerd_font,
         globalstatus = true,
       },
       -- Own statusline for these windows (by filetype) instead of the
