@@ -115,9 +115,11 @@ vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '
 vim.g.in_container = vim.env.container ~= nil
   or vim.uv.fs_stat("/run/.containerenv") ~= nil
   or vim.uv.fs_stat("/.dockerenv") ~= nil
-vim.g.icons_provider = "nvim-mini/mini.icons"
--- vim.g.icons_provider = "nvim-tree/nvim-web-devicons"
+vim.g.icons_plugin = "nvim-mini/mini.icons"
 vim.g.statusline_plugin = "lualine"
+-- Nerd Font glyphs (icons, statusline arrows, ...), except on the Linux
+-- console, whose fonts have none: plain characters there
+vim.g.nerd_font = vim.env.TERM ~= "linux"
 
 -- lazy.nvim requires 0.8+ (skip quietly instead of its error notification)
 if vim.fn.has("nvim-0.8") == 0 then

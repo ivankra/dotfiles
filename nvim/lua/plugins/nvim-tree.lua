@@ -16,7 +16,7 @@ return {
     dev = true,
     -- Lazy: oil.nvim handles directory buffers, so nothing needs the tree at startup
     cmd = { "NvimTreeToggle", "NvimTreeOpen", "NvimTreeFocus", "NvimTreeFindFile", "NvimTreeFindFileToggle" },
-    dependencies = { vim.g.icons_provider },
+    dependencies = { vim.g.icons_plugin },
     keys = {
       { "<C-B>", ":NvimTreeFindFileToggle<CR>", desc = "Toggle Explorer", silent = true },
       { "<leader>e", ":NvimTreeFindFileToggle<CR>", desc = "Toggle Explorer", silent = true },
@@ -56,8 +56,11 @@ return {
           icons = {
             modified_placement = "signcolumn",
             git_placement = "right_align",
+            -- Without a Nerd Font: no folder icons, > / v arrows
+            show = { folder = vim.g.nerd_font },
             glyphs = {
               git = git_glyphs,
+              folder = not vim.g.nerd_font and { arrow_closed = ">", arrow_open = "v" } or nil,
             },
           },
         },
@@ -104,7 +107,7 @@ return {
 --     "nvim-neo-tree/neo-tree.nvim",
 --     dev = true,
 --     dependencies = {
---       vim.g.icons_provider,
+--       vim.g.icons_plugin,
 --       "nvim-lua/plenary.nvim",
 --       "MunifTanjim/nui.nvim",
 --     },

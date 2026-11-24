@@ -29,11 +29,24 @@ local function close_buffers(which)
 end
 
 return {
-  -- Icons. Requires Nerd patched font.
+  -- Icons. Requires Nerd patched font, else letters (vim.g.nerd_font).
   {
     "nvim-mini/mini.icons",
     dev = true,
-    opts = {},
+    opts = { style = vim.g.nerd_font and "glyph" or "ascii" },
+    config = function(_, opts)
+      local icons = require("mini.icons")
+      icons.setup(opts)
+      -- README.md, CHANGELOG.md etc.: the plain .md icon, not their own
+      local glyph, hl = icons.get("extension", "md")
+      local md_files = {}
+      for _, name in ipairs(icons.list("file")) do
+        if name:match("%.md$") then
+          md_files[name] = { glyph = glyph, hl = hl }
+        end
+      end
+      icons.setup(vim.tbl_deep_extend("force", opts, { file = md_files }))
+    end,
     init = function()
       package.preload["nvim-web-devicons"] = function()
         require("mini.icons").mock_nvim_web_devicons()
@@ -47,7 +60,7 @@ return {
     "akinsho/bufferline.nvim",
     dev = true,
     event = "VimEnter",
-    dependencies = { vim.g.icons_provider },
+    dependencies = { vim.g.icons_plugin },
     opts = {
       options = {
         always_show_bufferline = false, -- hide if only one buffer
@@ -56,7 +69,14 @@ return {
         -- the window layout.
         close_command = "Bd %d",
         right_mouse_command = "Bd %d",
-        separator_style = "slant",
+        separator_style = vim.g.nerd_font and "slant" or { "|", "|" },
+        -- Without a Nerd Font: plain characters for its glyphs
+        buffer_close_icon = not vim.g.nerd_font and "x" or nil,
+        close_icon = not vim.g.nerd_font and "x" or nil,
+        modified_icon = not vim.g.nerd_font and "+" or nil,
+        left_trunc_marker = not vim.g.nerd_font and "<" or nil,
+        right_trunc_marker = not vim.g.nerd_font and ">" or nil,
+        indicator = not vim.g.nerd_font and { style = "none" } or nil,
         offsets = {
           {
             filetype = "NvimTree",
@@ -215,9 +235,10 @@ return {
     "folke/which-key.nvim",
     dev = true,
     event = "VeryLazy",
-    dependencies = { vim.g.icons_provider },
+    dependencies = { vim.g.icons_plugin },
     opts = {
       preset = "helix", -- show floating window at the right
+      icons = { mappings = vim.g.nerd_font }, -- keymaps' icons
       spec = {
         { "<leader>b", group = "buffer" },
         { "<leader>c", group = "code" },
@@ -286,6 +307,10 @@ return {
       },
       completion = {
         documentation = { auto_show = true },
+        -- Without a Nerd Font: the kind as text (Function, ...), not its icon
+        menu = not vim.g.nerd_font and {
+          draw = { columns = { { "label", "label_description", gap = 1 }, { "kind" } } },
+        } or nil,
       },
     },
   },
@@ -320,20 +345,21 @@ return {
     event = "VimEnter",
     opts = {
       signcolumn = vim.g.gitsigns_signcolumn,
+      -- Without a Nerd Font: gitsigns' default delete signs (▁ ▔)
       signs = {
         -- add = { text = "▎" },
         -- change = { text = "▎" },
         -- changedelete = { text = "▎" },
         -- untracked = { text = "▎" },
-        delete = { text = "" },
-        topdelete = { text = "" },
+        delete = vim.g.nerd_font and { text = "" } or nil,
+        topdelete = vim.g.nerd_font and { text = "" } or nil,
       },
       signs_staged = {
         -- add = { text = "▎" },
         -- change = { text = "▎" },
         -- changedelete = { text = "▎" },
-        delete = { text = "" },
-        topdelete = { text = "" },
+        delete = vim.g.nerd_font and { text = "" } or nil,
+        topdelete = vim.g.nerd_font and { text = "" } or nil,
       },
       -- lazy.nvim passes this table to gitsigns.setup(); keep callback here
       -- so gitsigns actually receives and runs it for attached buffers.
@@ -427,7 +453,7 @@ return {
     "MeanderingProgrammer/render-markdown.nvim",
     dev = true,
     ft = markdown_fts,
-    dependencies = { vim.g.icons_provider },
+    dependencies = { vim.g.icons_plugin },
     keys = {
       { "<leader>um", "<cmd>RenderMarkdown toggle<cr>", desc = "Toggle Markdown Render" },
     },
@@ -448,8 +474,8 @@ return {
         min_width = 80,
         disable_background = false,
         language_border = " ",
-        language_left = "",
-        language_right = "",
+        language_left = vim.g.nerd_font and "" or "",
+        language_right = vim.g.nerd_font and "" or "",
       },
       pipe_table = { style = "normal" },
     },
