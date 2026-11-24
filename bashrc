@@ -62,18 +62,21 @@ fi
 # Move dirs in $1 (a:b:c) to the front of PATH, in order (e.g. after macOS's
 # path_helper), unless already in order behind others (e.g. an active venv).
 __prepend_path() {
-  local dir have='' rest='' IFS=:
-  # One pass over PATH: bash splits $PATH on IFS (no globbing of entries),
-  # zsh has it split as $path.
-  [[ -n "$BASH_VERSION" ]] && set -f
-  for dir in ${BASH_VERSION:+$PATH} ${ZSH_VERSION:+"${path[@]}"}; do
+  local dir have='' rest='' dirs
+  # One pass over PATH: bash splits it with read (no globbing of entries, so
+  # no set -f), zsh has it split as $path.
+  if [[ -n "$BASH_VERSION" ]]; then
+    IFS=: read -ra dirs <<<"$PATH"
+  else
+    dirs=("${path[@]}")
+  fi
+  for dir in "${dirs[@]}"; do
     if [[ :$1: != *:"$dir":* ]]; then
       rest+=${rest:+:}$dir
     elif [[ :$have: != *:"$dir":* ]]; then
       have+=${have:+:}$dir
     fi
   done
-  [[ -n "$BASH_VERSION" ]] && set +f
   [[ "$have" == "$1" ]] || PATH=$1${rest:+:$rest}
 }
 
@@ -101,6 +104,14 @@ else
 fi
 export VISUAL=$EDITOR
 
+# For programs that spawn $SHELL (vim, tmux, ...)
+# Unset without a login, e.g. in containers
+if [[ -n "$BASH_VERSION" ]]; then
+  export SHELL="${SHELL:-/bin/bash}"
+elif [[ -n "$ZSH_VERSION" ]]; then
+  export SHELL="${SHELL:-$(command -v zsh)}"
+fi
+
 __BASHRC_EPILOGUE="unset __BASHRC_EPILOGUE; unset -f __prepend_path;"
 
 if [[ $- != *i* || -z "$HOME" ]]; then
@@ -109,8 +120,14 @@ if [[ $- != *i* || -z "$HOME" ]]; then
   return
 fi
 
-if [[ -z "$SHELL" && -n "$BASH_VERSION" && -f /bin/bash ]]; then
-  export SHELL=/bin/bash
+# No terminfo for $TERM, e.g. xterm-kitty or xterm-ghostty over plain ssh, or
+# after sudo drops TERMINFO: fall back so vim, less, clear etc. work. Inside
+# tmux/screen (also ssh from there), screen-256color, as tmux.conf does.
+if [[ -n "$TERM" ]] && hash infocmp 2>/dev/null && ! infocmp "$TERM" >/dev/null 2>&1; then
+  case "$TERM" in
+    tmux*|screen*) export TERM=screen-256color ;;
+    *) export TERM=xterm-256color ;;
+  esac
 fi
 
 if [[ -n "$BASH_VERSION" ]]; then
@@ -120,6 +137,11 @@ if [[ -n "$BASH_VERSION" ]]; then
     # checkjobs: warn on exit with running/stopped jobs, exit if repeated
     shopt -s autocd checkjobs globstar
   fi
+  # No flow control: Ctrl-S searches history forward instead of freezing
+  # output (zshrc: NO_FLOW_CONTROL)
+  if [[ -t 0 ]]; then
+    stty -ixon
+  fi
 fi
 
 # Aliases/functions
@@ -127,8 +149,8 @@ if [[ -f ~/.dotfiles/bashrc.aliases ]]; then
   source ~/.dotfiles/bashrc.aliases
 fi
 
-# History: bash's ~/.history/bash.YYYYMM, h, histoff; REPL histories (also zsh)
-if [[ -f ~/.dotfiles/bashrc.history ]]; then
+# History: ~/.history/bash.YYYYMM
+if [[ -n "$BASH_VERSION" && -f ~/.dotfiles/bashrc.history ]]; then
   source ~/.dotfiles/bashrc.history
 fi
 
@@ -144,6 +166,37 @@ fi
 if ! [[ -d ~/.ssh/socket ]]; then
   mkdir -p ~/.ssh/socket >/dev/null 2>&1
   chmod 0700 ~/.ssh ~/.ssh/socket >/dev/null 2>&1
+fi
+
+# Keep REPL histories in ~/.history/<name>
+# Move the tool's default file there and point its env var at it, if any.
+if [[ -d ~/.history ]] || mkdir -m 0700 ~/.history 2>/dev/null; then
+  # dst can also be a symlink (e.g. to /dev/null, to keep no history): it's
+  # never replaced, and a failed move (e.g. read-only dir) stays quiet.
+  __history_env() {
+    local var="$1" src="$2" dst="$HOME/.history/$3"
+    if [[ -L "$src" && ! -e "$src" ]]; then
+      rm -f "$src"  # dangling symlink
+    elif [[ -f "$src" && ! -L "$src" ]]; then
+      if [[ ! -e "$dst" && ! -L "$dst" ]]; then
+        mv "$src" "$dst" 2>/dev/null
+      elif [[ -f "$dst" ]]; then
+        cat "$src" >>"$dst" 2>/dev/null && rm -f "$src"
+      fi
+    fi
+    # Only once dst exists: no env vars for tools never used here
+    if [[ -n "$var" && -e "$dst" && ! -d "$dst" ]]; then
+      export "$var=$dst"
+    fi
+  }
+  __history_env "" ~/.zsh_history zsh  # e.g. from macOS's /etc/zshrc; zshrc sets HISTFILE
+  __history_env JULIA_HISTORY ~/.julia/logs/repl_history.jl julia
+  __history_env MYSQL_HISTFILE ~/.mysql_history mysql
+  __history_env NODE_REPL_HISTORY ~/.node_repl_history node
+  __history_env PSQL_HISTORY ~/.psql_history psql
+  __history_env PYTHON_HISTORY ~/.python_history python  # python 3.13+
+  __history_env SQLITE_HISTORY ~/.sqlite_history sqlite
+  unset -f __history_env
 fi
 
 if [[ -f ~/.lesshst || -f ~/.wget-hsts || -f ~/.xsel.log ]]; then
@@ -162,20 +215,21 @@ fi
 
 # Disabled for now: asking the terminal for its background can eat keys typed
 # during startup. Assume dark unless the terminal (rxvt) or ssh provides it.
-# To re-enable: uncomment, drop the COLORFGBG guess and the stub below.
+# To re-enable: uncomment, drop the COLORFGBG guess below.
 #if [[ -f ~/.dotfiles/bin/colorfgbg ]]; then
 #  source ~/.dotfiles/bin/colorfgbg
 #fi
 if [[ -z "$COLORFGBG" ]]; then
   export COLORFGBG="15;0"
 fi
-__reset_colorfgbg() { :; }  # stub, called by h()
 
 if [[ -z "$LS_COLORS" ]] && hash dircolors >/dev/null 2>&1; then
   eval "$(dircolors -b ~/.dotfiles/dircolors)"
 fi
 
-if [[ -n "$VTE_VERSION" ]]; then
+# Unless its hook is in already (login profile, or bashrc re-sourced): vte.sh
+# would add it again (bash: PROMPT_COMMAND, zsh: precmd_functions)
+if [[ -n "$VTE_VERSION" && "${PROMPT_COMMAND[*]}${precmd_functions[*]}" != *__vte_* ]]; then
   if [[ -f /etc/profile.d/vte.sh ]]; then
     source /etc/profile.d/vte.sh
   elif [[ -f /etc/profile.d/vte-2.91.sh ]]; then
@@ -183,14 +237,6 @@ if [[ -n "$VTE_VERSION" ]]; then
   fi
 fi
 
-# WezTerm: OSC 7 cwd and OSC 133 semantic zones (ScrollToPrompt, select output)
-# via bash-preexec's DEBUG trap, so also on bash 3.2.
-if [[ "$TERM_PROGRAM" == WezTerm ]]; then
-  # shellcheck disable=SC2034  # read by wezterm.sh; user vars cost several forks per prompt
-  WEZTERM_SHELL_SKIP_USER_VARS=1
-  source ~/.dotfiles/third_party/wezterm-shell-integration/wezterm.sh
-  __bp_adjust_histcontrol() { :; }  # keep ignorespace in HISTCONTROL
-fi
 # Workaround to disable "Command complete" notifications in ptyxis
 if [[ -n $PTYXIS_PROFILE ]]; then
   __vte_termprop_signal() { :; }
@@ -221,6 +267,7 @@ if [[ -n "$BASH_VERSION" ]]; then
   elif [[ -f /usr/share/bash-completion/bash_completion ]]; then
     source /usr/share/bash-completion/bash_completion
   fi
+
   # fzf key bindings and completion: `fzf --bash` needs fzf 0.48+
   if hash fzf >/dev/null 2>&1 && __fzf_init=$(fzf --bash 2>/dev/null); then
     eval "$__fzf_init"
@@ -233,14 +280,16 @@ if [[ -n "$BASH_VERSION" ]]; then
     fi
   fi
   unset __fzf_init
-  if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
-    source ~/.dotfiles/iterm2/iterm2_shell_integration.bash
-  fi
-elif [[ -n "${ZSH_VERSION:-}" ]]; then
-  if [[ "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
-    source ~/.dotfiles/iterm2/iterm2_shell_integration.zsh
-  fi
 fi
+
+if [[ -n "$BASH_VERSION" && "$OSTYPE" == darwin* && "$TERM_PROGRAM" == iTerm.app ]]; then
+  source ~/.dotfiles/iterm2/iterm2_shell_integration.bash
+fi
+
+# venv and conda don't add their own (env) to the prompt: bashrc.prompt and
+# zshrc show it, also when activated after startup
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+export CONDA_CHANGEPS1=false
 
 if [[ -n "$CONDA_ROOT" && -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   true  # in case conda installer comments out below line causing syntax error
