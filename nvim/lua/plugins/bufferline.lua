@@ -28,6 +28,60 @@ local function close_buffers(which)
   end
 end
 
+-- Drag a bufferline tab with the mouse: pressing a tab switches to it and
+-- starts the drag (left_mouse_command below), <LeftDrag> on the tabline moves
+-- it to the tab under the mouse, <LeftRelease> ends it. Else these keys do
+-- what they always do. Not <LeftMouse>: mapping it would stop bufferline's
+-- click handler.
+local dragging = false
+
+-- Buffer whose tab is at screen column col, as bufferline's hover finds it
+-- (ui.lua on_hover_over): after nvim-tree's offset, the visible tabs' widths
+local function tab_at(col)
+  local state = require("bufferline.state")
+  local pos = state.left_offset_size
+  for _, item in ipairs(state.visible_components) do
+    if col > pos and col <= pos + item.length then
+      return item.id
+    end
+    pos = pos + item.length
+  end
+end
+
+-- Also terminal and : line mode: a tab clicked there ends its drag there
+local drag_modes = { "n", "i", "v", "t", "c" }
+
+local function drag_keymaps()
+  vim.keymap.set(drag_modes, "<LeftDrag>", function()
+    if not dragging then
+      return "<LeftDrag>"
+    end
+    local pos = vim.fn.getmousepos()
+    local target = pos.screenrow == 1 and tab_at(pos.screencol)
+    if target then
+      vim.schedule(function()
+        local ids = vim.tbl_map(function(e)
+          return e.id
+        end, require("bufferline").get_elements().elements)
+        local from = vim.fn.index(ids, vim.api.nvim_get_current_buf())
+        local to = vim.fn.index(ids, target)
+        -- One step at a time: bufferline's move_to() swaps the two tabs
+        for _ = 1, math.abs(to - from) do
+          require("bufferline.commands").move(to > from and 1 or -1)
+        end
+      end)
+    end
+    return ""
+  end, { expr = true, desc = "Drag a buffer tab" })
+  vim.keymap.set(drag_modes, "<LeftRelease>", function()
+    if not dragging then
+      return "<LeftRelease>"
+    end
+    dragging = false
+    return ""
+  end, { expr = true, desc = "End dragging a buffer tab" })
+end
+
 return {
   {
     "akinsho/bufferline.nvim",
@@ -43,6 +97,11 @@ return {
         -- the window layout.
         close_command = "Bd %d",
         right_mouse_command = "Bd %d",
+        -- Switch to it (the default) and start a drag (drag_keymaps)
+        left_mouse_command = function(buf)
+          dragging = true
+          vim.api.nvim_set_current_buf(buf)
+        end,
         separator_style = vim.g.nerd_font and "slant" or { "|", "|" },
         -- Names without an icon of their own: the filetype's, not the generic one.
         -- Else (nil) bufferline's own lookup by name.
@@ -77,6 +136,10 @@ return {
         buffer_selected = { italic = false },
       },
     },
+    config = function(_, opts)
+      require("bufferline").setup(opts)
+      drag_keymaps()
+    end,
     keys = {
       { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev buffer" },
       { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
