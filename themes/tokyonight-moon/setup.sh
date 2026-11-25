@@ -8,7 +8,7 @@ if [[ -L ~/.config/theme || ! -e ~/.config/theme ]] && ! [[ ~/.config/theme -ef 
   ln -sfnr "$theme_dir" ~/.config/theme
   echo "Linked: ~/.config/theme -> $theme_dir"
 fi
-# Drop nvim's and vim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua, vimrc)
+# Drop nvim's and vim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua, vim/plugin/colorscheme.vim)
 rm -f "${XDG_STATE_HOME:-$HOME/.local/state}"/{nvim,vim}/colorscheme
 
 # gedit: missing

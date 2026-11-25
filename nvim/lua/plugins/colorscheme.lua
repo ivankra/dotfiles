@@ -1,108 +1,95 @@
--- lazy.nvim loads a not-yet-loaded colorscheme plugin when :colorscheme is run,
--- so the current theme (below) works at startup. The others still load at
--- VeryLazy, right after startup: until then they're missing from
--- :colorscheme <Tab> completion.
+-- At startup: the last :colorscheme picked, else the dotfiles theme
+-- (~/.dotfiles/themes/), else a default. Scheme plugins load at VeryLazy,
+-- or on demand when :colorscheme names one; before that, <Tab> misses them.
 
--- Current theme, see ~/.dotfiles/themes/: its dir name is the nvim colorscheme
-local theme_dir = vim.fn.expand("~/.config/theme")
--- Last :colorscheme (name, 'background'): sticks across restarts until
--- `setup.sh --theme` switches the global theme and deletes this file.
-local saved_file = vim.fn.stdpath("state") .. "/colorscheme"
-
--- Per-scheme preferences for whichever way a scheme gets applied. Set here
--- at import, not in a spec's init: lazy runs inits in no fixed order.
+-- Per-scheme options. Set at import: spec inits run in no fixed order.
 vim.g.dracula_italic = 0
-vim.g.sonokai_style = "default"
 vim.g.sonokai_disable_italic_comment = 1
 
-local function apply_saved()
-  local ok, lines = pcall(vim.fn.readfile, saved_file)
-  if not ok or #lines < 2 or lines[1] == "" then
-    return false
+-- Last picked scheme and 'background'. `setup.sh --theme` deletes it.
+-- ShaDa could store it as a global (g:COLORSCHEME) instead, but nvim reads
+-- ShaDa only after the config has run, too late to apply it at startup.
+local save_file = vim.fn.stdpath("state") .. "/colorscheme"
+
+-- Default theme to use if setup.sh hasn't been run
+local default_theme = "tokyonight-moon"
+
+-- Returns false if the scheme is missing or broken.
+local function apply_colorscheme(name, background)
+  return (name or "") ~= ""
+    and pcall(function()
+      vim.g.colors_name = nil -- else setting 'background' reloads it
+      vim.o.background = background
+      vim.cmd.colorscheme(name)
+    end)
+end
+
+-- Saves picks, 'background' changes too (they reload the scheme).
+local function save_colorscheme(ev)
+  if vim.v.vim_did_enter == 0 then -- not schemes applied during startup
+    return
   end
-  local background = vim.o.background
-  if pcall(function()
-    vim.o.background = lines[2]
-    vim.cmd.colorscheme(lines[1])
-  end) then
-    return true
+  -- colors_name is the variant shown (tokyonight-moon + bg=light: tokyonight-day),
+  -- but may be just the family (kanagawa-dragon: kanagawa) or not a scheme.
+  local name = vim.g.colors_name
+  local is_scheme = name and vim.tbl_contains(vim.fn.getcompletion(name, "color"), name)
+  if not is_scheme or vim.startswith(ev.match, name .. "-") then
+    name = ev.match
   end
-  -- Scheme gone or broken: fall back to the theme. Unset colors_name first,
-  -- or restoring 'background' would reload the broken scheme.
-  pcall(function()
-    vim.g.colors_name = nil
-    vim.o.background = background
-  end)
-  return false
+  if name ~= "" then -- empty after a bare :doautocmd ColorScheme
+    vim.fn.mkdir(vim.fn.fnamemodify(save_file, ":h"), "p")
+    vim.fn.writefile({ name, vim.o.background }, save_file)
+  end
+end
+
+local function init()
+  -- Save picks, whichever step below applies the startup scheme
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("StickyColorscheme", { clear = true }),
+    callback = save_colorscheme,
+  })
+
+  -- 1. The last pick (scheme and 'background')
+  local saved = vim.fn.filereadable(save_file) == 1 and vim.fn.readfile(save_file) or {}
+  if apply_colorscheme(saved[1], saved[2]) then
+    return
+  end
+
+  -- 2. The dotfiles theme
+  -- setup.sh links ~/.config/theme to ~/.dotfiles/themes/<colorscheme>
+  local theme = vim.fn.resolve(vim.fn.expand("~/.config/theme"))
+  if vim.fn.isdirectory(theme) == 1 then
+    local name = vim.fn.fnamemodify(theme, ":t")
+    if apply_colorscheme(name, "dark") then -- all are dark themes
+      return
+    end
+    vim.notify("No colorscheme for theme " .. name, vim.log.levels.WARN)
+  end
+
+  -- 3. The default theme, else nvim's own
+  if not apply_colorscheme(default_theme, "dark") then
+    apply_colorscheme("default", "dark")
+  end
 end
 
 return {
-  -- Saved colorscheme, else the current theme (see ~/.dotfiles/themes/).
-  -- Applied from init, which runs before any plugin loads, so that e.g.
-  -- lualine picks up its colors. Not a plugin, only this init.
-  {
-    "theme", -- lazy needs [1], dir or url; a bare name without "/" is just the name
-    virtual = true,
-    lazy = true,
-    init = function()
-      if not apply_saved() and vim.uv.fs_stat(theme_dir) then
-        -- All themes are dark. Set explicitly, so nvim doesn't switch it
-        -- after startup from the terminal's background color.
-        vim.o.background = "dark"
-        local name = vim.fn.fnamemodify(vim.fn.resolve(theme_dir), ":t")
-        if not pcall(vim.cmd.colorscheme, name) then
-          vim.notify("No colorscheme for theme " .. name, vim.log.levels.WARN)
-        end
-      end
-      -- Only save after startup, so applying the theme above doesn't count.
-      -- Changing 'background' reloads the scheme, so that's saved too.
-      vim.api.nvim_create_autocmd("VimEnter", {
-        once = true,
-        callback = function()
-          vim.api.nvim_create_autocmd("ColorScheme", {
-            group = vim.api.nvim_create_augroup("StickyColorscheme", { clear = true }),
-            callback = function(ev)
-              -- The variant actually shown: after :set bg=light, tokyonight-moon
-              -- becomes tokyonight-day (ev.match stays tokyonight-moon). But
-              -- the name used if it's a variant of that: kanagawa-dragon sets
-              -- colors_name to just kanagawa.
-              local name = vim.g.colors_name
-              if
-                not (name and vim.tbl_contains(vim.fn.getcompletion(name, "color"), name))
-                or vim.startswith(ev.match, name .. "-")
-              then
-                name = ev.match
-              end
-              if name == "" then -- :doautocmd ColorScheme without a name
-                return
-              end
-              vim.fn.mkdir(vim.fn.fnamemodify(saved_file, ":h"), "p")
-              vim.fn.writefile({ name, vim.o.background }, saved_file)
-            end,
-          })
-        end,
-      })
-    end,
-  },
+  -- Not a plugin, only an init: lazy runs all inits before loading any plugin,
+  -- so plugins start with the right colors (e.g. lualine's theme).
+  { "theme", virtual = true, init = init },
 
-  { "dracula/vim", name = "dracula.vim", dev = true, lazy = true },
+  { "dracula/vim", name = "dracula.vim", dev = true, event = "VeryLazy" },
 
   {
     "folke/tokyonight.nvim",
     dev = true,
     event = "VeryLazy",
-    config = function()
-      require("tokyonight").setup({
-        style = "moon",
-        -- styles = { comments = { italic = false } },
-        on_colors = function(colors)
-          colors.fg_dark = "#e6e7f1" -- brighten vim command line's color (MsgArea)
-          colors.comment = "#8095D6" -- moon: #636da6
-        end,
-      })
-      -- vim.cmd("colorscheme tokyonight")
-      -- vim.api.nvim_set_hl(0, 'MsgArea', { fg = '#e6e7f1' })
-    end,
+    opts = {
+      style = "moon",
+      on_colors = function(colors)
+        colors.fg_dark = "#e6e7f1" -- brighten vim command line's color (MsgArea)
+        colors.comment = "#8095D6" -- moon: #636da6
+      end,
+    },
   },
 
   {
@@ -119,22 +106,12 @@ return {
     event = "VeryLazy",
     opts = {
       contrast = "hard",
-      italic = {
-        strings = false,
-        comments = false,
-      },
+      italic = { strings = false, comments = false },
     },
-  },
-
-  -- kanagawa (= kanagawa-wave), kanagawa-dragon, kanagawa-lotus (light)
-  {
-    "rebelot/kanagawa.nvim",
-    dev = true,
-    event = "VeryLazy",
-    opts = {},
   },
 
   { "joshdick/onedark.vim", dev = true, event = "VeryLazy" },
   { "projekt0n/github-nvim-theme", dev = true, event = "VeryLazy" },
+  { "rebelot/kanagawa.nvim", dev = true, event = "VeryLazy" },
   { "sainnhe/sonokai", dev = true, event = "VeryLazy" },
 }

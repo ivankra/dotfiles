@@ -332,6 +332,7 @@ remove_ln ~/.gdb
 remove_ln ~/.gdbinit
 remove_ln ~/.jupyter
 remove_ln ~/.local/bin/code
+remove_ln ~/.local/share/nvim/site
 remove_ln ~/.sqliterc
 remove_ln ~/.vimrc
 remove_ln ~/.xonshrc
@@ -413,7 +414,6 @@ setup_ln ipython_config.py ~/.config/ipython/profile_default/ipython_config.py
 setup_ln jupyter ~/.config/jupyter
 setup_ln kitty.conf ~/.config/kitty/kitty.conf
 setup_ln nvim ~/.config/nvim
-setup_ln nvim/site ~/.local/share/nvim/site
 setup_ln tmux.conf ~/.config/byobu/.tmux.conf
 setup_ln tmux.conf ~/.config/tmux/tmux.conf
 setup_ln wezterm.lua ~/.config/wezterm/wezterm.lua
@@ -538,7 +538,7 @@ fi
 # Install/update ~/.config/theme symlink
 if [[ -n "$THEME" ]]; then
   setup_ln "themes/$THEME" ~/.config/theme
-  # Drop nvim's and vim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua, vimrc)
+  # Drop nvim's and vim's sticky :colorscheme (nvim/lua/plugins/colorscheme.lua, vim/plugin/colorscheme.vim)
   rm -f "${XDG_STATE_HOME:-$HOME/.local/state}"/{nvim,vim}/colorscheme
 elif ! [[ -e ~/.config/theme ]]; then
   setup_ln themes/dracula-dark ~/.config/theme

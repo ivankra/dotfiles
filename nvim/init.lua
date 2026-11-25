@@ -84,22 +84,42 @@ vim.g.maplocalleader = "\\"
 vim.g.in_container = vim.env.container ~= nil
   or vim.uv.fs_stat("/run/.containerenv") ~= nil
   or vim.uv.fs_stat("/.dockerenv") ~= nil
+
 vim.g.icons_plugin = "nvim-mini/mini.icons"
 vim.g.statusline_plugin = "lualine"
+
 -- Nerd Font glyphs (icons, statusline arrows, ...), except on the Linux
 -- console, whose fonts have none: plain characters there
 vim.g.nerd_font = vim.env.TERM ~= "linux"
+
+-- Find dotfiles checkout's root from whatever ~/.config/nvim[-appname] point to
+vim.g.dotfiles = vim.fn.fnamemodify(vim.fn.resolve(vim.fn.stdpath("config")), ":h")
+
+-- setup.sh used to symlink ~/.local/share/nvim/site to dotfiles
+local site = vim.fn.stdpath("data") .. "/site"
+local site_stat = vim.uv.fs_lstat(site)
+if site_stat and site_stat.type == "link" and not vim.uv.fs_stat(site) then
+  os.remove(site)
+end
 
 -- lazy.nvim requires 0.8+ (skip quietly instead of its error notification)
 if vim.fn.has("nvim-0.8") == 0 then
   return
 end
 
+-- lazy.nvim itself, from the submodule. Not cloned yet: no plugins.
+local lazy_dir = vim.g.dotfiles .. "/third_party/lazy.nvim"
+if not vim.uv.fs_stat(lazy_dir .. "/lua/lazy/init.lua") then
+  vim.notify("No plugins: run `git submodule update --init` in " .. vim.g.dotfiles, vim.log.levels.WARN)
+  return
+end
+vim.opt.rtp:prepend(lazy_dir)
+
 require("lazy").setup({
   -- Unless in container, load plugins from submodules only,
   -- don't install from git or check for updates.
   dev = {
-    path = vim.fn.expand("~/.dotfiles/third_party"),
+    path = vim.g.dotfiles .. "/third_party",
     fallback = vim.g.in_container,
   },
   install = { missing = vim.g.in_container },
@@ -107,7 +127,9 @@ require("lazy").setup({
   change_detection = { enabled = false },
   pkg = { enabled = false },
   rocks = { enabled = false },
-  -- lockfile = vim.fn.stdpath("data") .. "/path/to/your/custom-lazy-lock.json",
+  -- Not in the config dir, i.e. the dotfiles repo. Only containers install
+  -- plugins (the host uses submodules), so it's only theirs anyway.
+  lockfile = vim.fn.stdpath("data") .. "/lazy-lock.json",
 
   performance = {
     rtp = {
