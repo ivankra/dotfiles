@@ -74,9 +74,14 @@ return {
             group = vim.api.nvim_create_augroup("StickyColorscheme", { clear = true }),
             callback = function(ev)
               -- The variant actually shown: after :set bg=light, tokyonight-moon
-              -- becomes tokyonight-day (ev.match stays tokyonight-moon)
+              -- becomes tokyonight-day (ev.match stays tokyonight-moon). But
+              -- the name used if it's a variant of that: kanagawa-dragon sets
+              -- colors_name to just kanagawa.
               local name = vim.g.colors_name
-              if not (name and vim.tbl_contains(vim.fn.getcompletion(name, "color"), name)) then
+              if
+                not (name and vim.tbl_contains(vim.fn.getcompletion(name, "color"), name))
+                or vim.startswith(ev.match, name .. "-")
+              then
                 name = ev.match
               end
               if name == "" then  -- :doautocmd ColorScheme without a name
@@ -130,6 +135,14 @@ return {
         comments = false
       }
     }
+  },
+
+  -- kanagawa (= kanagawa-wave), kanagawa-dragon, kanagawa-lotus (light)
+  {
+    "rebelot/kanagawa.nvim",
+    dev = true,
+    event = "VeryLazy",
+    opts = {},
   },
 
   { "joshdick/onedark.vim", dev = true, event = "VeryLazy" },
