@@ -1,33 +1,30 @@
--- TODO: consider heirline.lua - clickable GUI
+-- Statusline with lualine.nvim, one for all windows:
+--   mode | branch | path ... diagnostics, diff, hex code, indent, encoding,
+--   LSP progress, filetype | progress | line:column
+-- * Path: relative to the cwd, shortened when space runs out, the file name
+--   colored when modified. Fugitive buffers show their revision, terminals
+--   their title.
+-- * Diff counts come from gitsigns: live, unsaved changes included.
+-- * Filetype: a gear before its icon while a language server is attached,
+--   and the venv in Python buffers.
+-- * Narrow windows hide the less useful parts first.
+-- * Clicks: the branch and diagnostics open pickers, the diff :Git, and the
+--   path, indent and filetype open menus (nvim's popup menu, as VS Code's).
 
--- LazyVim formatting helper function
--- https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/util/lualine.lua
--- hl_groups: a group, or a list of them: the first that has a fg color is
--- used (only fg is taken, and e.g. gruvbox's MatchParen is bg-only).
--- The cache is per component, and lualine recreates components on
--- ColorScheme, so the choice is made again for each scheme.
-local function format_hl(component, text, hl_groups)
+-- Helpers {{{
+
+-- LazyVim's helper, verbatim (M.format in lua/lazyvim/util/lualine.lua):
+local function format_hl(component, text, hl_group)
   text = text:gsub("%%", "%%%%")
-  if type(hl_groups) == "string" then
-    hl_groups = { hl_groups }
-  end
-  if not hl_groups or #hl_groups == 0 or hl_groups[1] == "" then
+  if not hl_group or hl_group == "" then
     return text
   end
-
-  local key = table.concat(hl_groups, ",")
+  ---@type table<string, string>
   component.hl_cache = component.hl_cache or {}
-  local lualine_hl_group = component.hl_cache[key]
-
+  local lualine_hl_group = component.hl_cache[hl_group]
   if not lualine_hl_group then
     local utils = require("lualine.utils.utils")
-    local hl_group = hl_groups[#hl_groups]
-    for _, group in ipairs(hl_groups) do
-      if utils.extract_highlight_colors(group, "fg") then
-        hl_group = group
-        break
-      end
-    end
+    ---@type string[]
     local gui = vim.tbl_filter(function(x)
       return x
     end, {
@@ -38,43 +35,32 @@ local function format_hl(component, text, hl_groups)
     lualine_hl_group = component:create_hl({
       fg = utils.extract_highlight_colors(hl_group, "fg"),
       gui = #gui > 0 and table.concat(gui, ",") or nil,
-    }, "LV_" .. hl_group)
-    component.hl_cache[key] = lualine_hl_group
+    }, "LV_" .. hl_group) --[[@as string]]
+    component.hl_cache[hl_group] = lualine_hl_group
   end
-
   return component:format_hl(lualine_hl_group) .. text .. component:get_default_hl()
 end
 
--- Bold text in the section's own colors. Not via format_hl(..., "Bold"):
--- only some colorschemes define a `Bold` group (not gruvbox/sonokai/dracula).
+-- Bold in the section's own colors (no group: lualine fills fg/bg in from
+-- the theme for each mode). For what LazyVim has no style for.
 local function format_bold(component, text)
-  text = text:gsub("%%", "%%%%")
-  -- No fg/bg given, so lualine fills them in from the theme for each mode
-  component.bold_hl = component.bold_hl or component:create_hl({ gui = "bold" }, "LV_Bold")
-  return component:format_hl(component.bold_hl) .. text .. component:get_default_hl()
+  component.bold_hl = component.bold_hl or component:create_hl({ gui = "bold" }, "LV_SectionBold")
+  return component:format_hl(component.bold_hl) .. text:gsub("%%", "%%%%") .. component:get_default_hl()
 end
 
--- Filetypes shown as just their icon (no name) in lualine_x: the icon
--- already says what the type is, so the name would just repeat it
--- stylua: ignore
-local icon_only_fts = {
-  bash = true,       -- "$" icon
-  c = true,          -- "C" icon
-  cpp = true,        -- "C++" icon
-  dockerfile = true, -- Docker whale
-  go = true,         -- "GO" icon
-  javascript = true, -- "JS" icon
-  markdown = true,   -- markdown logo
-  python = true,     -- Python logo
-  sh = true,         -- "$" icon
-  tex = true,        -- "TeX" icon
-  typescript = true, -- "TS" icon
-  vim = true,        -- Vim "V" logo
-}
+-- Modified file name / readonly icon: MatchParen's color, else (the scheme
+-- gives it no fg, e.g. gruvbox, nvim's default) WarningMsg's
+local function modified_hl()
+  return vim.api.nvim_get_hl(0, { name = "MatchParen", link = false }).fg and "MatchParen" or "WarningMsg"
+end
 
--- Modified filename / readonly icon: MatchParen's color, else (scheme gives
--- it no fg, e.g. gruvbox, nvim's default) WarningMsg's
-local modified_hl = { "MatchParen", "WarningMsg" }
+-- For cond: shown only when the statusline is at least width columns wide
+local function min_width(width)
+  return function()
+    local w = vim.o.laststatus == 3 and vim.o.columns or vim.fn.winwidth(0)
+    return w >= width
+  end
+end
 
 -- Index stages in a fugitive:// name (:help fugitive-object)
 local fugitive_stages = { ["0"] = "index", ["1"] = "base", ["2"] = "ours", ["3"] = "theirs" }
@@ -103,6 +89,123 @@ local function fugitive_info(name)
   end
   return rev, rel ~= "" and vim.fn.FugitiveReal(name) or nil
 end
+
+-- }}}
+
+-- Popup menus {{{
+
+-- What clicking the path, indent and filetype opens, as VS Code's: nvim's
+-- own popup menu (as its right-click one), at the mouse.
+
+---@class MenuItem
+---@field label string
+---@field action fun()
+---@field checked? boolean marked with •
+---@field map? string description of a normal mode mapping doing the same: its keys are shown
+
+-- Actions of each menu, by name: an entry can only run a command
+local menu_actions = {}
+
+-- Entry i of menu name chosen: runs its action. The entries' command, via
+-- the table registered at the end of this file.
+local function ll_on_menu_choice(name, i)
+  -- Scheduled: an entry runs while the menu still has control (E565)
+  vim.schedule(menu_actions[name][i])
+end
+
+-- Keys of the mapping with this description, in this buffer or globally,
+-- with ␣ for the <leader> Space. The shortest of several: ␣e, not <C-B>.
+local function mapping_keys(desc)
+  local best
+  for _, map in ipairs(vim.list_extend(vim.api.nvim_buf_get_keymap(0, "n"), vim.api.nvim_get_keymap("n"))) do
+    if map.desc == desc then
+      local keys = vim.fn.keytrans(map.lhs):gsub("<Space>", "␣")
+      if not best or vim.api.nvim_strwidth(keys) < vim.api.nvim_strwidth(best) then
+        best = keys
+      end
+    end
+  end
+  return best
+end
+
+-- Opens menu name at the mouse. items: MenuItem, or "-" for a divider. In
+-- the terminal the menu doesn't show the menus' own shortcut column (<Tab>
+-- in a name), and at the screen's right edge it cuts entries rather than
+-- moving left: keys are padded in by hand, when they fit.
+---@param items (MenuItem|"-")[]
+local function popup_menu(name, items)
+  local marks = vim.iter(items):any(function(item)
+    return type(item) == "table" and item.checked
+  end)
+  local keys, width, keys_width = {}, 0, 0
+  for i, item in ipairs(items) do
+    if type(item) == "table" then
+      keys[i] = item.map and mapping_keys(item.map)
+      width = math.max(width, vim.api.nvim_strwidth(item.label))
+      keys_width = math.max(keys_width, keys[i] and vim.api.nvim_strwidth(keys[i]) or 0)
+    end
+  end
+  -- The menu starts at the click
+  if (marks and 2 or 0) + width + 2 + keys_width > vim.o.columns - vim.fn.getmousepos().screencol then
+    keys = {}
+  end
+
+  pcall(vim.cmd, "aunmenu ]" .. name)
+  menu_actions[name] = {}
+  for i, item in ipairs(items) do
+    if type(item) ~= "table" then
+      vim.cmd(("anoremenu ]%s.-%d- <Nop>"):format(name, i))
+    else
+      local label = (marks and (item.checked and "• " or "  ") or "") .. item.label
+      if keys[i] then
+        label = label .. (" "):rep(width - vim.api.nvim_strwidth(item.label) + 2) .. keys[i]
+      end
+      table.insert(menu_actions[name], item.action)
+      vim.cmd(
+        ("anoremenu ]%s.%s <Cmd>lua require('lualine_clicks').ll_on_menu_choice('%s', %d)<CR>"):format(
+          name,
+          vim.fn.escape(label, " .\\&|"),
+          name,
+          #menu_actions[name]
+        )
+      )
+    end
+  end
+  vim.cmd("popup! ]" .. name)
+end
+
+-- }}}
+
+-- Mode {{{
+
+-- Short names for lualine's mode names. Its map lacks cr/cvr (command line
+-- after <Insert>) and shows such codes raw, so they're named here too.
+-- stylua: ignore
+local mode_short = {
+  NORMAL   = "N",
+  VISUAL   = "V",
+  INSERT   = "I",
+  SHELL    = "SH",
+  TERMINAL = "TERM",
+  cr       = "COMMAND",
+  cvr      = "EX",
+}
+
+local function ll_mode_fmt(mode)
+  return mode_short[mode] or mode
+end
+
+-- }}}
+
+-- Branch {{{
+
+local function ll_branch_picker()
+  vim.cmd("Telescope git_branches")
+end
+
+-- }}}
+
+-- Path {{{
 
 local function ll_pretty_path()
   return function(self)
@@ -137,18 +240,24 @@ local function ll_pretty_path()
     local sep = package.config:sub(1, 1)
     local parts = vim.split(path, "[\\/]")
 
-    -- Shorten path with ellipsis if needed (show first + … + last 2)
-    local max_parts = 3
-    if #parts > max_parts then
-      parts = { parts[1], "…", unpack(parts, #parts - max_parts + 2, #parts) }
+    -- Shorten only when too long for the window (the rest of the statusline
+    -- takes ~90 columns): middle dirs to "…" one at a time, down to first +
+    -- … + last dir + file at most
+    local budget = math.max(20, vim.o.columns - 90)
+    while #parts > 4 and vim.api.nvim_strwidth(table.concat(parts, sep)) > budget do
+      if parts[2] == "…" then
+        table.remove(parts, 3)
+      else
+        parts[2] = "…"
+      end
     end
 
-    -- Format filename with bold highlighting.
+    -- Format filename in the scheme's Bold, as LazyVim.
     -- Modified buffers are shown by color only (modified_hl), no extra marker.
     if vim.bo.modified then
-      parts[#parts] = format_hl(self, parts[#parts], modified_hl)
+      parts[#parts] = format_hl(self, parts[#parts], modified_hl())
     else
-      parts[#parts] = format_bold(self, parts[#parts])
+      parts[#parts] = format_hl(self, parts[#parts], "Bold")
     end
 
     -- Format directory
@@ -162,7 +271,7 @@ local function ll_pretty_path()
     -- Add readonly indicator
     local readonly = ""
     if vim.bo.readonly then
-      readonly = format_hl(self, vim.g.nerd_font and " 󰌾 " or " [RO]", modified_hl)
+      readonly = format_hl(self, vim.g.nerd_font and " 󰌾 " or " [RO]", modified_hl())
     end
 
     -- fugitive:// buffer: which version of the file this is
@@ -174,18 +283,90 @@ local function ll_pretty_path()
   end
 end
 
--- Short names for lualine's mode names. Its map lacks cr/cvr (command line
--- after <Insert>) and shows such codes raw, so they're named here too.
--- stylua: ignore
-local mode_short = {
-  NORMAL   = "N",
-  VISUAL   = "V",
-  INSERT   = "I",
-  SHELL    = "SH",
-  TERMINAL = "TERM",
-  cr       = "COMMAND",
-  cvr      = "EX",
-}
+-- Path menu
+
+-- Copies text to the unnamed register, and the system clipboard when nvim
+-- has one (a clipboard tool, or OSC 52: plugin/clipboard.lua)
+local function copy_action(text)
+  return function()
+    vim.fn.setreg('"', text)
+    if vim.fn.has("clipboard") == 1 then
+      vim.fn.setreg("+", text)
+    end
+    vim.notify("Copied " .. text)
+  end
+end
+
+-- For window win's file, e.g. a split's winbar's. Nothing switches to the
+-- window until an entry is chosen.
+---@param win integer
+local function ll_window_path_menu(win)
+  local buf = vim.api.nvim_win_get_buf(win)
+  local file = vim.api.nvim_buf_get_name(buf)
+  local rev, real = fugitive_info(file)
+  if rev then
+    file = real -- the work tree file it's a version of; none for a commit
+  elseif vim.bo[buf].buftype ~= "" then
+    return
+  end
+  if not file or file == "" then
+    return
+  end
+  local function in_window(cmd)
+    return function()
+      if vim.api.nvim_win_is_valid(win) then
+        vim.api.nvim_set_current_win(win)
+      end
+      vim.cmd(cmd)
+    end
+  end
+  popup_menu("LualinePath", {
+    {
+      label = "Open folder (oil)",
+      action = in_window("Oil " .. vim.fn.fnameescape(vim.fs.dirname(file))),
+      map = "Open parent directory (oil)",
+    },
+    { label = "Show in file tree", action = in_window("NvimTreeFindFile") },
+    "-",
+    { label = "Copy path", action = copy_action(file) },
+    { label = "Copy relative path", action = copy_action(vim.fn.fnamemodify(file, ":~:.")) },
+    { label = "Copy file name", action = copy_action(vim.fs.basename(file)) },
+  })
+end
+
+-- For the current window's file: the statusline's
+local function ll_path_menu()
+  ll_window_path_menu(vim.api.nvim_get_current_win())
+end
+
+-- }}}
+
+-- Diagnostics {{{
+
+local function ll_diagnostics_picker()
+  vim.cmd("Telescope diagnostics bufnr=0")
+end
+
+-- }}}
+
+-- Diff {{{
+
+-- Live diff counts from gitsigns.
+-- Lualine's own runs git diff, only on save and buffer switch.
+local function ll_diff_gitsigns()
+  local g = vim.b.gitsigns_status_dict
+  if g then
+    return { added = g.added, modified = g.changed, removed = g.removed }
+  end
+end
+
+local function ll_git_status()
+  vim.cmd("Git")
+end
+
+-- }}}
+
+-- Hex code: 0xXX {{{
 
 local function ll_hex_char()
   local res = vim.api.nvim_eval_statusline("0x%02B", {}).str
@@ -196,8 +377,104 @@ local function ll_hex_char()
   end
 end
 
--- Only shown when unusual: non-utf-8, BOM, or non-unix line endings.
--- Returning "" makes lualine skip the component, separator and padding too.
+-- }}}
+
+-- Indent (e.g. "␣2", "⇥8") {{{
+
+local function ll_indent()
+  if vim.bo.buftype ~= "" then
+    return ""
+  end
+  return vim.bo.expandtab and "␣" .. vim.fn.shiftwidth() or "⇥" .. vim.bo.tabstop
+end
+
+-- Sets buffer options, showing exactly what was set: ":setlocal sw=2 sts=-1"
+local function setlocal_notify(args, done)
+  vim.cmd("setlocal " .. args)
+  if package.loaded.lualine then
+    require("lualine").refresh() -- else it shows the option at its next refresh
+  end
+  vim.cmd.redrawstatus()
+  vim.notify((done and done .. ", " or "") .. ":setlocal " .. args)
+end
+
+-- Re-indents with tabs or spaces: only each line's leading whitespace
+-- (:retab! also changes spaces inside lines). Tabs are shiftwidth wide then,
+-- so it looks the same.
+local function convert_indent(to_tabs)
+  local sw = vim.fn.shiftwidth()
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  local n = 0
+  for i, line in ipairs(lines) do
+    local lead = line:match("^[ \t]*")
+    local width = vim.fn.strdisplaywidth(lead) -- tabs by the current 'tabstop'
+    local new = to_tabs and ("\t"):rep(math.floor(width / sw)) .. (" "):rep(width % sw) or (" "):rep(width)
+    if new ~= lead then
+      lines[i], n = new .. line:sub(#lead + 1), n + 1
+    end
+  end
+  if n > 0 then
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+  end
+  setlocal_notify(
+    to_tabs and "noexpandtab tabstop=" .. sw or "expandtab",
+    n .. (n == 1 and " line" or " lines") .. " re-indented"
+  )
+end
+
+local function ll_indent_menu()
+  local expandtab, sw = vim.bo.expandtab, vim.fn.shiftwidth()
+  local items = {
+    {
+      label = "Use spaces",
+      checked = expandtab,
+      action = function()
+        setlocal_notify("expandtab")
+      end,
+    },
+    {
+      label = "Use tabs",
+      checked = not expandtab,
+      action = function()
+        setlocal_notify(("noexpandtab tabstop=%d softtabstop=-1"):format(sw)) -- a tab per level
+      end,
+    },
+    "-",
+    {
+      label = "Convert to spaces",
+      action = function()
+        convert_indent(false)
+      end,
+    },
+    {
+      label = "Convert to tabs",
+      action = function()
+        convert_indent(true)
+      end,
+    },
+    "-",
+  }
+  -- The width the statusline shows: shiftwidth with spaces, tabstop with tabs
+  local shown = expandtab and sw or vim.bo.tabstop
+  for _, width in ipairs({ 2, 4, 8 }) do
+    table.insert(items, {
+      label = "Width " .. width,
+      checked = width == shown,
+      action = function()
+        -- softtabstop -1 (shiftwidth's): ftplugins and guess-indent set a
+        -- number, e.g. python's 4, which Tab and Backspace would still use
+        setlocal_notify(("shiftwidth=%d softtabstop=-1"):format(width) .. (expandtab and "" or " tabstop=" .. width))
+      end,
+    })
+  end
+  popup_menu("LualineIndent", items)
+end
+
+-- }}}
+
+-- Encoding {{{
+
+-- Encoding only shown when unusual: non-utf-8, BOM, or non-unix line endings.
 local function ll_encoding()
   local parts = {}
   local enc = vim.bo.fenc ~= "" and vim.bo.fenc or vim.o.encoding
@@ -212,24 +489,284 @@ local function ll_encoding()
   return table.concat(parts, " ")
 end
 
+-- }}}
+
+-- LSP progress (e.g. "basedpyright: Indexing 3/10 (30%)") {{{
+
+-- Tasks in progress, by server and task: { client_id, name, title, message,
+-- percentage, time }
+local lsp_progress = {}
+
+local function ll_lsp_progress()
+  local p
+  -- Among several tasks, pick the latest updated one.
+  for _, task in pairs(lsp_progress) do
+    if not p or task.time > p.time then
+      p = task
+    end
+  end
+  if not p then
+    return ""
+  end
+  local text = (p.title or "") .. (p.message and " " .. p.message or "")
+  text = p.name .. ": " .. vim.trim(text .. (p.percentage and " (" .. p.percentage .. "%)" or ""))
+  -- Truncate to 50 columns
+  if vim.api.nvim_strwidth(text) > 50 then
+    text = vim.fn.strcharpart(text, 0, 49) .. "…"
+  end
+  return (text:gsub("%%", "%%%%")) -- escaped after cutting: no lone %
+end
+
+-- LspProgress/LspDetach callback: updates lsp_progress
+local function ll_on_lsp_progress(ev)
+  local id = ev.data.client_id
+  if ev.event == "LspDetach" then
+    -- A server that stops mid-task sends no "end"
+    for key, task in pairs(lsp_progress) do
+      if task.client_id == id then
+        lsp_progress[key] = nil
+      end
+    end
+  else
+    local value, key = ev.data.params.value, id .. ":" .. tostring(ev.data.params.token)
+    local client = vim.lsp.get_client_by_id(id)
+    if type(value) ~= "table" or value.kind == "end" or not client then
+      lsp_progress[key] = nil
+    else
+      local task = lsp_progress[key] or { client_id = id, name = client.name }
+      task.title = value.title or task.title -- only with the first message ("begin")
+      task.message, task.percentage, task.time = value.message, value.percentage, vim.uv.now()
+      lsp_progress[key] = task
+    end
+  end
+  require("lualine").refresh()
+end
+
+-- }}}
+
+-- LSP gear icon (when attached to a server) {{{
+
+local function ll_lsp_gear()
+  return vim.g.nerd_font and #vim.lsp.get_clients({ bufnr = 0 }) > 0 and "" or ""
+end
+
+-- }}}
+
+-- Filetype {{{
+
+-- The filetype's name (none for some), and in Python the venv: its
+-- shell prompt name, else dir name, else conda's. No name: icon_only, set
+-- here as fmt runs before the icon is added ("" would drop it too).
+local function ll_filetype_fmt(ft, self)
+  -- No name where the icon clearly says it ("C", "JS", ...). *.h: c or cpp?
+  local icon_fts = { c = true, cpp = true, javascript = true, markdown = true, typescript = true }
+  local icon_only = vim.g.nerd_font and icon_fts[ft] and vim.fn.expand("%:e") ~= "h"
+  local label = icon_only and "" or ft
+  local prompt = (vim.env.VIRTUAL_ENV_PROMPT or ""):gsub("^%((.*)%) $", "%1") -- "(name) " before 3.12
+  local env = prompt ~= "" and prompt
+    or vim.env.VIRTUAL_ENV and vim.fn.fnamemodify(vim.env.VIRTUAL_ENV, ":t")
+    or vim.env.CONDA_DEFAULT_ENV
+  if ft == "python" and env and env ~= "" then
+    label = vim.trim(label .. " (" .. env .. ")")
+  end
+  self.options.icon_only = label == ""
+  return label ~= "" and label or ft
+end
+
+-- Filetype menu: the filetype, formatting, toggles, language servers
+
+-- conform.nvim's formatting (as <leader>cf), with what it runs:
+-- "Format (ruff)" for ruff_fix/ruff_format/ruff_organize_imports, the
+-- server ("Format (clangd)") when it falls back to it. Nil if nothing would.
+local function format_menu_item()
+  local ok, conform = pcall(require, "conform")
+  if not ok then
+    return nil
+  end
+  local formatters, lsp = conform.list_formatters_to_run(0)
+  local names = vim.tbl_map(function(f)
+    return vim.fs.basename(f.command)
+  end, formatters)
+  if lsp then
+    -- The servers conform asks: as its lsp_format.get_format_clients()
+    for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0, method = "textDocument/formatting" })) do
+      table.insert(names, client.name)
+    end
+  end
+  if #names == 0 then
+    return nil
+  end
+  return {
+    label = "Format (" .. table.concat(vim.fn.uniq(names), ", ") .. ")",
+    action = function()
+      conform.format({ async = true })
+    end,
+    map = "Format buffer/selection",
+  }
+end
+
+-- :lsp restart/stop [name] (0.12), else nvim-lspconfig's :LspRestart/:LspStop
+local function lsp_command(verb, name)
+  local cmd = vim.fn.exists(":lsp") == 2 and "lsp " .. verb or "Lsp" .. verb:gsub("^%l", string.upper)
+  vim.cmd(cmd .. (name and " " .. name or ""))
+end
+
+-- Servers stopped from the menu. Disabled (:lsp disable), not just stopped:
+-- else they'd attach again to the next file opened. Offered to start again.
+local stopped_servers = {}
+
+local function lsp_menu_items()
+  local items = {}
+  local function add(label, action)
+    table.insert(items, { label = label, action = action })
+  end
+  add("LSP info", function()
+    vim.cmd("checkhealth vim.lsp")
+  end)
+  add("LSP log", function()
+    vim.cmd("tabnew " .. vim.fn.fnameescape(vim.lsp.log.get_filename()))
+  end)
+  -- Servers installed since startup (lua/plugins/lsp.lua)
+  if vim.fn.exists(":LspRescan") == 2 then
+    add("LSP rescan", function()
+      vim.cmd("LspRescan")
+    end)
+  end
+  -- mason-lspconfig's (dvim): picks one of the filetype's servers
+  if vim.fn.exists(":LspInstall") == 2 then
+    add("Install LSP…", function()
+      vim.cmd("LspInstall")
+    end)
+  end
+
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  if #clients > 1 then -- with one, its own entry
+    add("Restart all", function()
+      lsp_command("restart")
+    end)
+  end
+  for _, client in ipairs(clients) do
+    add("Restart " .. client.name, function()
+      lsp_command("restart", client.name)
+    end)
+  end
+  for _, client in ipairs(clients) do
+    add("Stop " .. client.name, function()
+      if vim.lsp.is_enabled and vim.lsp.is_enabled(client.name) then
+        vim.lsp.enable(client.name, false)
+        stopped_servers[client.name] = true
+      else -- not started by vim.lsp.enable()
+        lsp_command("stop", client.name)
+      end
+    end)
+  end
+
+  local ft = vim.bo.filetype
+  local starts = 0
+  for _, name in ipairs(vim.fn.sort(vim.tbl_keys(stopped_servers))) do
+    local filetypes = vim.lsp.config[name].filetypes
+    -- For this filetype, unless enabled again since (:lsp enable)
+    if not vim.lsp.is_enabled(name) and (not filetypes or vim.list_contains(filetypes, ft)) then
+      starts = starts + 1
+      add("Start " .. name, function()
+        stopped_servers[name] = nil
+        vim.lsp.enable(name) -- attaches it to the open buffers too
+      end)
+    end
+  end
+  -- None attached, e.g. after :lsp stop: the enabled ones, as
+  -- vim.lsp.enable() starts them for a new buffer (:lsp enable would enable
+  -- every config). Its autocmd group exists once one was enabled.
+  if #clients == 0 and starts == 0 and vim.fn.exists("#nvim.lsp.enable#FileType") == 1 then
+    add("Start servers", function()
+      vim.api.nvim_exec_autocmds("FileType", { group = "nvim.lsp.enable", buffer = 0 })
+    end)
+  end
+  return items
+end
+
+local function ll_filetype_menu()
+  local items = {
+    {
+      label = "Filetype: " .. vim.bo.filetype,
+      action = function()
+        vim.cmd("Telescope filetypes")
+      end,
+    },
+    {
+      -- e.g. after adding a shebang or renaming the file
+      label = "Autodetect",
+      action = function()
+        vim.cmd("filetype detect")
+      end,
+    },
+    "-",
+  }
+  local format = format_menu_item()
+  if format then
+    vim.list_extend(items, { format, "-" })
+  end
+  -- Inferred types and parameter names inline (as <leader>uh, per buffer)
+  if #vim.lsp.get_clients({ bufnr = 0, method = "textDocument/inlayHint" }) > 0 then
+    local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
+    table.insert(items, {
+      label = "Inlay hints",
+      checked = enabled,
+      action = function()
+        vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
+      end,
+      map = "Toggle inlay hints",
+    })
+  end
+  -- In all buffers, as <leader>ud
+  local diagnostics = vim.diagnostic.is_enabled()
+  table.insert(items, {
+    label = "Diagnostics",
+    checked = diagnostics,
+    action = function()
+      vim.diagnostic.enable(not diagnostics)
+    end,
+    map = "Toggle Diagnostics",
+  })
+  table.insert(items, "-")
+  if vim.fn.exists(":ConformInfo") == 2 then
+    table.insert(items, {
+      label = "Formatter info",
+      action = function()
+        vim.cmd("ConformInfo")
+      end,
+    })
+  end
+  popup_menu("LualineFiletype", vim.list_extend(items, lsp_menu_items()))
+end
+
+-- }}}
+
+-- Location {{{
+
 -- %v: screen column, not %c's byte column (2x on Cyrillic text)
 local function ll_location()
   return vim.api.nvim_eval_statusline("%2l:%-2v", {}).str
 end
 
-local function min_width(width)
-  return function()
-    local w = vim.o.laststatus == 3 and vim.o.columns or vim.fn.winwidth(0)
-    return w >= width
-  end
-end
+-- }}}
+
+-- Registered as require("lualine_clicks"): the click handlers, for
+-- experimenting with other statusline plugins, and the menus' own callback
+package.loaded.lualine_clicks = {
+  ll_branch_picker = ll_branch_picker,
+  ll_window_path_menu = ll_window_path_menu,
+  ll_diagnostics_picker = ll_diagnostics_picker,
+  ll_git_status = ll_git_status,
+  ll_indent_menu = ll_indent_menu,
+  ll_filetype_menu = ll_filetype_menu,
+  ll_on_menu_choice = ll_on_menu_choice, -- what the menu entries run (popup_menu)
+}
 
 return {
   {
     "nvim-lualine/lualine.nvim",
     dev = true,
-    -- Unless heirline's is used instead (init.lua). A function: checked
-    -- after all of lua/plugins/ is read, so dvim.lua can switch it.
     cond = function()
       return vim.g.statusline_plugin == "lualine"
     end,
@@ -238,60 +775,31 @@ return {
       options = {
         theme = "auto",
         component_separators = { left = "", right = "" },
-        -- Without a Nerd Font: no arrows between sections, names instead of
-        -- icons (filetype, branch), E:/W: for diagnostics
         section_separators = not vim.g.nerd_font and { left = "", right = "" } or nil,
         icons_enabled = vim.g.nerd_font,
         globalstatus = true,
       },
-      -- Own statusline for these windows (by filetype) instead of the
-      -- sections below, whose path would show e.g. oil:///home/...
+      -- Own statusline for these windows (by filetype) instead of the sections below
       extensions = { "oil", "nvim-tree", "toggleterm", "fugitive", "lazy", "quickfix", "man" },
       sections = {
         lualine_a = {
-          {
-            "mode",
-            fmt = function(mode)
-              return mode_short[mode] or mode
-            end,
-          },
+          { "mode", fmt = ll_mode_fmt },
         },
         lualine_b = {
-          { "branch", icon = "", cond = min_width(100) },
+          { "branch", icon = "", on_click = ll_branch_picker, cond = min_width(100) },
         },
         lualine_c = {
-          -- { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
-          { ll_pretty_path() },
+          { ll_pretty_path(), on_click = ll_path_menu },
         },
         lualine_x = {
-          -- Narrowing hides the least useful first: hex code, then
-          -- branch/diff (100), diagnostics last of these
-          { "diagnostics", cond = min_width(70) },
-          {
-            "diff",
-            cond = min_width(100),
-            -- gitsigns' counts: live, unsaved changes too. lualine's own runs
-            -- git diff on the saved file, only on save and buffer switch.
-            source = function()
-              local g = vim.b.gitsigns_status_dict
-              if g then
-                return { added = g.added, modified = g.changed, removed = g.removed }
-              end
-            end,
-          },
+          { "diagnostics", on_click = ll_diagnostics_picker, cond = min_width(70) },
+          { "diff", source = ll_diff_gitsigns, on_click = ll_git_status, cond = min_width(100) },
           { ll_hex_char, cond = min_width(120) },
+          { ll_indent, on_click = ll_indent_menu, cond = min_width(110) },
           { ll_encoding, cond = min_width(60) },
-          -- { "filetype", icons_enabled = false, cond = min_width(60) },
-          {
-            "filetype",
-            cond = min_width(60),
-            -- Common types: icon only. fmt runs before apply_icon(), so
-            -- toggle icon_only per buffer (returning "" would drop the icon too)
-            fmt = function(ft, self)
-              self.options.icon_only = icon_only_fts[ft] == true
-              return ft
-            end,
-          },
+          { ll_lsp_progress, icon = vim.g.nerd_font and "󰔟" or nil, cond = min_width(80) },
+          { ll_lsp_gear, on_click = ll_filetype_menu, cond = min_width(60) },
+          { "filetype", fmt = ll_filetype_fmt, on_click = ll_filetype_menu, cond = min_width(60) },
         },
         lualine_y = {
           { "progress", cond = min_width(60) },
@@ -301,5 +809,12 @@ return {
         },
       },
     },
+    config = function(_, opts)
+      require("lualine").setup(opts)
+      vim.api.nvim_create_autocmd({ "LspProgress", "LspDetach" }, {
+        group = vim.api.nvim_create_augroup("LualineLspProgress", { clear = true }),
+        callback = ll_on_lsp_progress,
+      })
+    end,
   },
 }
