@@ -3,7 +3,7 @@
 -- nvim-lspconfig only provides per-server configs (lsp/<name>.lua: command,
 -- filetypes, root markers, server quirks). Servers aren't installed from
 -- nvim: install them with apt/pipx/npm, and the ones found on $PATH get
--- enabled (see `servers`).
+-- enabled (see `servers`). :LspRescan picks up ones installed later.
 --
 -- Keys in buffers with a server. Built in, so not mapped here:
 --   K hover, grn rename, gra code action, grr references, gri implementation,
@@ -34,6 +34,29 @@ local servers = {
 }
 -- Servers to skip when another one is enabled
 local skip_if = { pyright = "basedpyright" }
+
+-- Enable the servers found on $PATH, those not enabled yet: at startup, and
+-- by :LspRescan after installing one. Returns the names newly enabled.
+local enabled = {}
+local function enable_installed()
+  local new = {}
+  for _, server in ipairs(servers) do
+    local name, exe = server[1], server[2]
+    if not enabled[name] and vim.fn.executable(exe) == 1 and not enabled[skip_if[name]] then
+      vim.lsp.enable(name)
+      enabled[name] = true
+      table.insert(new, name)
+      -- One that's skipped when this one is enabled: stop it now
+      for other, preferred in pairs(skip_if) do
+        if preferred == name and enabled[other] then
+          vim.lsp.enable(other, false)
+          enabled[other] = nil
+        end
+      end
+    end
+  end
+  return new
+end
 
 local function on_attach(ev)
   local client = vim.lsp.get_client_by_id(ev.data.client_id)
@@ -106,14 +129,11 @@ return {
       -- Off by default; would send shell code to explainshell.com on hover.
       vim.lsp.config("bashls", { settings = { bashIde = { explainshellEndpoint = "" } } })
 
-      local enabled = {}
-      for _, server in ipairs(servers) do
-        local name, exe = server[1], server[2]
-        if vim.fn.executable(exe) == 1 and not enabled[skip_if[name]] then
-          vim.lsp.enable(name)
-          enabled[name] = true
-        end
-      end
+      enable_installed()
+      vim.api.nvim_create_user_command("LspRescan", function()
+        local new = enable_installed()
+        vim.notify(#new > 0 and "Enabled " .. table.concat(new, ", ") or "No new language servers on $PATH")
+      end, { desc = "Enable language servers installed since startup" })
 
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("UserLsp", { clear = true }),
