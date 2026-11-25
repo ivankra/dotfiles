@@ -96,16 +96,6 @@ if has("eval")
   let g:netrw_dirhistmax = 0
   let g:tex_flavor = "latex"
   let g:pyindent_open_paren = "&sw"
-
-  " Per-scheme preferences, for whichever way a scheme gets applied (theme,
-  " saved or :colorscheme), as in nvim/lua/plugins/colorscheme.lua
-  let g:dracula_italic = 0
-  let g:gruvbox_contrast_dark = "hard"
-  let g:gruvbox_italic = 0
-  let g:gruvbox_italicize_comments = 0
-  let g:sonokai_style = "default"
-  let g:sonokai_enable_italic = 0
-  let g:sonokai_disable_italic_comment = 1
 end
 
 " [ cd]: cd to current file's directory (alternative: set autochdir)
@@ -115,7 +105,7 @@ xnoremap <leader>cd :<C-U>cd %:p:h<CR>gv
 
 " Typing %%/ in command mode expands to current file's directory. Only on the
 " : line, not in / searches. fnameescape(): a dir like notes#1 would otherwise
-" expand # to the alternate file. Same in nvim/init.lua.
+" expand # to the alternate file.
 cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%'
 
 " Ctrl-L also clears search highlight and updates diffs, as in nvim
@@ -142,86 +132,6 @@ if has("autocmd")
     " otherwise set 'syntax' again.
     autocmd BufReadPost * if getfsize(expand("<afile>")) > 10485760 | setlocal syntax=OFF fdm=manual | endif
   augroup END
-endif
-
-" Colorschemes
-if has("eval") && has("autocmd")
-  augroup vimrc_colors
-    autocmd!
-  augroup END
-
-  " Last :colorscheme (name, 'background'): sticks across restarts until a
-  " theme switch (see ~/.dotfiles/themes/) deletes this file. In XDG state,
-  " where vim's own $VIMRUNTIME/xdg.vim puts viminfo. Not nvim's.
-  let s:saved_colors = (empty($XDG_STATE_HOME) ? expand("~/.local/state") : $XDG_STATE_HOME)
-        \ . "/vim/colorscheme"
-
-  function! s:ApplySavedColors() abort
-    let lines = filereadable(s:saved_colors) ? readfile(s:saved_colors) : []
-    if len(lines) < 2 || lines[0] == ""
-      return 0
-    endif
-    let bg = &background
-    try
-      let &background = lines[1]
-      execute "colorscheme" fnameescape(lines[0])
-      return 1
-    catch
-      " Scheme gone or broken: fall back to the theme. Unset colors_name
-      " first, or restoring 'background' would reload the broken scheme.
-      unlet! g:colors_name
-      let &background = bg
-      return 0
-    endtry
-  endfunction
-
-  function! s:SaveColors() abort
-    " The variant actually shown, if it's a scheme of its own, else the name
-    " it was loaded by (<amatch>)
-    let name = get(g:, "colors_name", "")
-    if name == "" || index(getcompletion(name, "color"), name) < 0
-      let name = expand("<amatch>")
-    endif
-    if name == ""  " :doautocmd ColorScheme without a name
-      return
-    endif
-    call mkdir(fnamemodify(s:saved_colors, ":h"), "p")
-    call writefile([name, &background], s:saved_colors)
-  endfunction
-
-  " Saved colorscheme, else the current theme (see ~/.dotfiles/themes/).
-  " Not over one given with -c, which runs before VimEnter.
-  function! s:ApplyStartupColors() abort
-    if exists("g:colors_name") || s:ApplySavedColors()
-      return
-    endif
-    if filereadable(expand("~/.config/theme/vim.vim"))
-      source ~/.config/theme/vim.vim
-    endif
-  endfunction
-endif
-
-if $COLORFGBG == "" || $COLORFGBG == "15;default;0" || $COLORFGBG == "15;0" || has("gui_running")
-  set background=dark  " all themes are dark
-  " The scheme on VimEnter, not now: packages (pack/*/start) get on
-  " 'runtimepath' only after vimrc, and a scheme from one may :runtime its
-  " other files (dracula: autoload/, dracula_base.vim), finding none before.
-  if has("eval") && has("autocmd")
-    autocmd vimrc_colors VimEnter * ++once call s:ApplyStartupColors()
-  elseif filereadable(expand("~/.config/theme/vim.vim"))
-    source ~/.config/theme/vim.vim
-  endif
-else
-  set background=light
-  colorscheme fruidle
-endif
-
-" Save later :colorscheme changes. Only from VimEnter (after the scheme
-" above, autocmds run in order), so applying it doesn't count. Changing
-" 'background' reloads the scheme, so that's saved too.
-if has("eval") && has("autocmd")
-  autocmd vimrc_colors VimEnter * ++once
-        \ autocmd vimrc_colors ColorScheme * call s:SaveColors()
 endif
 
 if has("gui_running")

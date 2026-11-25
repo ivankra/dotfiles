@@ -32,8 +32,8 @@ The theme can also be switched as part of a full setup run:
   spec in `nvim/lua/plugins/colorscheme.lua` or from `nvim/colors/`. Vim sources
   the theme's `vim.vim`, which sets `background` and runs `:colorscheme`.
 - **Options** (e.g. no italics) are set per scheme in
-  `nvim/lua/plugins/colorscheme.lua` and `vim/vimrc`, so they apply however the
-  scheme gets chosen.
+  `nvim/lua/plugins/colorscheme.lua` and `vim/plugin/colorscheme.vim`, so they
+  apply however the scheme gets chosen.
 - **Sticky `:colorscheme`:** the last `:colorscheme` (and `'background'`) is
   saved to `~/.local/state/nvim/colorscheme` (vim: `~/.local/state/vim/colorscheme`)
   and used instead of the theme's scheme at startup. Switching themes either
