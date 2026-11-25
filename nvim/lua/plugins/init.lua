@@ -111,6 +111,51 @@ return {
     dev = true,
     cmd = "Telescope",
     dependencies = { "nvim-lua/plenary.nvim" },
+    -- Use telescope's dropdown for vim.ui.select() (numbered list picker, :LspInstall, ...)
+    init = function()
+      vim.ui.select = function(items, opts, on_choice)
+        opts = opts or {}
+        local format = opts.format_item or tostring
+        local actions = require("telescope.actions")
+        local results = {}
+        for i, item in ipairs(items) do
+          results[i] = { i, item }
+        end
+        local chosen = false -- else on_choice(nil) on close, as the spec says
+        require("telescope.pickers")
+          .new(require("telescope.themes").get_dropdown(), {
+            prompt_title = (opts.prompt or "Select"):gsub(":%s*$", ""),
+            finder = require("telescope.finders").new_table({
+              results = results,
+              entry_maker = function(result)
+                local text = format(result[2])
+                return { value = result, display = result[1] .. ". " .. text, ordinal = text }
+              end,
+            }),
+            sorter = require("telescope.config").values.generic_sorter({}),
+            attach_mappings = function(prompt_bufnr)
+              actions.select_default:replace(function()
+                local entry = require("telescope.actions.state").get_selected_entry()
+                chosen = entry ~= nil
+                actions.close(prompt_bufnr)
+                if entry then
+                  on_choice(entry.value[2], entry.value[1])
+                end
+              end)
+              actions.close:enhance({
+                post = function()
+                  if not chosen then
+                    chosen = true
+                    on_choice(nil, nil)
+                  end
+                end,
+              })
+              return true
+            end,
+          })
+          :find()
+      end
+    end,
     keys = {
       { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files" },
       { "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Recent Files" },
