@@ -52,6 +52,13 @@ set statusline+=\ \ %y                  " FileType: [python]
 set statusline+=\ %3l:%-2c              " line:col
 set statusline+=\ %P                    " Percentage through file
 
+" 24-bit color in terminals that announce it (kitty, Ghostty, WezTerm, ...) or,
+" e.g. over ssh where $COLORTERM is dropped, look like xterm/tmux; not in the
+" Linux console
+if has("termguicolors") && ($COLORTERM =~# '^\%(truecolor\|24bit\)$' || $TERM =~# '^\%(xterm\|screen\|tmux\)-256color$')
+  set termguicolors
+endif
+
 " Yank/paste via the system clipboard: "+" on X11/Wayland.
 " macOS has one "*" and yanks into it only with "unnamed".
 if has("mac")
@@ -60,11 +67,25 @@ else
   set clipboard=unnamedplus
 endif
 
-" 24-bit color in terminals that announce it (kitty, Ghostty, WezTerm, ...) or,
-" e.g. over ssh where $COLORTERM is dropped, look like xterm/tmux; not in the
-" Linux console
-if has("termguicolors") && ($COLORTERM =~# '^\%(truecolor\|24bit\)$' || $TERM =~# '^\%(xterm\|screen\|tmux\)-256color$')
-  set termguicolors
+" Clipboard fallback after X11/Wayland (e.g. SSH): copy-only OSC 52.
+" Forced: few terminals announce it. No paste: often unsupported/behind prompt.
+if has("eval") && exists("+clipmethod") && exists("v:clipproviders")
+  let g:osc52_force_avail = 1
+  let g:osc52_disable_paste = 1
+  silent! packadd osc52
+  if has_key(v:clipproviders, "osc52")
+    set clipmethod+=osc52
+  endif
+endif
+
+" Optional packages bundled with Vim 9.1+, for what nvim has built in.
+" silent!: older Vims don't have them.
+if has("eval")
+  silent! packadd! comment       " gc{motion}, gcc: toggle comments. Ctrl+/ in plugin/comment.vim
+  silent! packadd! editorconfig  " Apply .editorconfig (vim-sleuth reads its indent settings too)
+  silent! packadd! hlyank        " Highlight yanked text briefly
+  silent! packadd! matchit       " Extend % to if/else/endif etc
+  silent! packadd! nohlsearch    " Clear search highlight after 'updatetime' idle or in Insert mode
 endif
 
 if has("eval")
@@ -86,16 +107,6 @@ if has("eval")
   let g:sonokai_enable_italic = 0
   let g:sonokai_disable_italic_comment = 1
 end
-
-" Optional packages bundled with Vim 9.1+, for what nvim has built in.
-" silent!: older Vims don't have them.
-if has("eval")
-  silent! packadd! comment       " gc{motion}, gcc: toggle comments. Ctrl+/ in plugin/comment.vim
-  silent! packadd! editorconfig  " Apply .editorconfig (vim-sleuth reads its indent settings too)
-  silent! packadd! hlyank        " Highlight yanked text briefly
-  silent! packadd! matchit       " Extend % to if/else/endif etc
-  silent! packadd! nohlsearch    " Clear search highlight after 'updatetime' idle or in Insert mode
-endif
 
 " [ cd]: cd to current file's directory (alternative: set autochdir)
 nnoremap <leader>cd :cd %:p:h<CR>
