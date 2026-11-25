@@ -169,6 +169,9 @@ return {
   {
     "akinsho/bufferline.nvim",
     dev = true,
+    cond = function()
+      return vim.g.statusline_plugin ~= "heirline"
+    end,
     event = "VimEnter",
     dependencies = { vim.g.icons_plugin },
     opts = {

@@ -109,6 +109,7 @@ end
 -- }}}
 
 if host == "dvim" then -- (treesitter + mason) {{{
+  vim.g.statusline_plugin = "heirline"
   return treesitter_mason()
   --- }}}
 elseif host == "dvim-claudecode" then -- (+claudecode.nvim) {{{
@@ -144,6 +145,10 @@ elseif host == "dvim-claudecode" then -- (+claudecode.nvim) {{{
       },
     },
   })
+  -- }}}
+elseif host == "dvim-heirline" then -- (heirline.nvim statusline) {{{
+  vim.g.statusline_plugin = "heirline"
+  return {}
   -- }}}
 elseif host == "dvim-org" then -- (nvim-orgmode + org-roam.nvim) {{{
   return {
