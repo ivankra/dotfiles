@@ -21,11 +21,6 @@ vim.opt.undofile = true                 -- Persistent undo history
 vim.opt.virtualedit = "block"           -- Allow cursor to move past end-of-line in block selection mode
 vim.opt.wildmode = "longest:full,full"  -- completion mode like readline's show-all-if-ambiguous
 
--- Yank/paste using X11 clipboard, except over SSH (OSC 52)
-vim.schedule(function()
-  vim.opt.clipboard = vim.env.SSH_CONNECTION and "" or "unnamedplus"
-end)
-
 -- 24-bit color: 0.10+ turns it on by itself when the terminal supports it
 -- ($COLORTERM, terminfo, or asking the terminal, which also works over ssh),
 -- and leaves it off in e.g. the Linux console. Older nvim needs it set.
