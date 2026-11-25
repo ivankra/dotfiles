@@ -81,32 +81,6 @@ end
 vim.g.mapleader = " " -- <leader> key
 vim.g.maplocalleader = "\\"
 
--- Window navigation: Ctrl+hjkl/arrows to switch windows
-vim.keymap.set("n", "<C-h>", "<C-w><C-h>", { desc = "Go to left window" })
-vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Go to lower window" })
-vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Go to upper window" })
--- Also what the default <C-l> does: clear search highlight, update diffs
-vim.keymap.set("n", "<C-l>", "<Cmd>nohlsearch|diffupdate|redraw!<CR><C-w>l", { desc = "Go to right window + redraw" })
-vim.keymap.set("n", "<S-Left>", "<C-w><C-h>", { desc = "Go to left window" })
-vim.keymap.set("n", "<S-Down>", "<C-w><C-j>", { desc = "Go to lower window" })
-vim.keymap.set("n", "<S-Up>", "<C-w><C-k>", { desc = "Go to upper window" })
-vim.keymap.set("n", "<S-Right>", "<C-w>l", { desc = "Go to right window", silent = true })
-
--- Buffers (bufferline will override some of these if loaded)
--- Shift+PgUp/Down to switch buffers (rationale: next to Ctrl - switch tabs)
-vim.keymap.set({ "n", "i" }, "<S-PageUp>", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
-vim.keymap.set({ "n", "i" }, "<S-PageDown>", "<cmd>bnext<cr>", { desc = "Next buffer" })
-vim.keymap.set("n", "[b", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
-vim.keymap.set("n", "]b", "<cmd>bnext<cr>", { desc = "Next buffer" })
-vim.keymap.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to other buffer" })
-
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
-vim.keymap.set("n", "<leader>cd", ":cd %:p:h<CR>", { desc = "Change to current file's directory" })
-
--- Typing %%/ in command mode expands to current file's directory
--- fnameescape(): a dir like notes#1 would otherwise expand # to the alternate file
-vim.cmd([[cabbr <expr> %% getcmdtype() == ':' ? fnameescape(expand('%:p:h')) : '%%']])
-
 vim.g.in_container = vim.env.container ~= nil
   or vim.uv.fs_stat("/run/.containerenv") ~= nil
   or vim.uv.fs_stat("/.dockerenv") ~= nil
@@ -161,3 +135,4 @@ require("lazy").setup({
 --
 -- Autoloaded lua plugins in ~/.config/nvim/plugin/:
 -- * autocmds.lua: autocommands (reload changed files, restore cursor, ...)
+-- * keymaps.lua: key mappings (window navigation, buffers, ...)

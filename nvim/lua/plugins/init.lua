@@ -185,6 +185,7 @@ return {
         { "<leader>u", group = "ui" },
         { "<leader>g", group = "git" },
         { "<leader>gh", group = "hunks" },
+        { "<leader>x", group = "quickfix" },
       },
     },
     keys = {

@@ -32,6 +32,9 @@ return {
     dev = true,
     event = "VimEnter",
     dependencies = { "nvim-lua/plenary.nvim" },
+    keys = {
+      { "<leader>ft", "<cmd>TodoTelescope<cr>", desc = "Todo comments" },
+    },
     opts = {
       signs = false,
       -- Accept TODO(text) pattern

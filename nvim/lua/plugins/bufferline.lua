@@ -143,7 +143,7 @@ return {
     keys = {
       { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev buffer" },
       { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next buffer" },
-      -- Insert mode too, as nvim/init.lua's :bprevious/:bnext fallbacks
+      -- Insert mode too, as plugin/keymaps.lua's :bprevious/:bnext fallbacks
       { "<S-PageUp>", "<cmd>BufferLineCyclePrev<cr>", mode = { "n", "i" }, desc = "Prev buffer" },
       { "<S-PageDown>", "<cmd>BufferLineCycleNext<cr>", mode = { "n", "i" }, desc = "Next buffer" },
       {
