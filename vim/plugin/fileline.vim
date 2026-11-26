@@ -73,7 +73,14 @@ function! s:gotoline()
 
   if len(newfile) > 0
     let l:bufn = bufnr("%")
-    exec "edit " . fnameescape(newfile)
+    " Set while opening: restore-cursor autocmds (nvim/plugin/autocmds.lua)
+    " skip the file, the cursor goes to the given line instead
+    let g:fileline_jump = !empty(row)
+    try
+      exec "edit " . fnameescape(newfile)
+    finally
+      unlet! g:fileline_jump
+    endtry
     if len(col) > 0
       call cursor(row, col)
     elseif !empty(row)

@@ -112,6 +112,10 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     if ft:find("commit") or ft == "gitrebase" or ft == "xxd" or vim.wo.diff then
       return
     end
+    -- Opened as file:line (fileline.vim): goes to that line instead
+    if vim.g.fileline_jump == 1 then
+      return
+    end
     local line = vim.api.nvim_buf_get_mark(ev.buf, '"')[1]
     local last = vim.api.nvim_buf_line_count(ev.buf)
     if line >= 1 and line <= last then
