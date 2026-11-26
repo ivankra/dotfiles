@@ -99,6 +99,72 @@ local function drag_keymaps()
   end, { expr = true, desc = "End dragging a buffer tab" })
 end
 
+-- nvim-tree's root, shown above the tree while the tabline is.
+-- package.loaded: require would load nvim-tree.
+local function tree_root()
+  local core = package.loaded["nvim-tree.core"]
+  local root = core and core.get_cwd()
+  return root and vim.fn.fnamemodify(root, ":~") or ""
+end
+
+-- Tree root's colors, falling back to nvim-tree's links before it loads
+local function tree_root_hl()
+  local function get(name, fallback)
+    local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
+    return vim.tbl_isempty(hl) and vim.api.nvim_get_hl(0, { name = fallback, link = false }) or hl
+  end
+  local root = get("NvimTreeRootFolder", "Title")
+  local normal = get("NvimTreeNormal", "Normal")
+  vim.api.nvim_set_hl(0, "BufferLineTreeRoot", { fg = root.fg, bg = normal.bg, bold = root.bold })
+end
+
+-- Saved root_folder_label while hidden
+local tree_label
+
+-- Hide the tree's root row while the tabline shows, restore it otherwise.
+-- Called mid-render, so the redraw is scheduled.
+local function sync_tree_root_row()
+  local config = package.loaded["nvim-tree.config"]
+  local renderer = config and config.g and config.g.renderer
+  if not renderer then
+    return
+  end
+  local shown = vim.o.showtabline == 2
+  if shown == (renderer.root_folder_label == false) then
+    return
+  end
+  if shown then
+    tree_label, renderer.root_folder_label = renderer.root_folder_label, false
+  elseif tree_label ~= nil then -- nil: hidden by the tree's own config
+    renderer.root_folder_label, tree_label = tree_label, nil
+  else
+    return
+  end
+  vim.schedule(function()
+    local api = require("nvim-tree.api")
+    local explorer = require("nvim-tree.core").get_explorer()
+    if not (explorer and api.tree.is_visible()) then
+      return
+    end
+    local win = api.tree.winid()
+    local cursor = vim.api.nvim_win_get_cursor(win)
+    explorer.renderer:draw()
+    local rows = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(win))
+    local row = math.max(1, math.min(rows, cursor[1] + (shown and -1 or 1)))
+    vim.api.nvim_win_set_cursor(win, { row, cursor[2] })
+  end)
+end
+
+-- Sync after each render, where bufferline toggles 'showtabline'
+local function wrap_tabline()
+  local render = _G.nvim_bufferline
+  _G.nvim_bufferline = function()
+    local str, segments = render()
+    sync_tree_root_row()
+    return str, segments
+  end
+end
+
 return {
   {
     "akinsho/bufferline.nvim",
@@ -138,15 +204,21 @@ return {
         left_trunc_marker = not vim.g.nerd_font and "<" or nil,
         right_trunc_marker = not vim.g.nerd_font and ">" or nil,
         indicator = not vim.g.nerd_font and { style = "none" } or nil,
-        offsets = {
+        -- Space above file trees: nvim-tree's root, else blank (dvim profiles)
+        offsets = vim.list_extend(
           {
-            filetype = "NvimTree",
-            text = "File Explorer",
-            highlight = "Directory",
-            text_align = "left",
-            separator = true,
+            {
+              filetype = "NvimTree",
+              text = tree_root,
+              text_align = "left",
+              highlight = "BufferLineTreeRoot",
+              separator = true,
+            },
           },
-        },
+          vim.tbl_map(function(filetype)
+            return { filetype = filetype, highlight = "BufferLineFill", separator = true }
+          end, { "neo-tree", "snacks_layout_box" })
+        ),
       },
       -- Bufferline's defaults for the colorscheme, then these
       highlights = function(defaults)
@@ -164,6 +236,12 @@ return {
       require("bufferline").setup(opts)
       plain_inactive_icons()
       drag_keymaps()
+      wrap_tabline()
+      tree_root_hl()
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        group = vim.api.nvim_create_augroup("BufferLineTreeRoot", { clear = true }),
+        callback = tree_root_hl,
+      })
     end,
     keys = {
       { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev buffer" },

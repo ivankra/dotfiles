@@ -16,6 +16,12 @@ return {
     dev = true,
     event = { "BufReadPre", "BufNewFile" },
     opts = {
+      -- Tabs: shiftwidth 0 follows 'tabstop', a tab per level. The default sets
+      -- only noexpandtab, leaving the global sw=2 (>> would indent 2 spaces).
+      on_tab_options = {
+        expandtab = false,
+        shiftwidth = 0,
+      },
       -- Must restate the defaults: setup() merges shallowly, so this table replaces them.
       on_space_options = {
         expandtab = true,
@@ -33,7 +39,8 @@ return {
     event = "VimEnter",
     dependencies = { "nvim-lua/plenary.nvim" },
     keys = {
-      { "<leader>ft", "<cmd>TodoTelescope<cr>", desc = "Todo comments" },
+      -- Telescope is 0.11+
+      vim.fn.has("nvim-0.11") == 1 and { "<leader>ft", "<cmd>TodoTelescope<cr>", desc = "Todo comments" } or nil,
     },
     opts = {
       signs = false,

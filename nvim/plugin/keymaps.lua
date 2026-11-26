@@ -31,9 +31,10 @@ end
 --- }}}
 
 -- Toggle quickfix/location list: <leader>xq/<leader>xl {{{
--- Errors (e.g. E776: No location list) as a notification
+-- Errors (e.g. E776: No location list) as a notification. Commands as
+-- strings: vim.cmd.cclose etc. are 0.8+
 local function toggle_list(is_open, close, open)
-  local ok, err = pcall(is_open() and close or open)
+  local ok, err = pcall(vim.cmd, is_open() and close or open)
   if not ok then
     vim.notify(err, vim.log.levels.ERROR)
   end
@@ -41,12 +42,12 @@ end
 vim.keymap.set("n", "<leader>xq", function()
   toggle_list(function()
     return vim.fn.getqflist({ winid = 0 }).winid ~= 0
-  end, vim.cmd.cclose, vim.cmd.copen)
+  end, "cclose", "copen")
 end, { desc = "Quickfix list" })
 vim.keymap.set("n", "<leader>xl", function()
   toggle_list(function()
     return vim.fn.getloclist(0, { winid = 0 }).winid ~= 0
-  end, vim.cmd.lclose, vim.cmd.lopen)
+  end, "lclose", "lopen")
 end, { desc = "Location list" })
 --- }}}
 
@@ -66,6 +67,12 @@ if vim.diagnostic.jump then
   vim.keymap.set("n", "[w", diagnostic_goto(false, "WARN"), { desc = "Prev warning" })
 end
 --- }}}
+
+-- n forward, N backward, also after ? and #. zv: mappings skip 'foldopen'
+vim.keymap.set("n", "n", "'Nn'[v:searchforward].'zv'", { expr = true, desc = "Next search result" })
+vim.keymap.set({ "x", "o" }, "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
+vim.keymap.set("n", "N", "'nN'[v:searchforward].'zv'", { expr = true, desc = "Prev search result" })
+vim.keymap.set({ "x", "o" }, "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 
 -- Clear search highlight: Esc
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })

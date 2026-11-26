@@ -8,6 +8,8 @@ pointing at `run.sh`. Each one loads a different plugin set:
 
   * `dvim`: IDE-like setup with treesitter and mason
   * `dvim-obsidian`: [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim), with `$PWD` as the vault
+  * `dvim-snacks`: [snacks.nvim](https://github.com/folke/snacks.nvim)'s file explorer instead of nvim-tree
+  * `dvim-neotree`: [neo-tree](https://github.com/nvim-neo-tree/neo-tree.nvim) instead of nvim-tree
 
 Unlike the other images here, dvim is not standalone. It runs the regular
 nvim config from [`../../nvim`](../../nvim), with extra plugins layered on

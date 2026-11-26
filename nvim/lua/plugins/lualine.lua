@@ -197,10 +197,17 @@ end
 
 -- }}}
 
+-- Telescope picker. None before 0.11 (no telescope)
+local function telescope(picker)
+  if vim.fn.exists(":Telescope") == 2 then
+    vim.cmd("Telescope " .. picker)
+  end
+end
+
 -- Branch {{{
 
 local function ll_branch_picker()
-  vim.cmd("Telescope git_branches")
+  telescope("git_branches")
 end
 
 -- }}}
@@ -344,7 +351,7 @@ end
 -- Diagnostics {{{
 
 local function ll_diagnostics_picker()
-  vim.cmd("Telescope diagnostics bufnr=0")
+  telescope("diagnostics bufnr=0")
 end
 
 -- }}}
@@ -491,33 +498,24 @@ end
 
 -- }}}
 
--- LSP gear icon (when attached to a server) {{{
-
-local function ll_lsp_gear()
-  return vim.g.nerd_font and #vim.lsp.get_clients({ bufnr = 0 }) > 0 and "" or ""
-end
-
--- }}}
-
 -- Filetype {{{
 
--- The filetype's name (none for some), and in Python the venv: its
--- shell prompt name, else dir name, else conda's. No name: icon_only, set
--- here as fmt runs before the icon is added ("" would drop it too).
-local function ll_filetype_fmt(ft, self)
-  -- No name where the icon clearly says it ("C", "JS", ...). *.h: c or cpp?
-  local icon_fts = { c = true, cpp = true, javascript = true, markdown = true, typescript = true }
-  local icon_only = vim.g.nerd_font and icon_fts[ft] and vim.fn.expand("%:e") ~= "h"
-  local label = icon_only and "" or ft
+-- The filetype's name (its icon is left of the path), and in Python the venv:
+-- its shell prompt name, else dir name, else conda's. A gear in front while a
+-- language server is attached.
+local function ll_filetype_fmt(ft)
+  local label = ft
   local prompt = (vim.env.VIRTUAL_ENV_PROMPT or ""):gsub("^%((.*)%) $", "%1") -- "(name) " before 3.12
   local env = prompt ~= "" and prompt
     or vim.env.VIRTUAL_ENV and vim.fn.fnamemodify(vim.env.VIRTUAL_ENV, ":t")
     or vim.env.CONDA_DEFAULT_ENV
   if ft == "python" and env and env ~= "" then
-    label = vim.trim(label .. " (" .. env .. ")")
+    label = label .. " (" .. env .. ")"
   end
-  self.options.icon_only = label == ""
-  return label ~= "" and label or ft
+  if #vim.lsp.get_clients({ bufnr = 0 }) > 0 then
+    label = (vim.g.nerd_font and "\u{f013} " or "LSP ") .. label
+  end
+  return label
 end
 
 -- Filetype menu: the filetype, formatting, toggles, language servers
@@ -637,7 +635,7 @@ local function ll_filetype_menu()
     {
       label = "Filetype: " .. vim.bo.filetype,
       action = function()
-        vim.cmd("Telescope filetypes")
+        telescope("filetypes")
       end,
     },
     {
@@ -758,8 +756,11 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     dev = true,
+    -- 0.10+: the components below use vim.iter, vim.lsp.get_clients,
+    -- vim.diagnostic.is_enabled etc. (lualine itself would run on older).
+    -- Older nvim keeps its own statusline.
     cond = function()
-      return vim.g.statusline_plugin == "lualine"
+      return vim.g.statusline_plugin == "lualine" and vim.fn.has("nvim-0.10") == 1
     end,
     dependencies = { vim.g.icons_plugin },
     opts = {
@@ -788,6 +789,16 @@ return {
             cond = min_width(70),
             separator = vim.g.nerd_font and "\u{e0b1}" or ">",
           },
+          -- The filetype's icon (its name is on the right)
+          {
+            "filetype",
+            icon_only = true,
+            separator = "",
+            padding = { left = 1, right = 0 },
+            cond = function()
+              return vim.g.nerd_font
+            end,
+          },
           { ll_pretty_path(), on_click = ll_path_menu },
         },
         lualine_x = {
@@ -797,8 +808,13 @@ return {
           { ll_hex_char, cond = min_width(120) },
           { ll_indent, on_click = ll_indent_menu, cond = min_width(110) },
           { ll_encoding, cond = min_width(60) },
-          { ll_lsp_gear, on_click = ll_filetype_menu, cond = min_width(60) },
-          { "filetype", fmt = ll_filetype_fmt, on_click = ll_filetype_menu, cond = min_width(60) },
+          {
+            "filetype",
+            fmt = ll_filetype_fmt,
+            icons_enabled = false,
+            on_click = ll_filetype_menu,
+            cond = min_width(60),
+          },
         },
         lualine_y = {
           { "progress", cond = min_width(60) },
@@ -810,7 +826,26 @@ return {
       },
     },
     config = function(_, opts)
-      require("lualine").setup(opts)
+      local lualine = require("lualine")
+      lualine.setup(opts)
+      -- While typing a command (laststatus=0, plugin/ui2.lua), split windows'
+      -- statuslines: drawn as the separator they replace
+      local statusline = lualine.statusline
+      lualine.statusline = function(...)
+        if vim.o.laststatus == 0 then
+          local horiz = vim.opt.fillchars:get().horiz or "─"
+          return ("%%#WinSeparator#%%{repeat('%s', winwidth(0))}"):format(horiz)
+        end
+        return statusline(...)
+      end
+      vim.api.nvim_create_autocmd({ "CmdlineEnter", "CmdlineLeave" }, {
+        group = vim.api.nvim_create_augroup("LualineCmdline", { clear = true }),
+        callback = function()
+          vim.schedule(function() -- after ui2.lua's laststatus change
+            lualine.refresh({ scope = "tabpage", place = { "statusline" }, force = true })
+          end)
+        end,
+      })
       -- Not among lualine's refresh events. On RecordingLeave the register is
       -- still being recorded: refresh once that's done.
       vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
@@ -821,10 +856,20 @@ return {
       })
       -- Pending keys (ll_showcmd): after each key has been handled. Checked
       -- each time: plugin/ui2.lua sets cmdheight=0 only after this runs.
+      -- One refresh queued at a time: keys that come in faster (pasted,
+      -- mappings) share it. None while a macro runs: on_key sees each of its
+      -- keys, and a long @q queued a refresh per key, all run after it ended.
+      -- The next key typed, or lualine's timer, refreshes after it.
+      local refresh_pending = false
       vim.on_key(function()
-        if cmdline_hidden() then
-          vim.schedule(require("lualine").refresh)
+        if refresh_pending or not cmdline_hidden() or vim.fn.reg_executing() ~= "" then
+          return
         end
+        refresh_pending = true
+        vim.schedule(function()
+          refresh_pending = false
+          require("lualine").refresh()
+        end)
       end, vim.api.nvim_create_namespace("LualineShowcmd"))
     end,
   },

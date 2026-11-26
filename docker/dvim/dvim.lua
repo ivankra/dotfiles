@@ -7,8 +7,12 @@ end
 
 local host = vim.uv.os_gethostname() -- from podman --hostname
 
--- IDE-like config: treesitter + mason
-if host == "dvim" then
+if host == "dvim" then -- (treesitter + mason) {{{
+  --Unattended install (:MasonInstall blocks when headless; nvim-treesitter's install() is async, so wait):
+  --RUN nvim --headless "+Lazy! sync" "+qa"
+  --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua ruff prettier shfmt" "+qa"
+  --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
+
   vim.opt.number = true
   vim.opt.signcolumn = "yes"
   -- vim.opt.statuscolumn = "%4l %s"
@@ -106,16 +110,8 @@ if host == "dvim" then
       dependencies = { "mason-org/mason-lspconfig.nvim" },
     },
   }
-
-  --Unattended install (:MasonInstall blocks when headless; nvim-treesitter's install() is async, so wait):
-  --RUN nvim --headless "+Lazy! sync" "+qa"
-  --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua ruff prettier shfmt" "+qa"
-  --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
-
-  -- org + org-roam for nvim
-  -- https://github.com/nvim-orgmode/orgmode (3.6k★)
-  -- https://github.com/chipsenkbeil/org-roam.nvim (0.25k★)
-elseif host == "dvim-org" then
+  -- }}}
+elseif host == "dvim-org" then -- (nvim-orgmode + org-roam.nvim) {{{
   return {
     {
       "nvim-orgmode/orgmode",
@@ -144,9 +140,8 @@ elseif host == "dvim-org" then
       end,
     },
   }
-
--- https://github.com/obsidian-nvim/obsidian.nvim (1.4k★)
-elseif host == "dvim-obsidian" then
+  -- }}}
+elseif host == "dvim-obsidian" then -- (obsidian.nvim, $PWD=vault) {{{
   vim.opt.conceallevel = 2
 
   return {
@@ -172,22 +167,61 @@ elseif host == "dvim-obsidian" then
         "nvim-lua/plenary.nvim",
         -- optional
         "nvim-treesitter/nvim-treesitter", -- markdown syntax highlighting
-        "hrsh7th/nvim-cmp", -- for completion of note references
+        -- "hrsh7th/nvim-cmp", -- for completion of note references
       },
     },
   }
-elseif host == "dvim-devicons" then
-  -- nvim-web-devicons instead of mini.icons
-
+  -- }}}
+elseif host == "dvim-devicons" then -- (nvim-web-devicons) {{{
   vim.g.icons_plugin = "nvim-tree/nvim-web-devicons"
   return {
     { "nvim-mini/mini.icons", enabled = false },
     { "nvim-tree/nvim-web-devicons", lazy = true, opts = {} },
   }
-elseif host:sub(1, 5) == "dvim-" then
-  error("Unknown HOST=" .. host)
-
--- Some other container (toolbox, distrobox, ...): no extra plugins
+  -- }}}
+elseif host == "dvim-snacks" then -- (snacks.nvim's explorer) {{{
+  return {
+    { "nvim-tree/nvim-tree.lua", enabled = false },
+    {
+      "folke/snacks.nvim",
+      lazy = false,
+      opts = { explorer = { replace_netrw = false } },
+      keys = {
+        -- stylua: ignore start
+        { "<C-B>", function() Snacks.explorer() end, desc = "Toggle Explorer" },
+        { "<leader>e", function() Snacks.explorer() end, desc = "Toggle Explorer" },
+        -- stylua: ignore end
+      },
+    },
+  }
+  -- }}}
+elseif host == "dvim-neotree" then -- (neo-tree.nvim) {{{
+  return {
+    { "nvim-tree/nvim-tree.lua", enabled = false },
+    {
+      "nvim-neo-tree/neo-tree.nvim",
+      cmd = "Neotree",
+      dependencies = { "nvim-lua/plenary.nvim", "MunifTanjim/nui.nvim", vim.g.icons_plugin },
+      keys = {
+        { "<C-B>", "<Cmd>Neotree toggle reveal<CR>", desc = "Toggle Explorer" },
+        { "<leader>e", "<Cmd>Neotree toggle reveal<CR>", desc = "Toggle Explorer" },
+        { "<leader>ge", "<Cmd>Neotree git_status toggle<CR>", desc = "Git Explorer" },
+        { "<leader>be", "<Cmd>Neotree buffers toggle<CR>", desc = "Buffer Explorer" },
+      },
+      opts = {
+        sources = { "filesystem", "buffers", "git_status" },
+        filesystem = {
+          follow_current_file = { enabled = true },
+          use_libuv_file_watcher = true,
+          hijack_netrw_behavior = "disabled",
+        },
+        window = {
+          mappings = { ["l"] = "open", ["h"] = "close_node", ["<space>"] = "none" },
+        },
+      },
+    },
+  }
+  -- }}}
 else
   return {}
 end
