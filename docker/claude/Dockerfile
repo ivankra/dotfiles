@@ -13,4 +13,9 @@ ENV BASH_MAX_OUTPUT_LENGTH=5000 \
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     cp -L /root/.local/bin/claude /usr/local/bin/claude
 
+# For dvim-claudecode
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends neovim tree-sitter-cli && \
+    rm -rf /var/lib/apt/lists/*
+
 CMD claude
