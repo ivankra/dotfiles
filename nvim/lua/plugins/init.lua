@@ -262,7 +262,7 @@ return {
     -- <C-Space> not in insert mode or on the : line: blink.cmp's (above).
     -- Terminals that send <C-`> as <C-Space> (NUL), like gnome-terminal and
     -- ptyxis, toggle with Ctrl+` there too.
-    cmd = { "ToggleTerm", "TermExec" },
+    cmd = { "ToggleTerm", "TermExec", "TermNew" },
     -- No rhs: the first press loads the plugin, then hits its open_mapping
     keys = {
       { "<C-`>", mode = { "n", "i" }, desc = "Toggle terminal" },
