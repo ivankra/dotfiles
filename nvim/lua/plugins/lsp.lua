@@ -70,6 +70,7 @@ local function on_attach(ev)
   map("n", "<F2>", vim.lsp.buf.rename, "Rename symbol")
   map("n", "<F12>", vim.lsp.buf.definition, "Go to definition")
   map("n", "<S-F12>", vim.lsp.buf.references, "Find references")
+  map("n", "<C-F12>", vim.lsp.buf.implementation, "Go to implementation")
   map({ "n", "x" }, "<C-.>", vim.lsp.buf.code_action, "Code action")
   if client:supports_method("textDocument/declaration") then
     map("n", "gD", vim.lsp.buf.declaration, "Go to declaration")

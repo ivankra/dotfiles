@@ -1,4 +1,4 @@
-" [Ctrl+/] toggles line comments, like VS Code: gcc / visual gc, built into
+" Ctrl+/ toggles line comments, like VS Code: gcc / visual gc, built into
 " nvim 0.10+; in Vim, the comment package (packadd! in vimrc), when this Vim
 " has it. Not to be confused with that package's own plugin/comment.vim.
 

@@ -1,7 +1,7 @@
 -- Formatting with conform.nvim (0.10+): the filetype's formatter where
 -- installed (:ConformInfo shows which), else the language server (clangd,
 -- gopls, rust-analyzer, ...; lsp.lua). Only on demand, never on save:
---   <leader>cf  the buffer, or the selection (v/V)
+--   <leader>cf  the buffer, or the selection (v/V); also Ctrl+Shift+I
 --   <leader>cF  code in other languages inside it, e.g. Markdown code blocks
 --   gq{motion}  the lines, in buffers with a formatter (else nvim's default)
 -- Some ideas from LazyVim (plugins/formatting.lua, extras/formatting/prettier.lua).
@@ -56,6 +56,16 @@ return {
     keys = {
       {
         "<leader>cf",
+        function()
+          format({ async = true })
+        end,
+        mode = { "n", "x" },
+        desc = "Format buffer/selection",
+      },
+      -- Ctrl+Shift+I, as in VS Code on Linux. Needs extended keys (kitty
+      -- protocol), else the terminal sends Tab.
+      {
+        "<C-S-I>",
         function()
           format({ async = true })
         end,
