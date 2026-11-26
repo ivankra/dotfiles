@@ -5,18 +5,13 @@ if not vim.g.in_container then
   return {}
 end
 
-local host = vim.uv.os_gethostname() -- from podman --hostname
+local host = vim.uv.os_gethostname() -- set by `podman --hostname`
 
-if host == "dvim" then -- (treesitter + mason) {{{
+local function treesitter_mason() -- {{{
   --Unattended install (:MasonInstall blocks when headless; nvim-treesitter's install() is async, so wait):
   --RUN nvim --headless "+Lazy! sync" "+qa"
   --RUN nvim --headless "+MasonInstall lua-language-server pyright typescript-language-server stylua ruff prettier shfmt" "+qa"
   --RUN nvim --headless "+lua require('nvim-treesitter').install('all'):wait(1800000)" "+qa"
-
-  vim.opt.number = true
-  vim.opt.signcolumn = "yes"
-  -- vim.opt.statuscolumn = "%4l %s"
-  vim.opt.statuscolumn = "%s %4l "
 
   return {
     -- Treesitter: syntax highlighting, indentation, folding
@@ -110,6 +105,45 @@ if host == "dvim" then -- (treesitter + mason) {{{
       dependencies = { "mason-org/mason-lspconfig.nvim" },
     },
   }
+end
+-- }}}
+
+if host == "dvim" then -- (treesitter + mason) {{{
+  return treesitter_mason()
+  --- }}}
+elseif host == "dvim-claudecode" then -- (+claudecode.nvim) {{{
+  return vim.list_extend(treesitter_mason(), {
+    {
+      "coder/claudecode.nvim",
+      dependencies = { "folke/snacks.nvim" }, -- its terminal, else nvim's
+      config = true,
+      -- stylua: ignore
+      cmd = {
+        "ClaudeCode", "ClaudeCodeFocus", "ClaudeCodeSelectModel", "ClaudeCodeAdd",
+        "ClaudeCodeSend", "ClaudeCodeTreeAdd", "ClaudeCodeStatus", "ClaudeCodeStart",
+        "ClaudeCodeStop", "ClaudeCodeOpen", "ClaudeCodeClose", "ClaudeCodeDiffAccept",
+        "ClaudeCodeDiffDeny", "ClaudeCodeCloseAllDiffs",
+      },
+      keys = {
+        { "<leader>a", nil, desc = "AI/Claude Code" },
+        { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+        { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
+        { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume Claude" },
+        { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue Claude" },
+        { "<leader>am", "<cmd>ClaudeCodeSelectModel<cr>", desc = "Select Claude model" },
+        { "<leader>ab", "<cmd>ClaudeCodeAdd %<cr>", desc = "Add current buffer" },
+        { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+        {
+          "<leader>as",
+          "<cmd>ClaudeCodeTreeAdd<cr>",
+          desc = "Add file",
+          ft = { "NvimTree", "neo-tree", "oil", "snacks_picker_list" },
+        },
+        { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
+        { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
+      },
+    },
+  })
   -- }}}
 elseif host == "dvim-org" then -- (nvim-orgmode + org-roam.nvim) {{{
   return {
