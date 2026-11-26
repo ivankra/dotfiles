@@ -109,6 +109,8 @@ vim.keymap.set('n', '<leader>uL', '<Cmd>call ToggleRelativeNumbers()<CR>', { des
 vim.keymap.set('n', '<leader>us', '<Cmd>call ToggleSpell()<CR>', { desc = 'Toggle Spell' })
 vim.keymap.set('n', '<leader>uw', '<Cmd>call ToggleWrap()<CR>', { desc = 'Toggle Wrap' })
 vim.keymap.set('n', '<A-z>', '<Cmd>call ToggleWrap()<CR>', { desc = 'Toggle Wrap' })
+-- 0.8+: no is_disabled() before
+if vim.diagnostic.is_enabled or vim.diagnostic.is_disabled then
 vim.keymap.set('n', '<leader>ud', function()
   local d = vim.diagnostic
   local enabled
@@ -121,6 +123,7 @@ vim.keymap.set('n', '<leader>ud', function()
   end
   vim.notify("Diagnostics " .. (enabled and "off" or "on"))
 end, { desc = 'Toggle Diagnostics' })
+end
 EOF
 else
   nnoremap <leader>ub :call ToggleBackground()<CR>

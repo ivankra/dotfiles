@@ -109,6 +109,7 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     dev = true,
+    cond = vim.fn.has("nvim-0.11") == 1,
     cmd = "Telescope",
     dependencies = { "nvim-lua/plenary.nvim" },
     -- Use telescope's dropdown for vim.ui.select() (numbered list picker, :LspInstall, ...)
@@ -193,13 +194,9 @@ return {
     },
   },
 
-  -- Completion with blink.cmp (0.10+), instead of nvim's built-in LSP
-  -- completion (lsp.lua): a menu as you type with the server's items, file
-  -- paths, snippets and words from open buffers, docs next to it. Also on the
-  -- : line (Tab).
-  -- Keys: Ctrl+Space opens the menu, Ctrl+N/P or Up/Down select, Ctrl+Y
-  -- accepts, Ctrl+E closes, PageUp/PageDown move a page, Ctrl+B/F scroll the
-  -- docs.
+  -- Completion with blink.cmp (0.10+), instead of nvim's built-in LSP.
+  -- Keys: Ctrl+Space open menu, Ctrl+N/P or arrows select, Ctrl+Y accept,
+  -- Ctrl+E close, Ctrl+B/F scroll docs. Ctrl+K show/hide signature.
   {
     "saghen/blink.cmp",
     dev = true,
@@ -220,7 +217,7 @@ return {
       -- case the implementation is changed.
       fuzzy = {
         implementation = "lua",
-        prebuilt_binaries = { download = false },
+        prebuilt_binaries = { download = vim.g.in_container },
       },
       keymap = {
         preset = "default",
@@ -238,6 +235,18 @@ return {
           end,
           "fallback",
         },
+        -- The preset's show/hide, but only where a server gives signatures:
+        -- show_signature() takes the key in any buffer, so elsewhere Ctrl+K
+        -- stays nvim's digraph key (Ctrl+K e : for ë)
+        ["<C-k>"] = {
+          function(cmp)
+            if #vim.lsp.get_clients({ bufnr = 0, method = "textDocument/signatureHelp" }) > 0 then
+              return cmp.show_signature()
+            end
+          end,
+          "hide_signature",
+          "fallback",
+        },
       },
       appearance = {
         nerd_font_variant = "mono",
@@ -252,6 +261,8 @@ return {
           draw = { columns = { { "label", "label_description", gap = 1 }, { "kind" } } },
         } or nil,
       },
+      -- Border: 'winborder' (init.lua)
+      signature = { enabled = true },
     },
   },
 
@@ -282,6 +293,7 @@ return {
   {
     "lewis6991/gitsigns.nvim",
     dev = true,
+    cond = vim.fn.has("nvim-0.11") == 1,
     event = "VimEnter",
     opts = {
       signcolumn = true, -- the default; see plugin/statuscolumn.lua

@@ -20,13 +20,25 @@ end
 
 local group = vim.api.nvim_create_augroup("dotfiles_ui2", { clear = true })
 
--- Runs fn, which changes window heights, with 'splitkeep' "screen", as ui2
--- does for 'cmdheight'. Else ("cursor") the text can scroll a line, for some
--- cursor rows. 'splitkeep' is restored even if fn fails.
+-- Runs fn keeping window heights (laststatus 3 <-> 0 moves a row between
+-- split windows) and the text in place ('splitkeep' "screen", as ui2 does)
 local function keep_screen(fn)
+  local heights = {}
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if vim.api.nvim_win_get_config(win).relative == "" then
+      heights[win] = vim.api.nvim_win_get_height(win)
+    end
+  end
   local splitkeep = vim.o.splitkeep
   vim.o.splitkeep = "screen"
-  local ok, err = pcall(fn)
+  local ok, err = pcall(function()
+    fn()
+    for win, height in pairs(heights) do
+      if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_height(win) ~= height then
+        vim.api.nvim_win_set_height(win, height)
+      end
+    end
+  end)
   vim.o.splitkeep = splitkeep
   if not ok then
     error(err, 0)
@@ -42,7 +54,9 @@ vim.api.nvim_create_autocmd("CmdlineEnter", {
   callback = function()
     if vim.v.event.cmdlevel == 1 then
       keep_screen(function()
+        -- cmdheight now, not when ui2 does: no frame with a spare row
         laststatus, vim.o.laststatus = vim.o.laststatus, 0
+        vim.o.cmdheight = 1
       end)
     end
   end,
