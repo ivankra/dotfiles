@@ -51,6 +51,23 @@ end
 -- Also terminal and : line mode: a tab clicked there ends its drag there
 local drag_modes = { "n", "i", "v", "t", "c" }
 
+-- Colored file icon on the current buffer's tab only, the others in their
+-- tab's text color. Bufferline's color_icons option is all or nothing: wrap
+-- set_icon_highlight(), which makes the icon's highlight from the devicon's
+-- group, to make it from the tab's text group instead.
+local function plain_inactive_icons()
+  local highlights = require("bufferline.highlights")
+  local visibility = require("bufferline.constants").visibility
+  local set_icon_highlight = highlights.set_icon_highlight
+  highlights.set_icon_highlight = function(state, hls, base_hl)
+    if state ~= visibility.SELECTED then
+      -- Visible in another window, or hidden
+      base_hl = (state == visibility.INACTIVE and hls.buffer_visible or hls.background).hl_group
+    end
+    return set_icon_highlight(state, hls, base_hl)
+  end
+end
+
 local function drag_keymaps()
   vim.keymap.set(drag_modes, "<LeftDrag>", function()
     if not dragging then
@@ -131,13 +148,21 @@ return {
           },
         },
       },
-      -- Disable italic for active tab
-      highlights = {
-        buffer_selected = { italic = false },
-      },
+      -- Bufferline's defaults for the colorscheme, then these
+      highlights = function(defaults)
+        local fill = defaults.highlights.fill.bg
+        return {
+          -- Disable italic for active tab
+          buffer_selected = { italic = false },
+          -- No │ between nvim-tree's offset and the first tab: a gap like
+          -- between tabs
+          offset_separator = { fg = fill, bg = fill },
+        }
+      end,
     },
     config = function(_, opts)
       require("bufferline").setup(opts)
+      plain_inactive_icons()
       drag_keymaps()
     end,
     keys = {
