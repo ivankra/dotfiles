@@ -284,7 +284,7 @@ return {
     dev = true,
     event = "VimEnter",
     opts = {
-      signcolumn = vim.g.gitsigns_signcolumn,
+      signcolumn = true, -- the default; see plugin/statuscolumn.lua
       -- Without a Nerd Font: gitsigns' default delete signs (▁ ▔)
       signs = {
         -- add = { text = "▎" },

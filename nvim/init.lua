@@ -21,27 +21,10 @@ vim.opt.undofile = true                 -- Persistent undo history
 vim.opt.virtualedit = "block"           -- Allow cursor to move past end-of-line in block selection mode
 vim.opt.wildmode = "longest:full,full"  -- completion mode like readline's show-all-if-ambiguous
 
--- 24-bit color: 0.10+ turns it on by itself when the terminal supports it
--- ($COLORTERM, terminfo, or asking the terminal, which also works over ssh),
--- and leaves it off in e.g. the Linux console. Older nvim needs it set.
-if vim.fn.has("nvim-0.10") == 0 then
-  vim.opt.termguicolors = true
-end
-
 -- Default indent options. Will get adjusted by guess-indent.nvim.
 vim.opt.expandtab = true                -- Expand tabs
 vim.opt.shiftwidth = 2                  -- 2 space indent
 vim.opt.softtabstop = -1                -- Use shiftwidth value
-
--- Status column
-vim.opt.number = true                   -- Show line numbers
-vim.opt.numberwidth = 3
-vim.opt.signcolumn = "yes"              -- Always show sign column
-vim.g.gitsigns_signcolumn = true        -- gitsigns's signcolumn via lua/plugins/init.lua
--- 'statuscolumn' is 0.9+, and %l only follows 'number'/'relativenumber' since 0.10
-if vim.fn.has("nvim-0.10") == 1 then
-  vim.opt.statuscolumn = "%3l%s"
-end
 
 -- Wrapping
 vim.opt.wrap = false                    --  No line wrapping by default
@@ -51,18 +34,19 @@ vim.opt.breakindentopt = "list:-1"      --  ...and indent past list bullets (per
 -- With line numbers on, don't want showbreak
 -- vim.opt.breakindentopt = "shift:2,sbr"  --  At least 2 column indent and enable showbreak
 -- vim.opt.showbreak = "↪"                 --  Wrapping indicator e.g. ↪ ⤷ ↳ └─▶
--- Alternatively, show in place of a line number (busier screen):
--- if vim.fn.has("nvim-0.10") == 1 then
---  vim.opt.statuscolumn = "%{%v:virtnum > 0 && (&nu || &rnu) ? '%=↪' : '%3l'%}%s"
--- end
 -- stylua: ignore end
 
--- Add a LineNr-colored bar in signcolumn when there are no signs, in order to blend in with gitsigns
--- _G.get_statuscol = function()
---   local signs = vim.fn.sign_getplaced(vim.api.nvim_get_current_buf(), {group = "*", lnum = vim.v.lnum})[1].signs
---   if #signs > 0 then return "%3l%s" else return "%3l%#LineNr#│%" end
--- end
--- vim.o.statuscolumn = "%!v:lua.get_statuscol()"
+-- 24-bit color: 0.10+ turns it on by itself when the terminal supports it
+-- ($COLORTERM, terminfo, or asking the terminal, which also works over ssh),
+-- and leaves it off in e.g. the Linux console. Older nvim needs it set.
+if vim.fn.has("nvim-0.10") == 0 then
+  vim.opt.termguicolors = true
+end
+
+-- Border for floating windows that don't set their own
+if vim.fn.has("nvim-0.11") == 1 then
+  vim.opt.winborder = "rounded"
+end
 
 -- vim.uv is 0.10+, older nvim only has vim.loop (same libuv module). Lua code
 -- loaded later can use vim.uv everywhere. lazy.nvim sets this too, but only
