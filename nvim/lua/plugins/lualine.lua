@@ -491,59 +491,6 @@ end
 
 -- }}}
 
--- LSP progress (e.g. "basedpyright: Indexing 3/10 (30%)") {{{
-
--- Tasks in progress, by server and task: { client_id, name, title, message,
--- percentage, time }
-local lsp_progress = {}
-
-local function ll_lsp_progress()
-  local p
-  -- Among several tasks, pick the latest updated one.
-  for _, task in pairs(lsp_progress) do
-    if not p or task.time > p.time then
-      p = task
-    end
-  end
-  if not p then
-    return ""
-  end
-  local text = (p.title or "") .. (p.message and " " .. p.message or "")
-  text = p.name .. ": " .. vim.trim(text .. (p.percentage and " (" .. p.percentage .. "%)" or ""))
-  -- Truncate to 50 columns
-  if vim.api.nvim_strwidth(text) > 50 then
-    text = vim.fn.strcharpart(text, 0, 49) .. "…"
-  end
-  return (text:gsub("%%", "%%%%")) -- escaped after cutting: no lone %
-end
-
--- LspProgress/LspDetach callback: updates lsp_progress
-local function ll_on_lsp_progress(ev)
-  local id = ev.data.client_id
-  if ev.event == "LspDetach" then
-    -- A server that stops mid-task sends no "end"
-    for key, task in pairs(lsp_progress) do
-      if task.client_id == id then
-        lsp_progress[key] = nil
-      end
-    end
-  else
-    local value, key = ev.data.params.value, id .. ":" .. tostring(ev.data.params.token)
-    local client = vim.lsp.get_client_by_id(id)
-    if type(value) ~= "table" or value.kind == "end" or not client then
-      lsp_progress[key] = nil
-    else
-      local task = lsp_progress[key] or { client_id = id, name = client.name }
-      task.title = value.title or task.title -- only with the first message ("begin")
-      task.message, task.percentage, task.time = value.message, value.percentage, vim.uv.now()
-      lsp_progress[key] = task
-    end
-  end
-  require("lualine").refresh()
-end
-
--- }}}
-
 -- LSP gear icon (when attached to a server) {{{
 
 local function ll_lsp_gear()
@@ -742,6 +689,50 @@ end
 
 -- }}}
 
+-- Command line info {{{
+
+-- What the command line would show when hidden (cmdheight=0, see init.lua)
+local function cmdline_hidden()
+  return vim.o.cmdheight == 0
+end
+
+-- A highlight group's foreground, for a component's color: as LazyVim, which
+-- colors these with Snacks.util.color(). A function: follows colorscheme changes.
+local function fg_of(group)
+  return function()
+    local fg = vim.api.nvim_get_hl(0, { name = group, link = false }).fg
+    return fg and { fg = string.format("#%06x", fg) } or nil
+  end
+end
+
+-- Macro being recorded
+local function ll_recording()
+  local reg = vim.fn.reg_recording()
+  return reg ~= "" and "recording @" .. reg or ""
+end
+
+-- Keys of a pending command (count, operator, register): nvim's live %S (it
+-- redraws it while a command is pending, lualine can't). Not in Visual mode,
+-- where it's the selection size, nor with raw key bytes ("~@": arrows, mouse).
+-- While which-key waits (g, <Space>, ...), its keys. Refreshed per key (below).
+local function ll_showcmd()
+  local wk = package.loaded["which-key.state"]
+  local keys = wk and wk.state and wk.state.node.keys -- in key notation already
+  if keys and keys ~= "" then
+    -- With a count typed before. Not a register as which-key's own title has
+    -- it: v:register stays set after which-key is left with Esc.
+    keys = (vim.v.count > 0 and vim.v.count or "") .. keys
+    return " " .. keys:gsub("%%", "%%%%") .. " "
+  end
+  if vim.fn.mode():find("^[vVsS\22\19]") then -- Visual, Select (also blockwise)
+    return ""
+  end
+  -- %( %): no padding when empty
+  return vim.api.nvim_eval_statusline("%S", {}).str:find("~@", 1, true) and "" or "%( %S %)"
+end
+
+-- }}}
+
 -- Location {{{
 
 -- %v: screen column, not %c's byte column (2x on Cyrillic text)
@@ -789,20 +780,29 @@ return {
           { "branch", icon = "", on_click = ll_branch_picker, cond = min_width(100) },
         },
         lualine_c = {
+          -- Separated from the path when shown: by lualine's default component
+          -- separator (Nerd Font chevron)
+          {
+            "diagnostics",
+            on_click = ll_diagnostics_picker,
+            cond = min_width(70),
+            separator = vim.g.nerd_font and "\u{e0b1}" or ">",
+          },
           { ll_pretty_path(), on_click = ll_path_menu },
         },
         lualine_x = {
-          { "diagnostics", on_click = ll_diagnostics_picker, cond = min_width(70) },
+          { ll_showcmd, cond = cmdline_hidden, color = fg_of("Statement"), padding = 0 },
+          { ll_recording, cond = cmdline_hidden, color = fg_of("Constant") },
           { "diff", source = ll_diff_gitsigns, on_click = ll_git_status, cond = min_width(100) },
           { ll_hex_char, cond = min_width(120) },
           { ll_indent, on_click = ll_indent_menu, cond = min_width(110) },
           { ll_encoding, cond = min_width(60) },
-          { ll_lsp_progress, icon = vim.g.nerd_font and "󰔟" or nil, cond = min_width(80) },
           { ll_lsp_gear, on_click = ll_filetype_menu, cond = min_width(60) },
           { "filetype", fmt = ll_filetype_fmt, on_click = ll_filetype_menu, cond = min_width(60) },
         },
         lualine_y = {
           { "progress", cond = min_width(60) },
+          { "searchcount", cond = cmdline_hidden },
         },
         lualine_z = {
           { ll_location, cond = min_width(40) },
@@ -811,10 +811,21 @@ return {
     },
     config = function(_, opts)
       require("lualine").setup(opts)
-      vim.api.nvim_create_autocmd({ "LspProgress", "LspDetach" }, {
-        group = vim.api.nvim_create_augroup("LualineLspProgress", { clear = true }),
-        callback = ll_on_lsp_progress,
+      -- Not among lualine's refresh events. On RecordingLeave the register is
+      -- still being recorded: refresh once that's done.
+      vim.api.nvim_create_autocmd({ "RecordingEnter", "RecordingLeave" }, {
+        group = vim.api.nvim_create_augroup("LualineRecording", { clear = true }),
+        callback = function()
+          vim.schedule(require("lualine").refresh)
+        end,
       })
+      -- Pending keys (ll_showcmd): after each key has been handled. Checked
+      -- each time: plugin/ui2.lua sets cmdheight=0 only after this runs.
+      vim.on_key(function()
+        if cmdline_hidden() then
+          vim.schedule(require("lualine").refresh)
+        end
+      end, vim.api.nvim_create_namespace("LualineShowcmd"))
     end,
   },
 }
