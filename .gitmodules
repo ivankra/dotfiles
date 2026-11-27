@@ -20,6 +20,9 @@
 	path = modules/csvview.nvim
 	url = https://github.com/hat0uma/csvview.nvim
 	ignore = untracked
+[submodule "modules/diffview.nvim"]
+	path = modules/diffview.nvim
+	url = https://github.com/sindrets/diffview.nvim.git
 [submodule "modules/github-nvim-theme"]
 	path = modules/github-nvim-theme
 	url = https://github.com/projekt0n/github-nvim-theme.git
@@ -61,6 +64,9 @@
 	path = modules/mini.icons
 	url = https://github.com/nvim-mini/mini.icons.git
 	ignore = untracked
+[submodule "modules/mini.nvim"]
+	path = modules/mini.nvim
+	url = https://github.com/nvim-mini/mini.nvim.git
 [submodule "modules/nvim-colorizer.lua"]
 	path = modules/nvim-colorizer.lua
 	url = https://github.com/catgoose/nvim-colorizer.lua.git
@@ -108,6 +114,9 @@
 	path = modules/tokyonight.nvim
 	url = https://github.com/folke/tokyonight.nvim.git
 	ignore = untracked
+[submodule "modules/trouble.nvim"]
+	path = modules/trouble.nvim
+	url = https://github.com/folke/trouble.nvim.git
 [submodule "modules/vim-beancount"]
 	path = modules/vim-beancount
 	url = https://github.com/nathangrigg/vim-beancount.git
