@@ -4,53 +4,24 @@ if exists("g:ui_vim_loaded")
 endif
 let g:ui_vim_loaded = 1
 
-" Enables cursor motion by display lines when 'wrap' is on.
-" 'wrap' is window-local but maps are buffer-local, so resync whenever the
-" buffer/window changes or 'wrap' is set. b:ui_wrap_maps marks our maps.
-function! s:SyncWrapMaps()
-  " Only in regular file buffers; don't clobber plugin buffer maps (telescope etc)
-  if &buftype !=# ''
-    return
-  endif
-  if &wrap && !get(b:, 'ui_wrap_maps', 0)
-    noremap  <buffer> <silent> <Up>   gk
-    noremap  <buffer> <silent> <Down> gj
-    noremap  <buffer> <silent> <End>  g<End>
-    " Keep arrows working in the completion popup
-    inoremap <buffer> <silent> <expr> <Up>   pumvisible() ? "\<Up>"   : "\<C-o>gk"
-    inoremap <buffer> <silent> <expr> <Down> pumvisible() ? "\<Down>" : "\<C-o>gj"
-    " <C-o>g<End> leaves the cursor before the last char; <Right> moves past it
-    inoremap <buffer> <silent> <End>  <C-o>g<End><Right>
-    " <Home> is handled by vscode.vim wrap-aware
-    " noremap  <buffer> <silent> <Home> g<Home>
-    " inoremap <buffer> <silent> <Home> <C-o>g<Home>
-    let b:ui_wrap_maps = 1
-  elseif !&wrap && get(b:, 'ui_wrap_maps', 0)
-    " unmap (not nunmap) to also clear the visual/operator-pending maps
-    silent! unmap  <buffer> <Up>
-    silent! unmap  <buffer> <Down>
-    silent! unmap  <buffer> <End>
-    silent! iunmap <buffer> <Up>
-    silent! iunmap <buffer> <Down>
-    silent! iunmap <buffer> <End>
-    " <Home> is handled by vscode.vim wrap-aware
-    " silent! unmap  <buffer> <Home>
-    " silent! iunmap <buffer> <Home>
-    unlet b:ui_wrap_maps
-  endif
-endfunction
-
-augroup UiWrapMaps
-  autocmd!
-  autocmd BufEnter,BufWinEnter,WinEnter * call s:SyncWrapMaps()
-  if exists('##OptionSet')
-    autocmd OptionSet wrap call s:SyncWrapMaps()
-  endif
-augroup END
+" Cursor motion by display lines when 'wrap' is on, in regular file buffers
+" (not plugin buffers: telescope's prompt etc). Global <expr> maps that check
+" 'wrap' each time, not buffer-local ones kept in sync with it: those
+" overwrote (wrap on) or deleted (wrap off) completion plugins' buffer-local
+" <Up>/<Down>, e.g. blink.cmp's, which sets them once per buffer. blink.cmp
+" falls back to these when its menu is closed.
+noremap  <silent> <expr> <Up>   &wrap && &buftype ==# '' ? 'gk' : '<Up>'
+noremap  <silent> <expr> <Down> &wrap && &buftype ==# '' ? 'gj' : '<Down>'
+noremap  <silent> <expr> <End>  &wrap && &buftype ==# '' ? 'g<End>' : '<End>'
+" Keep arrows working in the completion popup
+inoremap <silent> <expr> <Up>   !pumvisible() && &wrap && &buftype ==# '' ? "\<C-o>gk" : "\<Up>"
+inoremap <silent> <expr> <Down> !pumvisible() && &wrap && &buftype ==# '' ? "\<C-o>gj" : "\<Down>"
+" <C-o>g<End> leaves the cursor before the last char; <Right> moves past it
+inoremap <silent> <expr> <End>  &wrap && &buftype ==# '' ? "\<C-o>g\<End>\<Right>" : "\<End>"
+" <Home> is handled by vscode.vim wrap-aware
 
 function! ToggleWrap()
   setlocal wrap!
-  call s:SyncWrapMaps()
   redraw
   echomsg &wrap ? "Wrapping long lines" : "No line wrapping"
 endfunction
