@@ -209,7 +209,6 @@ elseif host == "dvim-obsidian" then -- (obsidian.nvim, $PWD=vault) {{{
 elseif host == "dvim-devicons" then -- (nvim-web-devicons) {{{
   vim.g.icons_plugin = "nvim-tree/nvim-web-devicons"
   return {
-    { "nvim-mini/mini.icons", enabled = false },
     { "nvim-tree/nvim-web-devicons", lazy = true, opts = {} },
   }
   -- }}}

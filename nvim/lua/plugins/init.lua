@@ -1,33 +1,44 @@
 local markdown_fts = { "markdown", "norg", "rmd", "org", "codecompanion" }
 
 return {
-  -- Icons. Requires Nerd patched font, else letters (vim.g.nerd_font).
+  -- mini.nvim: icons (Nerd Font, else letters), surround (sa/sd/sr...),
+  -- text objects (a/i + q quotes, b brackets, f calls, a arguments, t tags),
+  -- auto-closing pairs. Not its bufremove: the patched one below.
   {
-    "nvim-mini/mini.icons",
+    "nvim-mini/mini.nvim",
     dev = true,
-    opts = { style = vim.g.nerd_font and "glyph" or "ascii" },
-    config = function(_, opts)
-      local icons = require("mini.icons")
-      icons.setup(opts)
-      -- README.md, CHANGELOG.md etc.: the plain .md icon, not their own
-      local glyph, hl = icons.get("extension", "md")
-      local md_files = {}
-      for _, name in ipairs(icons.list("file")) do
-        if name:match("%.md$") then
-          md_files[name] = { glyph = glyph, hl = hl }
+    event = "VeryLazy",
+    config = function()
+      if vim.g.icons_plugin == "nvim-mini/mini.nvim" then
+        local icons = require("mini.icons")
+        local opts = { style = vim.g.nerd_font and "glyph" or "ascii" }
+        icons.setup(opts)
+        -- README.md, CHANGELOG.md etc.: the plain .md icon, not their own
+        local glyph, hl = icons.get("extension", "md")
+        local md_files = {}
+        for _, name in ipairs(icons.list("file")) do
+          if name:match("%.md$") then
+            md_files[name] = { glyph = glyph, hl = hl }
+          end
         end
+        icons.setup(vim.tbl_deep_extend("force", opts, { file = md_files }))
       end
-      icons.setup(vim.tbl_deep_extend("force", opts, { file = md_files }))
+      require("mini.surround").setup()
+      -- No an/in ("next" variants): keeps nvim 0.12's an/in (select node)
+      require("mini.ai").setup({ mappings = { around_next = "", inside_next = "" } })
+      require("mini.pairs").setup()
     end,
     init = function()
-      package.preload["nvim-web-devicons"] = function()
-        require("mini.icons").mock_nvim_web_devicons()
-        return package.loaded["nvim-web-devicons"]
+      if vim.g.icons_plugin == "nvim-mini/mini.nvim" then
+        package.preload["nvim-web-devicons"] = function()
+          require("mini.icons").mock_nvim_web_devicons()
+          return package.loaded["nvim-web-devicons"]
+        end
       end
     end,
   },
 
-  -- Delete buffers while preserving window layout
+  -- Delete buffers while preserving window layout. Vendored with patches.
   {
     "nvim-mini/mini.bufremove",
     dev = true,
@@ -57,6 +68,10 @@ return {
       end, { bang = true, nargs = "*", complete = "buffer", desc = "Delete buffer via mini.bufremove" })
     end,
     init = function()
+      -- The patched copy, not mini.nvim's same-named lua/mini/bufremove.lua
+      package.preload["mini.bufremove"] = function()
+        return dofile(vim.g.dotfiles .. "/third_party/mini.bufremove/lua/mini/bufremove.lua")
+      end
       -- Also covers `bd!`: typing `!` already expands `bd` to `Bd`
       vim.cmd([[cabbr <expr> bd (getcmdtype() == ':' && getcmdline() ==# 'bd') ? 'Bd' : 'bd']])
     end,
@@ -186,7 +201,7 @@ return {
         { "<leader>u", group = "ui" },
         { "<leader>g", group = "git" },
         { "<leader>gh", group = "hunks" },
-        { "<leader>x", group = "quickfix" },
+        { "<leader>x", group = "diagnostics/quickfix" },
       },
     },
     keys = {
@@ -365,6 +380,68 @@ return {
   -- vim-fugitive: classic vim git plugin
   -- :G/:Git command with the same interface as CLI git
   { "tpope/vim-fugitive", dev = true },
+
+  -- Diff and history views in a tab: changed files beside the diff.
+  -- q or the key again closes.
+  {
+    "sindrets/diffview.nvim",
+    dev = true,
+    cmd = { "DiffviewOpen", "DiffviewFileHistory", "DiffviewClose" },
+    keys = function()
+      local function toggle(cmd)
+        return function()
+          vim.cmd(require("diffview.lib").get_current_view() and "DiffviewClose" or cmd)
+        end
+      end
+      return {
+        { "<leader>gd", toggle("DiffviewOpen"), desc = "Diff view (uncommitted)" },
+        { "<leader>gf", toggle("DiffviewFileHistory %"), desc = "File history" },
+        { "<leader>gF", toggle("DiffviewFileHistory"), desc = "Repo history" },
+        { "<leader>gf", ":DiffviewFileHistory<cr>", mode = "x", desc = "Selection history" },
+      }
+    end,
+    opts = function()
+      local close = { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diff view" } }
+      return {
+        enhanced_diff_hl = true,
+        use_icons = vim.g.nerd_font,
+        signs = not vim.g.nerd_font and { fold_closed = ">", fold_open = "v" } or nil,
+        keymaps = { view = { close }, file_panel = { close }, file_history_panel = { close } },
+      }
+    end,
+  },
+
+  -- Lists in a side panel: diagnostics, symbols, references, quickfix, todos
+  {
+    "folke/trouble.nvim",
+    dev = true,
+    cmd = "Trouble",
+    keys = {
+      { "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "Diagnostics (Trouble)" },
+      { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "Buffer diagnostics (Trouble)" },
+      { "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix list (Trouble)" },
+      { "<leader>xL", "<cmd>Trouble loclist toggle<cr>", desc = "Location list (Trouble)" },
+      { "<leader>xt", "<cmd>Trouble todo toggle<cr>", desc = "Todo comments (Trouble)" },
+      { "<leader>cs", "<cmd>Trouble symbols toggle<cr>", desc = "Symbols (Trouble)" },
+      { "<leader>cS", "<cmd>Trouble lsp toggle<cr>", desc = "LSP definitions/references (Trouble)" },
+    },
+    opts = function()
+      local opts = { modes = { lsp = { win = { position = "right" } } } }
+      if not vim.g.nerd_font then
+        local kinds = {}
+        for _, kind in ipairs(vim.lsp.protocol.SymbolKind) do
+          kinds[kind] = ""
+        end
+        opts.icons = {
+          indent = { fold_open = "v ", fold_closed = "> " },
+          folder_closed = "",
+          folder_open = "",
+          kinds = kinds,
+        }
+      end
+      return opts
+    end,
+  },
 
   -- vim-projectionist: switch between alternate files (.c/.h)
   -- Config in plugin/projectionist.vim
