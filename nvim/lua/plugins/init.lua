@@ -281,29 +281,6 @@ return {
     },
   },
 
-  -- Toggleable terminal on Ctrl+`/Ctrl+Space
-  {
-    "akinsho/toggleterm.nvim",
-    dev = true,
-    -- <C-Space> not in insert mode or on the : line: blink.cmp's (above).
-    -- Terminals that send <C-`> as <C-Space> (NUL), like gnome-terminal and
-    -- ptyxis, toggle with Ctrl+` there too.
-    cmd = { "ToggleTerm", "TermExec", "TermNew" },
-    -- No rhs: the first press loads the plugin, then hits its open_mapping
-    keys = {
-      { "<C-`>", mode = { "n", "i" }, desc = "Toggle terminal" },
-      { "<C-Space>", "<cmd>ToggleTerm<cr>", desc = "Toggle terminal" },
-    },
-    opts = {
-      open_mapping = [[<C-`>]],
-      -- Closing from inside one: its own terminal mode only, so programs in
-      -- other terminals (:terminal) keep Ctrl+Space
-      on_create = function(term)
-        vim.keymap.set("t", "<C-Space>", "<cmd>ToggleTerm<cr>", { buffer = term.bufnr, desc = "Toggle terminal" })
-      end,
-    },
-  },
-
   -- Visual git integration: highlight changed lines, blame, stage hunks
   {
     "lewis6991/gitsigns.nvim",

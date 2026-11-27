@@ -15,7 +15,7 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
 
 # For dvim-claudecode
 RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends neovim tree-sitter-cli && \
+    apt-get install -y --no-install-recommends neovim tree-sitter-cli lazygit && \
     rm -rf /var/lib/apt/lists/*
 
 CMD claude
