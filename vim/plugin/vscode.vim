@@ -299,6 +299,17 @@ function! s:SetupGuiZoom()
 endfunction
 
 " }}}
+" Ctrl+Shift+G: source control {{{
+" nvim: lazygit with fallback to fugitive (via toggleterm.lua)
+" Vim: fugitive; GUI only - extended key
+
+if has('nvim')
+  nnoremap <C-S-G> <Cmd>Lazygit<CR>
+elseif has('gui_running')
+  nmap <expr> <C-S-G> &filetype ==# 'fugitive' ? 'gq' : '<Cmd>Git<CR>'
+endif
+
+" }}}
 
 if has('nvim')
   " Ctrl+Shift+[: fold region {{{
@@ -357,12 +368,6 @@ if has('nvim')
   " Ctrl+Shift+E: focus/unfocus file explorer {{{
 
   nnoremap <expr> <C-S-E> &filetype ==# 'NvimTree' ? '<C-W>p' : '<Cmd>NvimTreeFocus<CR>'
-
-  " }}}
-  " Ctrl+Shift+G: source control (fugitive's status), or close it {{{
-  " nmap: fugitive's own gq, not the format operator
-
-  nmap <expr> <C-S-G> &filetype ==# 'fugitive' ? 'gq' : '<Cmd>Git<CR>'
 
   " }}}
   " Ctrl+Shift+M: problems (all diagnostics) {{{

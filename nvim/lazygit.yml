@@ -1,0 +1,5 @@
+# lazygit inside nvim (<leader>gg): e etc. open files in that nvim.
+# The preset sends that nvim ($NVIM) q, closing lazygit, then opens
+# the file with nvim --server $NVIM --remote.
+os:
+  editPreset: nvim-remote
