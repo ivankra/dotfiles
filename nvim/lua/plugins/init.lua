@@ -11,7 +11,26 @@ return {
     config = function()
       if vim.g.icons_plugin == "nvim-mini/mini.nvim" then
         local icons = require("mini.icons")
-        local opts = { style = vim.g.nerd_font and "glyph" or "ascii" }
+        -- C/C++, YAML, CSS: devicons' glyphs (mini.icons' colors). Filetypes
+        -- cover their extensions (.cc, .cxx, .yml etc.)
+        local opts = {
+          style = vim.g.nerd_font and "glyph" or "ascii",
+          filetype = {
+            c = { glyph = "" },
+            cpp = { glyph = "" },
+            css = { glyph = "" },
+            yaml = { glyph = "" },
+          },
+          extension = {
+            h = { glyph = "" },
+            hh = { glyph = "" },
+            hpp = { glyph = "" },
+            hxx = { glyph = "" },
+            -- No filetype, so no icon: devicons' (colors: mini.icons' .wat, .ts)
+            wasm = { glyph = "", hl = "MiniIconsPurple" },
+            mdx = { glyph = "", hl = "MiniIconsAzure" },
+          },
+        }
         icons.setup(opts)
         -- README.md, CHANGELOG.md etc.: the plain .md icon, not their own
         local glyph, hl = icons.get("extension", "md")
