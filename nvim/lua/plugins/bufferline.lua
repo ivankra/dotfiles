@@ -217,7 +217,7 @@ return {
           },
           vim.tbl_map(function(filetype)
             return { filetype = filetype, highlight = "BufferLineFill", separator = true }
-          end, { "neo-tree", "snacks_layout_box" })
+          end, { "neo-tree", "snacks_layout_box", "DiffviewFiles", "DiffviewFileHistory" })
         ),
       },
       -- Bufferline's defaults for the colorscheme, then these

@@ -772,7 +772,7 @@ return {
         globalstatus = true,
       },
       -- Own statusline for these windows (by filetype) instead of the sections below
-      extensions = { "oil", "nvim-tree", "toggleterm", "fugitive", "lazy", "quickfix", "man" },
+      extensions = { "oil", "nvim-tree", "toggleterm", "fugitive", "lazy", "quickfix", "man", "trouble" },
       sections = {
         lualine_a = {
           { "mode", fmt = ll_mode_fmt },

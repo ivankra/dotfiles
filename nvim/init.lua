@@ -95,7 +95,7 @@ vim.g.in_container = vim.env.container ~= nil
   or vim.uv.fs_stat("/run/.containerenv") ~= nil
   or vim.uv.fs_stat("/.dockerenv") ~= nil
 
-vim.g.icons_plugin = "nvim-mini/mini.icons"
+vim.g.icons_plugin = "nvim-mini/mini.nvim"
 vim.g.statusline_plugin = "lualine"
 
 -- Nerd Font glyphs (icons, statusline arrows, ...), except on the Linux
