@@ -8,7 +8,7 @@ usage() {
   local themes=("$(dirname "$0")"/themes/*/)
   themes=("${themes[@]%/}")
   cat <<EOF
-Usage: ${0##*/} [--theme=<name>]
+Usage: ${0##*/} [--theme=<name>] [--no-modules]
 
 Sets up dotfiles from ~/.dotfiles for the current user.
 Except for GUI tasks - run gui-setup.sh under GUI afterwards.
@@ -16,6 +16,7 @@ Idempotent, can be rerun multiple times.
 
 Options:
   --theme=<name>  Switch ~/.config/theme to themes/<name>/
+  --no-modules    Don't initialize git submodules
   -h, --help      Show this help and exit
 
 Available themes: ${themes[*]##*/}
@@ -23,6 +24,7 @@ EOF
 }
 
 THEME=
+NO_MODULES=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help) usage; exit 0;;
@@ -32,6 +34,7 @@ while [[ $# -gt 0 ]]; do
         echo "Error: --theme requires a theme name"; exit 1
       fi
       THEME="$2"; shift;;
+    --no-modules) NO_MODULES=1;;
     *)         echo "Unknown parameter: $1"; echo "Try '${0##*/} --help'."; exit 1;;
   esac
   shift
@@ -56,7 +59,8 @@ if ! [[ -f "$HOME/.dotfiles/setup.sh" && "$HOME/.dotfiles/setup.sh" -ef "$0" ]];
     SCRIPT_USER=$(stat -c %U "$SCRIPT_PATH")
     if [[ "$SCRIPT_PATH" == "/home/$SCRIPT_USER/"* ]]; then
       echo "Will run setup under $SCRIPT_USER"
-      (set -x; sudo -u "$SCRIPT_USER" "$SCRIPT_PATH" ${THEME:+--theme="$THEME"})
+      (set -x; sudo -u "$SCRIPT_USER" "$SCRIPT_PATH" ${THEME:+--theme="$THEME"} \
+        $( ((NO_MODULES)) && echo --no-modules))
       exit $?
     fi
   fi
@@ -354,6 +358,19 @@ if [[ -L ~/.bin && "$(readlink ~/.bin)" == ".local/bin" ]]; then
 fi
 
 rm -rf python/dotfiles/__pycache__
+
+# }}}
+# Initialize git submodules {{{
+
+# Package-managed repos (debian/dotfiles) get modules from the package instead
+# and must never fetch from the network.
+if ((!NO_MODULES)) && ! [[ -f ~/.dotfiles/MANAGED ]] && [[ -e ~/.dotfiles/.git ]]; then
+  if ! hash make git >/dev/null 2>&1; then
+    echo "Warning: make or git not installed, skipping submodules"
+  elif ! make -s -C modules init; then
+    echo "Warning: failed to initialize git submodules"
+  fi
+fi
 
 # }}}
 # Create ~/.local/bin {{{
