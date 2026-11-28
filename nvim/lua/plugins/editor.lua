@@ -29,6 +29,7 @@ return {
         softtabstop = "detected",
         shiftwidth = "detected",
       },
+      filetype_exclude = { "netrw", "tutor", "bigfile" }, -- defaults + bigfile
     },
   },
 
@@ -58,6 +59,7 @@ return {
     opts = {
       filetypes = {
         "*",
+        "!bigfile", -- plugin/bigfile.lua
         -- Full CSS color syntax (names, all hex forms, rgb()/hsl()/oklch(),
         -- var()) only where it's really CSS.
         css = css_colors,
