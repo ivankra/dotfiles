@@ -327,6 +327,9 @@ return {
       -- lazy.nvim passes this table to gitsigns.setup(); keep callback here
       -- so gitsigns actually receives and runs it for attached buffers.
       on_attach = function(buffer)
+        if vim.bo[buffer].filetype == "bigfile" then
+          return false
+        end
         local gs = package.loaded.gitsigns
 
         local function map(mode, l, r, desc)
